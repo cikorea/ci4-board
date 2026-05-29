@@ -1,6 +1,9 @@
 # CI4 Board
 
 CodeIgniter 4 기반의 PHP 게시판 웹 애플리케이션입니다.
+배강민, 전상민이 Codeigniter2 점대 버전으로 만들었던 tab bbs의 데이터베이스를 기준으로 claude code를 이용하여 Codeigniter 4로 다시 작성한 게시판입니다.
+
+작성자 : 웅파 (blumine@gmail.com)
 
 ## 주요 기능
 
