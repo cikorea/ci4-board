@@ -6,7 +6,7 @@ class LanguageController extends BaseController
 {
     public function switchLocale(string $locale): \CodeIgniter\HTTP\RedirectResponse
     {
-        $supported = ['ko', 'en'];
+        $supported = ['ko', 'en', 'ja'];
         if (in_array($locale, $supported, true)) {
             session()->set('locale', $locale);
         }
