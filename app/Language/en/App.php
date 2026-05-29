@@ -227,6 +227,7 @@ return [
     // ── Language switcher ──
     'lang_ko' => '한국어',
     'lang_en' => 'English',
+    'lang_ja' => '日本語',
 
     // ── Controller messages ──
     'msg_login_fail'           => 'Incorrect username (email) or password.',
