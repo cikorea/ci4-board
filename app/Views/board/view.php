@@ -2,17 +2,17 @@
 <?= $this->section('content') ?>
 
 <div class="card board-card">
-    <!-- 헤더 (게시판명 breadcrumb) -->
+    <!-- breadcrumb -->
     <div class="card-header py-2">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0 small">
-                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">홈</a></li>
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none"><?= lang('App.home') ?></a></li>
                 <li class="breadcrumb-item">
                     <a href="/board/<?= esc($board['bbs_id']) ?>" class="text-decoration-none">
                         <?= esc_db($board['bbs_name'] ?? $board['bbs_id']) ?>
                     </a>
                 </li>
-                <li class="breadcrumb-item active">글보기</li>
+                <li class="breadcrumb-item active"><?= lang('App.view_post') ?></li>
             </ol>
         </nav>
     </div>
@@ -20,20 +20,20 @@
     <!-- 제목 & 메타 -->
     <div class="card-body border-bottom">
         <?php if ($post['is_notice']): ?>
-            <span class="badge bg-primary mb-2">공지</span>
+            <span class="badge bg-primary mb-2"><?= lang('App.notice') ?></span>
         <?php endif; ?>
         <h5 class="fw-bold mb-3"><?= esc_db($post['title']) ?></h5>
         <div class="d-flex flex-wrap gap-3 meta-text">
             <span>
                 <i class="bi bi-person me-1"></i>
                 <?php if (session()->get('logged_in') && session()->get('user_idx') != $post['user_idx'] && $post['user_id']): ?>
-                    <?= esc_db($post['nickname'] ?? '익명') ?>
+                    <?= esc_db($post['nickname'] ?? lang('App.anonymous')) ?>
                     <a href="/message/write?to=<?= esc($post['user_id']) ?>"
-                       class="ms-1 text-decoration-none" title="쪽지 보내기">
+                       class="ms-1 text-decoration-none" title="<?= lang('App.send_message') ?>">
                         <i class="bi bi-envelope" style="font-size:.8rem"></i>
                     </a>
                 <?php else: ?>
-                    <?= esc_db($post['nickname'] ?? '익명') ?>
+                    <?= esc_db($post['nickname'] ?? lang('App.anonymous')) ?>
                 <?php endif; ?>
             </span>
             <span><i class="bi bi-eye me-1"></i><?= number_format($post['hit_count']) ?></span>
@@ -41,7 +41,7 @@
             <span><i class="bi bi-chat me-1"></i><?= number_format($post['comment_count']) ?></span>
             <span><i class="bi bi-clock me-1"></i><?= date('Y-m-d H:i', $post['timestamp_insert']) ?></span>
             <?php if ($post['timestamp_update']): ?>
-                <span class="text-warning"><i class="bi bi-pencil me-1"></i>수정됨</span>
+                <span class="text-warning"><i class="bi bi-pencil me-1"></i><?= lang('App.edited') ?></span>
             <?php endif; ?>
         </div>
     </div>
@@ -50,8 +50,6 @@
     <div class="card-body py-4" style="min-height:200px; line-height:1.9;">
         <?php
         $contents = $post['contents'] ?? '';
-        // DB에 HTML 엔티티로 저장된 경우 디코딩 후 HTML 렌더링
-        // 일반 텍스트는 nl2br + esc 처리
         if ($post['html_used'] || strpos($contents, '&lt;') !== false) {
             echo html_entity_decode($contents, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         } else {
@@ -64,7 +62,7 @@
     <?php if (! empty($files)): ?>
         <div class="card-body border-top pt-3 pb-2">
             <div class="text-muted mb-2" style="font-size:.82rem">
-                <i class="bi bi-paperclip me-1"></i>첨부파일 <?= count($files) ?>개
+                <i class="bi bi-paperclip me-1"></i><?= lang('App.attachments', [count($files)]) ?>
             </div>
             <div class="d-flex flex-column gap-1">
                 <?php foreach ($files as $f):
@@ -116,7 +114,7 @@
             <?php if (! empty($urls)): ?>
                 <div class="d-flex flex-column gap-1">
                     <span class="text-muted" style="font-size:.8rem">
-                        <i class="bi bi-link-45deg me-1"></i>관련 링크
+                        <i class="bi bi-link-45deg me-1"></i><?= lang('App.related_links') ?>
                     </span>
                     <?php foreach ($urls as $u): ?>
                         <a href="<?= esc($u['url']) ?>" target="_blank" rel="noopener noreferrer"
@@ -133,24 +131,24 @@
     <!-- 하단 버튼 -->
     <div class="card-footer d-flex justify-content-between align-items-center py-3 bg-white border-0">
         <a href="/board/<?= esc($board['bbs_id']) ?>" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-list-ul me-1"></i>목록
+            <i class="bi bi-list-ul me-1"></i><?= lang('App.list') ?>
         </a>
 
         <div class="d-flex gap-2">
             <?php if (user_can_in_groups($board['permissions']['write_article'] ?? [])): ?>
                 <a href="/board/<?= esc($board['bbs_id']) ?>/write" class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-pencil-square me-1"></i>글쓰기
+                    <i class="bi bi-pencil-square me-1"></i><?= lang('App.board_write') ?>
                 </a>
             <?php endif; ?>
             <?php if (session()->get('user_idx') == $post['user_idx']): ?>
                 <a href="/board/<?= esc($board['bbs_id']) ?>/edit/<?= $post['idx'] ?>"
                    class="btn btn-sm btn-outline-warning">
-                    <i class="bi bi-pencil me-1"></i>수정
+                    <i class="bi bi-pencil me-1"></i><?= lang('App.edit') ?>
                 </a>
                 <a href="/board/<?= esc($board['bbs_id']) ?>/delete/<?= $post['idx'] ?>"
                    class="btn btn-sm btn-outline-danger"
-                   onclick="return confirm('정말 삭제하시겠습니까?')">
-                    <i class="bi bi-trash me-1"></i>삭제
+                   onclick="return confirm('<?= lang('App.delete_confirm') ?>')">
+                    <i class="bi bi-trash me-1"></i><?= lang('App.delete') ?>
                 </a>
             <?php endif; ?>
         </div>
@@ -161,13 +159,13 @@
 <div class="card board-card mt-3" id="comments">
     <div class="card-header py-3">
         <i class="bi bi-chat-left-text me-2 text-primary"></i>
-        댓글 <span class="badge bg-secondary"><?= count($comments) ?></span>
+        <?= lang('App.comments') ?> <span class="badge bg-secondary"><?= count($comments) ?></span>
     </div>
 
     <!-- 댓글 목록 -->
     <div class="card-body p-0">
         <?php if (empty($comments)): ?>
-            <p class="text-center text-muted py-4 mb-0">첫 번째 댓글을 남겨보세요.</p>
+            <p class="text-center text-muted py-4 mb-0"><?= lang('App.no_comments') ?></p>
         <?php else: ?>
             <?php foreach ($comments as $c): ?>
                 <div class="d-flex gap-3 px-4 py-3 border-bottom" id="comment-<?= $c['idx'] ?>">
@@ -180,10 +178,10 @@
                     <div class="flex-grow-1">
                         <div class="d-flex justify-content-between align-items-start mb-1">
                             <div>
-                                <strong style="font-size:.9rem"><?= esc_db($c['nickname'] ?? '익명') ?></strong>
+                                <strong style="font-size:.9rem"><?= esc_db($c['nickname'] ?? lang('App.anonymous')) ?></strong>
                                 <?php if (session()->get('logged_in') && session()->get('user_idx') != $c['user_idx']): ?>
                                     <a href="/message/write?to=<?= esc($c['user_id'] ?? '') ?>"
-                                       class="ms-1 text-decoration-none text-muted" title="쪽지 보내기">
+                                       class="ms-1 text-decoration-none text-muted" title="<?= lang('App.send_message') ?>">
                                         <i class="bi bi-envelope" style="font-size:.75rem"></i>
                                     </a>
                                 <?php endif; ?>
@@ -191,7 +189,7 @@
                                     <?= date('Y-m-d H:i', $c['timestamp_insert']) ?>
                                 </span>
                                 <?php if ($c['timestamp_update']): ?>
-                                    <span class="text-warning ms-1 meta-text">(수정됨)</span>
+                                    <span class="text-warning ms-1 meta-text"><?= lang('App.edited_mark') ?></span>
                                 <?php endif; ?>
                             </div>
                             <?php if (session()->get('user_idx') == $c['user_idx']): ?>
@@ -203,14 +201,14 @@
                                     </button>
                                     <a href="/board/<?= esc($board['bbs_id']) ?>/view/<?= $post['idx'] ?>/comment/<?= $c['idx'] ?>/delete"
                                        class="btn btn-link btn-sm text-danger p-0"
-                                       onclick="return confirm('댓글을 삭제하시겠습니까?')">
+                                       onclick="return confirm('<?= lang('App.comment_delete_confirm') ?>')">
                                         <i class="bi bi-trash"></i>
                                     </a>
                                 </div>
                             <?php endif; ?>
                         </div>
 
-                        <!-- 댓글 본문 (보기 모드) -->
+                        <!-- 댓글 본문 -->
                         <div class="comment-body" data-idx="<?= $c['idx'] ?>" style="line-height:1.7; white-space:pre-wrap; font-size:.92rem;">
                             <?php
                             $cText = $c['comment'];
@@ -222,7 +220,7 @@
                             ?>
                         </div>
 
-                        <!-- 댓글 수정 폼 (숨김) -->
+                        <!-- 댓글 수정 폼 -->
                         <form class="comment-edit-form mt-2" data-idx="<?= $c['idx'] ?>"
                               action="/board/<?= esc($board['bbs_id']) ?>/view/<?= $post['idx'] ?>/comment/<?= $c['idx'] ?>/edit"
                               method="post" style="display:none">
@@ -231,11 +229,11 @@
                                       required><?= esc(html_entity_decode($c['comment'], ENT_QUOTES | ENT_HTML5, 'UTF-8')) ?></textarea>
                             <div class="d-flex gap-2">
                                 <button type="submit" class="btn btn-sm btn-primary">
-                                    <i class="bi bi-check-lg me-1"></i>저장
+                                    <i class="bi bi-check-lg me-1"></i><?= lang('App.save') ?>
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline-secondary btn-comment-cancel"
                                         data-idx="<?= $c['idx'] ?>">
-                                    취소
+                                    <?= lang('App.cancel') ?>
                                 </button>
                             </div>
                         </form>
@@ -253,10 +251,10 @@
                 <div class="d-flex gap-2 align-items-start">
                     <div class="flex-grow-1">
                         <textarea name="comment" class="form-control" rows="3"
-                                  placeholder="댓글을 입력하세요..." required></textarea>
+                                  placeholder="<?= lang('App.comment_placeholder') ?>" required></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary" style="white-space:nowrap">
-                        <i class="bi bi-send me-1"></i>등록
+                        <i class="bi bi-send me-1"></i><?= lang('App.submit') ?>
                     </button>
                 </div>
             </form>
@@ -264,7 +262,7 @@
     <?php elseif (! session()->get('logged_in')): ?>
         <div class="card-footer bg-white py-3 px-4 text-center">
             <a href="/auth/login" class="btn btn-outline-primary btn-sm">
-                <i class="bi bi-box-arrow-in-right me-1"></i>로그인 후 댓글을 작성할 수 있습니다
+                <i class="bi bi-box-arrow-in-right me-1"></i><?= lang('App.login_to_comment') ?>
             </a>
         </div>
     <?php endif; ?>

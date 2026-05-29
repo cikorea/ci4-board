@@ -11,12 +11,12 @@
                     <strong style="font-size:.92rem"><?= esc_db($board['bbs_name'] ?? $board['bbs_id']) ?></strong>
                 </span>
                 <a href="/board/<?= esc($board['bbs_id']) ?>" class="btn btn-sm btn-outline-primary py-0 px-2"
-                   style="font-size:.78rem">더보기 <i class="bi bi-arrow-right"></i></a>
+                   style="font-size:.78rem"><?= lang('App.more') ?> <i class="bi bi-arrow-right"></i></a>
             </div>
 
             <div class="card-body p-0">
                 <?php if (empty($board['articles'])): ?>
-                    <p class="text-center text-muted py-4 mb-0" style="font-size:.85rem">게시글이 없습니다.</p>
+                    <p class="text-center text-muted py-4 mb-0" style="font-size:.85rem"><?= lang('App.board_no_posts') ?></p>
                 <?php else: ?>
                     <ul class="list-unstyled mb-0">
                         <?php foreach ($board['articles'] as $a):
@@ -26,7 +26,7 @@
                                 <a href="/board/<?= esc($board['bbs_id']) ?>/view/<?= $a['idx'] ?>"
                                    class="post-link text-truncate me-2" style="font-size:.87rem; max-width:75%">
                                     <?php if ($a['is_notice']): ?>
-                                        <span class="badge bg-primary badge-n me-1">공지</span>
+                                        <span class="badge bg-primary badge-n me-1"><?= lang('App.notice') ?></span>
                                     <?php endif; ?>
                                     <?= esc_db($a['title']) ?>
                                     <?php if (($a['comment_count'] ?? 0) > 0): ?>
@@ -37,7 +37,7 @@
                                     <?php endif; ?>
                                 </a>
                                 <span class="text-muted text-truncate" style="font-size:.78rem; max-width:25%">
-                                    <?= esc_db($a['nickname'] ?? '익명') ?>
+                                    <?= esc_db($a['nickname'] ?? lang('App.anonymous')) ?>
                                 </span>
                             </li>
                         <?php endforeach; ?>

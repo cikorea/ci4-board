@@ -22,7 +22,7 @@ function buildPostQuery(array $extra = []): string {
     <div class="card-body py-2">
         <form method="get" class="d-flex flex-wrap gap-2 align-items-center">
             <select name="bbs_id" class="form-select form-select-sm" style="max-width:160px">
-                <option value="">전체 게시판</option>
+                <option value=""><?= lang('App.board_list') ?></option>
                 <?php foreach ($boards as $b): ?>
                     <option value="<?= esc($b['bbs_id']) ?>"
                         <?= $bbsId === $b['bbs_id'] ? 'selected' : '' ?>>
@@ -31,12 +31,12 @@ function buildPostQuery(array $extra = []): string {
                 <?php endforeach; ?>
             </select>
             <input type="text" name="keyword" class="form-control form-control-sm" style="max-width:220px"
-                   placeholder="제목·작성자 검색" value="<?= esc($keyword) ?>">
-            <button class="btn btn-sm btn-primary"><i class="bi bi-search me-1"></i>검색</button>
+                   placeholder="<?= lang('App.board_search_ph') ?>" value="<?= esc($keyword) ?>">
+            <button class="btn btn-sm btn-primary"><i class="bi bi-search me-1"></i></button>
             <?php if ($keyword || $bbsId): ?>
-                <a href="/admin/posts" class="btn btn-sm btn-outline-secondary">초기화</a>
+                <a href="/admin/posts" class="btn btn-sm btn-outline-secondary"><?= lang('App.reset') ?></a>
             <?php endif; ?>
-            <span class="ms-auto text-muted" style="font-size:.83rem">총 <?= number_format($total) ?>개</span>
+            <span class="ms-auto text-muted" style="font-size:.83rem"><?= lang('App.total_count', [number_format($total)]) ?></span>
         </form>
     </div>
 </div>
@@ -49,18 +49,18 @@ function buildPostQuery(array $extra = []): string {
                 <thead class="table-light">
                     <tr>
                         <th class="ps-3" style="width:55px">#</th>
-                        <th style="width:110px">게시판</th>
-                        <th>제목</th>
-                        <th style="width:100px">작성자</th>
-                        <th class="text-center d-none d-sm-table-cell" style="width:55px">조회</th>
-                        <th class="text-center d-none d-sm-table-cell" style="width:55px">댓글</th>
-                        <th class="text-center d-none d-lg-table-cell" style="width:105px">작성일</th>
-                        <th class="text-center" style="width:90px">관리</th>
+                        <th style="width:110px"><?= lang('App.col_board') ?></th>
+                        <th><?= lang('App.col_post_title') ?></th>
+                        <th style="width:100px"><?= lang('App.col_author') ?></th>
+                        <th class="text-center d-none d-sm-table-cell" style="width:55px"><?= lang('App.col_views') ?></th>
+                        <th class="text-center d-none d-sm-table-cell" style="width:55px"><?= lang('App.comments') ?></th>
+                        <th class="text-center d-none d-lg-table-cell" style="width:105px"><?= lang('App.col_posted_at') ?></th>
+                        <th class="text-center" style="width:90px"></th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($posts)): ?>
-                        <tr><td colspan="8" class="text-center text-muted py-4">검색 결과가 없습니다.</td></tr>
+                        <tr><td colspan="8" class="text-center text-muted py-4"><?= lang('App.board_no_posts') ?></td></tr>
                     <?php else: ?>
                         <?php foreach ($posts as $p): ?>
                             <tr>
@@ -72,14 +72,14 @@ function buildPostQuery(array $extra = []): string {
                                 </td>
                                 <td>
                                     <?php if ($p['is_notice']): ?>
-                                        <span class="badge bg-primary me-1" style="font-size:.68rem">공지</span>
+                                        <span class="badge bg-primary me-1" style="font-size:.68rem"><?= lang('App.notice') ?></span>
                                     <?php endif; ?>
                                     <a href="/board/<?= esc($p['bbs_id']) ?>/view/<?= $p['idx'] ?>"
                                        target="_blank" class="text-decoration-none text-dark">
                                         <?= esc_db($p['title']) ?>
                                     </a>
                                 </td>
-                                <td class="text-muted"><?= esc_db($p['nickname'] ?? '익명') ?></td>
+                                <td class="text-muted"><?= esc_db($p['nickname'] ?? lang('App.anonymous')) ?></td>
                                 <td class="text-center text-muted d-none d-sm-table-cell">
                                     <?= number_format($p['hit_count']) ?>
                                 </td>
@@ -97,7 +97,7 @@ function buildPostQuery(array $extra = []): string {
                                         </a>
                                         <a href="/admin/posts/<?= $p['idx'] ?>/delete<?= buildPostQuery() ?>"
                                            class="btn btn-sm btn-outline-danger py-0 px-2"
-                                           onclick="return confirm('이 게시물을 삭제하시겠습니까?')">
+                                           onclick="return confirm('<?= lang('App.delete_confirm') ?>')">
                                             <i class="bi bi-trash"></i>
                                         </a>
                                     </div>

@@ -7,6 +7,9 @@ use CodeIgniter\Router\RouteCollection;
 // 메인
 $routes->get('/', 'HomeController::index');
 
+// 언어 전환
+$routes->get('lang/(:segment)', 'LanguageController::switchLocale/$1');
+
 // 인증
 $routes->get('auth/login',     'AuthController::login');
 $routes->post('auth/login',    'AuthController::loginProcess');

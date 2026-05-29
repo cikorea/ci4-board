@@ -12,7 +12,7 @@ class AuthController extends Controller
         if (session()->get('user_idx')) {
             return redirect()->to('/');
         }
-        return view('auth/login', ['title' => '로그인']);
+        return view('auth/login', ['title' => lang('App.login')]);
     }
 
     public function loginProcess(): \CodeIgniter\HTTP\RedirectResponse
@@ -24,13 +24,12 @@ class AuthController extends Controller
         $user  = $model->findByLoginId($loginId);
 
         if (! $user) {
-            return redirect()->back()->with('error', '아이디(이메일) 또는 비밀번호가 올바르지 않습니다.')->withInput();
+            return redirect()->back()->with('error', lang('App.msg_login_fail'))->withInput();
         }
 
-        // bcrypt($2a$/$2y$) 형식 검증
         $storedPw = $user['super_secured_password'] ?? '';
         if (! $storedPw || ! password_verify($password, $storedPw)) {
-            return redirect()->back()->with('error', '아이디(이메일) 또는 비밀번호가 올바르지 않습니다.')->withInput();
+            return redirect()->back()->with('error', lang('App.msg_login_fail'))->withInput();
         }
 
         session()->set([
@@ -44,7 +43,7 @@ class AuthController extends Controller
             'logged_in'  => true,
         ]);
 
-        return redirect()->to('/')->with('success', $user['nickname'] . '님, 환영합니다!');
+        return redirect()->to('/');
     }
 
     public function register(): string|\CodeIgniter\HTTP\RedirectResponse
@@ -52,7 +51,7 @@ class AuthController extends Controller
         if (session()->get('user_idx')) {
             return redirect()->to('/');
         }
-        return view('auth/register', ['title' => '회원가입']);
+        return view('auth/register', ['title' => lang('App.register')]);
     }
 
     public function registerProcess(): \CodeIgniter\HTTP\RedirectResponse
@@ -65,28 +64,28 @@ class AuthController extends Controller
 
         $errors = [];
         if (mb_strlen($userId) < 3 || mb_strlen($userId) > 32) {
-            $errors[] = '아이디는 3~32자여야 합니다.';
+            $errors[] = lang('App.msg_user_id_length');
         }
         if (mb_strlen($nickname) < 2 || mb_strlen($nickname) > 64) {
-            $errors[] = '닉네임은 2~64자여야 합니다.';
+            $errors[] = lang('App.msg_nickname_length');
         }
         if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = '올바른 이메일 형식이 아닙니다.';
+            $errors[] = lang('App.msg_invalid_email');
         }
         if (strlen($password) < 6) {
-            $errors[] = '비밀번호는 6자 이상이어야 합니다.';
+            $errors[] = lang('App.msg_password_length');
         }
         if ($password !== $password2) {
-            $errors[] = '비밀번호와 비밀번호 확인이 일치하지 않습니다.';
+            $errors[] = lang('App.msg_password_mismatch');
         }
 
         $model = new UserModel();
         if (! $errors) {
             if ($model->findByUserId($userId)) {
-                $errors[] = '이미 사용 중인 아이디입니다.';
+                $errors[] = lang('App.msg_user_id_taken');
             }
             if ($model->findByEmail($email)) {
-                $errors[] = '이미 사용 중인 이메일입니다.';
+                $errors[] = lang('App.msg_email_taken');
             }
         }
 
@@ -108,13 +107,13 @@ class AuthController extends Controller
             'client_ip_insert'        => $this->request->getIPAddress(),
         ]);
 
-        return redirect()->to('/auth/login')->with('success', '회원가입이 완료되었습니다. 로그인해주세요.');
+        return redirect()->to('/auth/login')->with('success', lang('App.msg_register_done'));
     }
 
     public function logout(): \CodeIgniter\HTTP\RedirectResponse
     {
         session()->destroy();
-        return redirect()->to('/')->with('success', '로그아웃 되었습니다.');
+        return redirect()->to('/');
     }
 
     public function profile(): string
@@ -123,7 +122,7 @@ class AuthController extends Controller
         $user  = $model->find(session()->get('user_idx'));
 
         return view('auth/profile', [
-            'title' => '회원정보 수정',
+            'title' => lang('App.profile_title'),
             'user'  => $user,
         ]);
     }
@@ -140,36 +139,34 @@ class AuthController extends Controller
         $newPassword2 = $this->request->getPost('new_password2');
         $currentPw   = $this->request->getPost('current_password');
 
-        // 현재 비밀번호 확인
         if (! password_verify($currentPw, $user['super_secured_password'])) {
-            return redirect()->back()->with('error', '현재 비밀번호가 올바르지 않습니다.')->withInput();
+            return redirect()->back()->with('error', lang('App.msg_wrong_current_pw'))->withInput();
         }
 
         $errors = [];
         if (mb_strlen($nickname) < 2 || mb_strlen($nickname) > 64) {
-            $errors[] = '닉네임은 2~64자여야 합니다.';
+            $errors[] = lang('App.msg_nickname_length');
         }
         if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = '올바른 이메일 형식이 아닙니다.';
+            $errors[] = lang('App.msg_invalid_email');
         }
         if ($newPassword !== '') {
             if (strlen($newPassword) < 6) {
-                $errors[] = '새 비밀번호는 6자 이상이어야 합니다.';
+                $errors[] = lang('App.msg_new_pw_length');
             }
             if ($newPassword !== $newPassword2) {
-                $errors[] = '새 비밀번호와 확인이 일치하지 않습니다.';
+                $errors[] = lang('App.msg_new_pw_mismatch');
             }
         }
 
-        // 닉네임/이메일 중복 (본인 제외)
         if (! $errors) {
             $dup = $model->where('nickname', $nickname)->where('idx !=', $userIdx)->first();
             if ($dup) {
-                $errors[] = '이미 사용 중인 닉네임입니다.';
+                $errors[] = lang('App.msg_nickname_taken');
             }
             $dup = $model->where('email', $email)->where('idx !=', $userIdx)->first();
             if ($dup) {
-                $errors[] = '이미 사용 중인 이메일입니다.';
+                $errors[] = lang('App.msg_email_taken');
             }
         }
 
@@ -186,20 +183,19 @@ class AuthController extends Controller
         ];
 
         if ($newPassword !== '') {
-            $updateData['super_secured_password']   = password_hash($newPassword, PASSWORD_BCRYPT);
+            $updateData['super_secured_password']    = password_hash($newPassword, PASSWORD_BCRYPT);
             $updateData['timestamp_update_password'] = time();
             $updateData['client_ip_update_password'] = $this->request->getIPAddress();
         }
 
         $model->update($userIdx, $updateData);
 
-        // 세션 동기화
         session()->set([
             'nickname' => $nickname,
             'email'    => $email,
         ]);
 
-        return redirect()->to('/auth/profile')->with('success', '회원정보가 수정되었습니다.');
+        return redirect()->to('/auth/profile')->with('success', lang('App.msg_profile_saved'));
     }
 
     public function withdrawProcess(): \CodeIgniter\HTTP\RedirectResponse
@@ -210,7 +206,7 @@ class AuthController extends Controller
         $currentPw = $this->request->getPost('withdraw_password');
 
         if (! password_verify($currentPw, $user['super_secured_password'])) {
-            return redirect()->back()->with('error', '비밀번호가 올바르지 않습니다. 탈퇴가 취소되었습니다.');
+            return redirect()->back()->with('error', lang('App.msg_withdraw_wrong_pw'));
         }
 
         $model->update($userIdx, [
@@ -221,6 +217,6 @@ class AuthController extends Controller
 
         session()->destroy();
 
-        return redirect()->to('/')->with('success', '탈퇴가 완료되었습니다. 이용해주셔서 감사합니다.');
+        return redirect()->to('/')->with('success', lang('App.msg_withdraw_done'));
     }
 }

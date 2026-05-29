@@ -13,23 +13,23 @@
 
 <!-- 태그 -->
 <div class="mb-3">
-    <label class="form-label small fw-semibold"><i class="bi bi-tags me-1"></i>태그</label>
+    <label class="form-label small fw-semibold"><i class="bi bi-tags me-1"></i><?= lang('App.tags_label') ?></label>
     <div class="d-flex flex-wrap gap-1 mb-2" id="tagChips"></div>
     <div class="input-group" style="max-width:380px">
         <input type="text" id="tagInput" class="form-control form-control-sm"
-               placeholder="태그 입력 후 Enter 또는 추가" maxlength="64">
-        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addTag()">추가</button>
+               placeholder="<?= lang('App.tag_placeholder') ?>" maxlength="64">
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addTag()"><?= lang('App.add') ?></button>
     </div>
     <div id="tagHiddens"></div>
-    <div class="form-text">태그는 쉼표(,)로 구분하거나 하나씩 Enter로 추가할 수 있습니다.</div>
+    <div class="form-text"><?= lang('App.tags_hint') ?></div>
 </div>
 
 <!-- URL -->
 <div class="mb-4">
-    <label class="form-label small fw-semibold"><i class="bi bi-link-45deg me-1"></i>관련 링크</label>
+    <label class="form-label small fw-semibold"><i class="bi bi-link-45deg me-1"></i><?= lang('App.related_links') ?></label>
     <div id="urlList"></div>
     <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="addUrl('')">
-        <i class="bi bi-plus me-1"></i>URL 추가
+        <i class="bi bi-plus me-1"></i><?= lang('App.add_url') ?>
     </button>
 </div>
 
@@ -47,7 +47,7 @@
         vals.forEach((t, i) => {
             const chip = document.createElement('span');
             chip.className = 'tag-chip';
-            chip.innerHTML = `${escHtml(t)}<button type="button" onclick="removeTag(${i})" title="삭제">×</button>`;
+            chip.innerHTML = `${escHtml(t)}<button type="button" onclick="removeTag(${i})" title="<?= lang('App.delete') ?>">×</button>`;
             chips.appendChild(chip);
         });
     }
@@ -79,7 +79,7 @@
     initTags.forEach(t => addTag(t));
 
     /* ── URL ── */
-    const urlList = document.getElementById('urlList');
+    const urlList  = document.getElementById('urlList');
     const initUrls = <?= json_encode(array_column($existingUrls, 'url')) ?>;
 
     window.addUrl = function (val) {

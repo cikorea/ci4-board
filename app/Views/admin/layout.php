@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="<?= service('language')->getLocale() ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= esc($title ?? '관리자') ?> — 관리자</title>
+    <title><?= esc($title ?? lang('App.admin_panel')) ?> — <?= lang('App.admin_panel') ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
@@ -55,26 +55,26 @@
 
 <!-- 사이드바 -->
 <div class="admin-sidebar">
-    <div class="brand"><i class="bi bi-shield-lock me-2"></i>관리자 패널</div>
+    <div class="brand"><i class="bi bi-shield-lock me-2"></i><?= lang('App.admin_panel') ?></div>
     <nav class="mt-2">
-        <div class="section-label">게시판</div>
+        <div class="section-label"><?= lang('App.admin_board_section') ?></div>
         <a href="/admin/boards" class="nav-link <?= str_contains(current_url(), '/admin/boards') ? 'active' : '' ?>">
-            <i class="bi bi-layout-text-sidebar-reverse"></i>게시판 관리
+            <i class="bi bi-layout-text-sidebar-reverse"></i><?= lang('App.admin_boards') ?>
         </a>
         <a href="/admin/posts" class="nav-link <?= str_contains(current_url(), '/admin/posts') ? 'active' : '' ?>">
-            <i class="bi bi-file-earmark-text"></i>게시물 관리
+            <i class="bi bi-file-earmark-text"></i><?= lang('App.admin_posts_menu') ?>
         </a>
-        <div class="section-label mt-2">회원</div>
+        <div class="section-label mt-2"><?= lang('App.admin_member_section') ?></div>
         <a href="/admin/members" class="nav-link <?= str_contains(current_url(), '/admin/members') ? 'active' : '' ?>">
-            <i class="bi bi-people"></i>회원 관리
+            <i class="bi bi-people"></i><?= lang('App.admin_members') ?>
         </a>
-        <div class="section-label mt-2">시스템</div>
+        <div class="section-label mt-2"><?= lang('App.admin_system_section') ?></div>
         <a href="/admin/setting" class="nav-link <?= str_contains(current_url(), '/admin/setting') ? 'active' : '' ?>">
-            <i class="bi bi-gear"></i>사이트 설정
+            <i class="bi bi-gear"></i><?= lang('App.admin_setting') ?>
         </a>
-        <div class="section-label mt-2">바로가기</div>
-        <a href="/" class="nav-link"><i class="bi bi-house"></i>사이트로 이동</a>
-        <a href="/auth/logout" class="nav-link text-danger"><i class="bi bi-box-arrow-right"></i>로그아웃</a>
+        <div class="section-label mt-2"><?= lang('App.admin_goto_section') ?></div>
+        <a href="/" class="nav-link"><i class="bi bi-house"></i><?= lang('App.admin_goto_site') ?></a>
+        <a href="/auth/logout" class="nav-link text-danger"><i class="bi bi-box-arrow-right"></i><?= lang('App.nav_logout') ?></a>
     </nav>
 </div>
 
@@ -84,7 +84,7 @@
         <h6 class="mb-0 fw-bold"><?= esc($title ?? '') ?></h6>
         <span class="text-muted" style="font-size:.84rem">
             <i class="bi bi-person-circle me-1"></i><?= esc_db(session()->get('nickname')) ?>
-            <span class="badge bg-danger ms-1" style="font-size:.65rem">최고관리자</span>
+            <span class="badge bg-danger ms-1" style="font-size:.65rem"><?= lang('App.superadmin') ?></span>
         </span>
     </div>
 

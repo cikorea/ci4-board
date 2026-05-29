@@ -2,9 +2,8 @@
 <?= $this->section('content') ?>
 
 <?php
-$s = $setting; // shorthand
+$s = $setting;
 
-// 권한 파라미터 → 현재 허용 그룹 idx 배열
 $permKeys = [
     'view_list'    => 'bbs_allow_group_view_list',
     'view_article' => 'bbs_allow_group_view_article',
@@ -22,7 +21,7 @@ $groupColors = [0 => 'secondary', 1 => 'danger', 2 => 'primary', 3 => 'warning t
 
 <div class="mb-3">
     <a href="/admin/boards" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-arrow-left me-1"></i>게시판 목록
+        <i class="bi bi-arrow-left me-1"></i><?= lang('App.board_list') ?>
     </a>
 </div>
 
@@ -35,19 +34,19 @@ $groupColors = [0 => 'secondary', 1 => 'danger', 2 => 'primary', 3 => 'warning t
         <div class="col-12 col-lg-5">
             <div class="card h-100">
                 <div class="card-header py-2">
-                    <i class="bi bi-info-circle me-1 text-primary"></i>기본 설정
+                    <i class="bi bi-info-circle me-1 text-primary"></i><?= lang('App.board_basic_settings') ?>
                     <code class="ms-2 text-muted" style="font-size:.8rem"><?= esc($bbs['bbs_id']) ?></code>
                 </div>
                 <div class="card-body">
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">게시판 이름</label>
+                        <label class="form-label fw-semibold"><?= lang('App.board_name_label') ?></label>
                         <input type="text" name="bbs_name" class="form-control" required
                                value="<?= esc(html_entity_decode($s['bbs_name'] ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8')) ?>">
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">목록 글 수</label>
+                        <label class="form-label fw-semibold"><?= lang('App.list_count_label') ?></label>
                         <input type="number" name="bbs_count_list_article" class="form-control"
                                min="1" max="100" value="<?= esc($s['bbs_count_list_article'] ?? 15) ?>">
                     </div>
@@ -56,12 +55,12 @@ $groupColors = [0 => 'secondary', 1 => 'danger', 2 => 'primary', 3 => 'warning t
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" name="bbs_used"
                                    id="bbs_used" <?= ($s['bbs_used'] ?? '0') == '1' ? 'checked' : '' ?>>
-                            <label class="form-check-label" for="bbs_used">게시판 활성화</label>
+                            <label class="form-check-label" for="bbs_used"><?= lang('App.board_active_label') ?></label>
                         </div>
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" name="bbs_comment_used"
                                    id="bbs_comment_used" <?= ($s['bbs_comment_used'] ?? '1') == '1' ? 'checked' : '' ?>>
-                            <label class="form-check-label" for="bbs_comment_used">댓글 허용</label>
+                            <label class="form-check-label" for="bbs_comment_used"><?= lang('App.comment_allowed_label') ?></label>
                         </div>
                     </div>
 
@@ -73,20 +72,19 @@ $groupColors = [0 => 'secondary', 1 => 'danger', 2 => 'primary', 3 => 'warning t
         <div class="col-12 col-lg-7">
             <div class="card h-100">
                 <div class="card-header py-2">
-                    <i class="bi bi-shield-check me-1 text-primary"></i>접근 권한
+                    <i class="bi bi-shield-check me-1 text-primary"></i><?= lang('App.access_perms_title') ?>
                 </div>
                 <div class="card-body">
 
                     <?php
                     $permLabels = [
-                        'view_list'     => ['icon' => 'bi-list-ul',           'label' => '목록 보기'],
-                        'view_article'  => ['icon' => 'bi-file-earmark-text', 'label' => '글 보기'],
-                        'write_article' => ['icon' => 'bi-pencil-square',     'label' => '글 쓰기'],
-                        'write_comment' => ['icon' => 'bi-chat-left-text',    'label' => '댓글 쓰기'],
+                        'view_list'     => ['icon' => 'bi-list-ul',           'key' => 'perm_view_list'],
+                        'view_article'  => ['icon' => 'bi-file-earmark-text', 'key' => 'perm_view_article'],
+                        'write_article' => ['icon' => 'bi-pencil-square',     'key' => 'perm_write_article'],
+                        'write_comment' => ['icon' => 'bi-chat-left-text',    'key' => 'perm_write_comment'],
                     ];
-                    // groups: 0=비회원 + DB groups
                     $allGroups = array_merge([[
-                        'idx' => 0, 'group_name' => '비회원',
+                        'idx' => 0, 'group_name' => lang('App.group_guest'),
                     ]], $groups);
                     ?>
 
@@ -95,7 +93,7 @@ $groupColors = [0 => 'secondary', 1 => 'danger', 2 => 'primary', 3 => 'warning t
                             <div class="col-12 col-sm-6">
                                 <div class="border rounded p-3" style="background:#fafbff">
                                     <div class="fw-semibold mb-2" style="font-size:.88rem">
-                                        <i class="bi <?= $meta['icon'] ?> me-1 text-primary"></i><?= $meta['label'] ?>
+                                        <i class="bi <?= $meta['icon'] ?> me-1 text-primary"></i><?= lang('App.' . $meta['key']) ?>
                                     </div>
                                     <?php foreach ($allGroups as $g):
                                         $gIdx   = (int) $g['idx'];
@@ -127,9 +125,9 @@ $groupColors = [0 => 'secondary', 1 => 'danger', 2 => 'primary', 3 => 'warning t
 
     <div class="mt-3 d-flex gap-2">
         <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-lg me-1"></i>저장
+            <i class="bi bi-check-lg me-1"></i><?= lang('App.save') ?>
         </button>
-        <a href="/admin/boards" class="btn btn-outline-secondary">취소</a>
+        <a href="/admin/boards" class="btn btn-outline-secondary"><?= lang('App.cancel') ?></a>
     </div>
 
 </form>
