@@ -1,69 +1,93 @@
-# CodeIgniter 4 Application Starter
+# CI4 Board
 
-## What is CodeIgniter?
+CodeIgniter 4 기반의 PHP 게시판 웹 애플리케이션입니다.
 
-CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
-More information can be found at the [official site](https://codeigniter.com).
+## 주요 기능
 
-This repository holds a composer-installable app starter.
-It has been built from the
-[development repository](https://github.com/codeigniter4/CodeIgniter4).
+- **회원 관리** — 회원가입, 로그인/로그아웃, 프로필 수정, 회원 탈퇴
+- **게시판** — 다중 게시판 지원, 글 작성/수정/삭제, 댓글 작성/수정/삭제, 파일 첨부
+- **쪽지** — 회원 간 쪽지 송수신, 받은 쪽지함/보낸 쪽지함
+- **관리자** — 게시판 관리, 회원 관리, 게시글 관리, 사이트 설정
 
-More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
+## 기술 스택
 
-You can read the [user guide](https://codeigniter.com/user_guide/)
-corresponding to the latest version of the framework.
+- **Backend** — PHP, CodeIgniter 4
+- **Database** — MySQL
+- **Package Manager** — Composer
 
-## Installation & updates
+## 설치 방법
 
-`composer create-project codeigniter4/appstarter` then `composer update` whenever
-there is a new release of the framework.
+### 요구 사항
 
-When updating, check the release notes to see if there are any changes you might need to apply
-to your `app` folder. The affected files can be copied or merged from
-`vendor/codeigniter4/framework/app`.
+- PHP 8.1 이상
+- MySQL 5.7 이상
+- Composer
 
-## Setup
+### 설치
 
-Copy `env` to `.env` and tailor for your app, specifically the baseURL
-and any database settings.
+```bash
+# 저장소 클론
+git clone https://github.com/pushwing/ci4-board.git
+cd ci4-board
 
-## Important Change with index.php
+# 의존성 설치
+composer install
 
-`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
-for better security and separation of components.
+# 환경 설정 파일 복사
+cp env .env
+```
 
-This means that you should configure your web server to "point" to your project's *public* folder, and
-not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
-framework are exposed.
+### 환경 설정
 
-**Please** read the user guide for a better explanation of how CI4 works!
+`.env` 파일을 열어 아래 항목을 설정합니다.
 
-## Repository Management
+```ini
+app.baseURL = 'http://localhost:8080/'
 
-We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
-We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
-FEATURE REQUESTS.
+database.default.hostname = localhost
+database.default.database = ci4_board
+database.default.username = root
+database.default.password = 
+database.default.DBDriver = MySQLi
+```
 
-This repository is a "distribution" one, built by our release preparation script.
-Problems with it can be raised on our forum, or as issues in the main repository.
+### 데이터베이스 마이그레이션
 
-## Server Requirements
+```bash
+php spark migrate
+```
 
-PHP version 8.2 or higher is required, with the following extensions installed:
+### 개발 서버 실행
 
-- [intl](http://php.net/manual/en/intl.requirements.php)
-- [mbstring](http://php.net/manual/en/mbstring.installation.php)
+```bash
+php spark serve
+```
 
-> [!WARNING]
-> - The end of life date for PHP 7.4 was November 28, 2022.
-> - The end of life date for PHP 8.0 was November 26, 2023.
-> - The end of life date for PHP 8.1 was December 31, 2025.
-> - If you are still using below PHP 8.2, you should upgrade immediately.
-> - The end of life date for PHP 8.2 will be December 31, 2026.
+브라우저에서 `http://localhost:8080` 으로 접속합니다.
 
-Additionally, make sure that the following extensions are enabled in your PHP:
+## 디렉토리 구조
 
-- json (enabled by default - don't turn it off)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
+```
+ci4-board/
+├── app/
+│   ├── Controllers/     # 컨트롤러
+│   ├── Models/          # 모델
+│   ├── Views/           # 뷰 템플릿
+│   ├── Config/          # 설정 (라우팅 등)
+│   ├── Filters/         # 인증 필터
+│   └── Database/        # 마이그레이션
+├── public/              # 웹 루트 (index.php)
+├── writable/            # 캐시, 로그, 업로드
+└── vendor/              # Composer 패키지
+```
+
+## 웹 서버 설정
+
+웹 서버의 도큐먼트 루트를 `public/` 디렉토리로 지정해야 합니다.
+
+**Apache** — `mod_rewrite` 활성화 필요  
+**Nginx** — `public/index.php`로 요청을 전달하도록 설정
+
+## 라이선스
+
+MIT License
