@@ -173,8 +173,6 @@
         <div class="collapse navbar-collapse" id="nav">
             <ul class="navbar-nav me-auto ms-2 gap-1">
                 <?php
-                $bbsModel    = new \App\Models\BbsModel();
-                $navBoards   = $bbsModel->getActiveBoards();
                 $currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
                 $boardsIndex = array_column($navBoards, null, 'bbs_id');
@@ -272,8 +270,6 @@
                         '개발자'     => 'warning text-dark',
                         default      => 'secondary',
                     };
-                    $msgModel    = new \App\Models\MessageModel();
-                    $unreadCount = $msgModel->getUnreadCount((int) session()->get('user_idx'));
                 ?>
                     <li class="nav-item d-flex align-items-center">
                         <span class="user-info px-2">

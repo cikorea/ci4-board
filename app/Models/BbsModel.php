@@ -4,6 +4,11 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
+/**
+ * @apiDefine BbsModel
+ * @apiDescription tb_bbs (게시판 기본) + tb_bbs_setting (설정 key-value) 을 통합 관리하는 모델.
+ *   권한 설정값은 PHP serialize() 형식으로 저장되며, 읽을 때 parse_group_setting() 으로 파싱된다.
+ */
 class BbsModel extends Model
 {
     protected $table         = 'tb_bbs';
@@ -12,7 +17,7 @@ class BbsModel extends Model
     protected $useTimestamps = false;
     protected $allowedFields = ['bbs_id', 'exec_user_idx', 'timestamp', 'client_ip'];
 
-    /** 권한 체크에 사용할 설정 파라미터 */
+    /** 권한 체크에 사용할 설정 파라미터 키 */
     private const PERM_PARAMS = [
         'bbs_allow_group_view_list',
         'bbs_allow_group_view_article',
@@ -21,7 +26,14 @@ class BbsModel extends Model
     ];
 
     /**
-     * 현재 사용자가 view_list 권한을 가진 활성 게시판 목록 반환
+     * @api {model} /model/BbsModel/getActiveBoards BbsModel::getActiveBoards
+     * @apiName BbsModel_getActiveBoards
+     * @apiDescription 활성 게시판 목록 (권한 필터 포함)
+     * @apiGroup BbsModel
+     * @apiDescription bbs_used=1 인 게시판 중 현재 사용자가 view_list 권한을 가진 게시판만 반환한다.
+     *   네비게이션 및 홈 위젯에 사용된다.
+     *
+     * @apiSuccess {Array} rows  게시판 배열 (idx, bbs_id, bbs_name, list_count)
      */
     public function getActiveBoards(): array
     {
@@ -36,7 +48,6 @@ class BbsModel extends Model
             ->get()
             ->getResultArray();
 
-        // view_list 권한이 있는 게시판만 필터링
         $filtered = array_filter($rows, function (array $board): bool {
             $groups = parse_group_setting($board['view_list_raw'] ?? '');
             return user_can_in_groups($groups);
@@ -46,7 +57,15 @@ class BbsModel extends Model
     }
 
     /**
-     * bbs_id(slug)로 게시판 정보 + 권한 설정 조회
+     * @api {model} /model/BbsModel/getByBbsId BbsModel::getByBbsId
+     * @apiName BbsModel_getByBbsId
+     * @apiDescription 슬러그로 게시판 조회 (권한 맵 포함)
+     * @apiGroup BbsModel
+     * @apiDescription bbs_id(slug)로 게시판 기본 정보를 가져오고, permissions 키에 권한 배열을 추가한다.
+     *
+     * @apiParam  {String} bbsId  게시판 슬러그
+     * @apiSuccess {Object} board 게시판 배열 (permissions.view_list, view_article, write_article, write_comment 포함)
+     *   또는 존재하지 않으면 null
      */
     public function getByBbsId(string $bbsId): ?array
     {
@@ -67,8 +86,15 @@ class BbsModel extends Model
     }
 
     /**
-     * 게시판의 권한 설정을 파싱해서 반환
-     * 반환 형태: ['view_list' => [0,1,2,3], 'view_article' => [...], ...]
+     * @api {model} /model/BbsModel/loadPermissions BbsModel::loadPermissions
+     * @apiName BbsModel_loadPermissions
+     * @apiDescription 게시판 권한 설정 로드
+     * @apiGroup BbsModel
+     * @apiDescription tb_bbs_setting 에서 4가지 권한 파라미터를 읽어 파싱된 그룹 idx 배열로 반환한다.
+     *   반환 키: view_list, view_article, write_article, write_comment
+     *
+     * @apiParam  {Number} bbsIdx  게시판 idx
+     * @apiSuccess {Object} perms  {'view_list': [0,1,2], 'view_article': [...], ...}
      */
     public function loadPermissions(int $bbsIdx): array
     {
@@ -80,7 +106,6 @@ class BbsModel extends Model
 
         $perms = [];
         foreach ($settings as $s) {
-            // 'bbs_allow_group_view_list' → 'view_list'
             $key = str_replace('bbs_allow_group_', '', $s['parameter']);
             $perms[$key] = parse_group_setting($s['value']);
         }

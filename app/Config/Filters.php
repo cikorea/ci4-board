@@ -6,6 +6,7 @@ use CodeIgniter\Config\Filters as BaseFilters;
 use App\Filters\AuthFilter;
 use App\Filters\AdminFilter;
 use App\Filters\LocaleFilter;
+use App\Filters\NavDataFilter;
 use CodeIgniter\Filters\Cors;
 use CodeIgniter\Filters\CSRF;
 use CodeIgniter\Filters\DebugToolbar;
@@ -40,6 +41,7 @@ class Filters extends BaseFilters
         'auth'          => AuthFilter::class,
         'admin'         => AdminFilter::class,
         'locale'        => LocaleFilter::class,
+        'navdata'       => NavDataFilter::class,
     ];
 
     /**
@@ -79,6 +81,7 @@ class Filters extends BaseFilters
     public array $globals = [
         'before' => [
             'locale',
+            'navdata',
             // 'honeypot',
             // 'csrf',
             // 'invalidchars',
