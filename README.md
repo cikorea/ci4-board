@@ -21,7 +21,7 @@ CodeIgniter 4 기반의 PHP 게시판 웹 애플리케이션입니다.
 
 ## 기술 스택
 
-- **Backend** — PHP 8.1+, CodeIgniter 4
+- **Backend** — PHP 8.2+, CodeIgniter 4
 - **Database** — MySQL 5.7+ / MariaDB 10.4+
 - **Frontend** — Bootstrap 5.3, Bootstrap Icons
 - **Package Manager** — Composer
@@ -32,7 +32,7 @@ CodeIgniter 4 기반의 PHP 게시판 웹 애플리케이션입니다.
 
 ### 1. 요구 사항
 
-- PHP 8.1 이상 (mbstring, pdo, pdo_mysql, intl 확장 필요)
+- PHP 8.2 이상 (mbstring, pdo, pdo_mysql, intl 확장 필요)
 - MySQL 5.7 이상 (또는 MariaDB 10.4 이상)
 - Composer
 
