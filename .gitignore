@@ -126,3 +126,4 @@ _modules/*
 /phpunit.xml
 
 /.claude/
+ci4-board.sql
