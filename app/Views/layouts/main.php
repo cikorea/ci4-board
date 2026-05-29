@@ -305,12 +305,26 @@
                 <?php endif; ?>
 
                 <!-- 언어 전환 -->
-                <?php $currentLocale = service('language')->getLocale(); ?>
-                <li class="nav-item">
-                    <a class="nav-link" href="/lang/<?= $currentLocale === 'ko' ? 'en' : 'ko' ?>"
-                       style="font-size:.8rem; opacity:.75">
-                        <?= $currentLocale === 'ko' ? 'EN' : 'KO' ?>
+                <?php
+                $currentLocale = service('language')->getLocale();
+                $langLabels = ['ko' => 'KO', 'en' => 'EN', 'ja' => 'JA'];
+                ?>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false"
+                       style="font-size:.8rem; opacity:.8">
+                        <?= $langLabels[$currentLocale] ?? strtoupper($currentLocale) ?>
                     </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <?php foreach ($langLabels as $locale => $label): ?>
+                            <li>
+                                <a class="dropdown-item <?= $locale === $currentLocale ? 'active' : '' ?>"
+                                   href="/lang/<?= $locale ?>">
+                                    <?= lang('App.lang_' . $locale) ?>
+                                </a>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
                 </li>
             </ul>
         </div>
