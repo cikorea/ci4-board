@@ -10,6 +10,11 @@ use CodeIgniter\Controller;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\RedirectResponse;
 
+/**
+ * @api {group} Board 게시판
+ * @apiGroup Board
+ * @apiDescription 게시판 목록·상세·작성·수정·삭제 및 댓글 CRUD를 처리한다.
+ */
 class BoardController extends Controller
 {
     protected BbsModel     $bbs;
@@ -25,6 +30,18 @@ class BoardController extends Controller
         $this->file    = new FileModel();
     }
 
+    /**
+     * @api {post} /board/:bbsId/write/process 게시글 첨부파일 업로드 (내부)
+     * @apiGroup Board
+     * @apiPrivate
+     * @apiDescription 폼에서 전송된 attachments[] 파일을 검증하고 저장한다.
+     *   최대 5개, 개당 2MB, 허용 확장자 목록 이외는 무시된다.
+     *
+     * @apiParam  {Number} bbsIdx      게시판 idx
+     * @apiParam  {Number} articleIdx  게시글 idx
+     * @apiParam  {Number} userIdx     업로드한 사용자 idx
+     * @apiSuccess {String[]} errors   실패한 파일에 대한 오류 메시지 배열 (비어 있으면 전부 성공)
+     */
     private function uploadFiles(int $bbsIdx, int $articleIdx, int $userIdx): array
     {
         $errors    = [];
@@ -84,6 +101,20 @@ class BoardController extends Controller
         return $errors;
     }
 
+    /**
+     * @api {get} /board/:bbsId 게시글 목록
+     * @apiGroup Board
+     * @apiName BoardIndex
+     * @apiDescription 게시판 글 목록을 페이지네이션과 함께 반환한다. view_list 권한이 필요하다.
+     *
+     * @apiParam  {String} bbsId         게시판 슬러그 (URL)
+     * @apiQuery  {String} [keyword]     제목 검색어
+     * @apiQuery  {Number} [page=1]      페이지 번호
+     * @apiSuccess {String} title        페이지 타이틀
+     * @apiSuccess {Object} board        게시판 정보 + 권한 맵
+     * @apiSuccess {Array}  articles     게시글 목록
+     * @apiSuccess {Object} pager        페이지네이션 메타 {total, page, perPage}
+     */
     public function index(string $bbsId): string|RedirectResponse
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -111,6 +142,20 @@ class BoardController extends Controller
         ]);
     }
 
+    /**
+     * @api {get} /board/:bbsId/view/:articleIdx 게시글 상세
+     * @apiGroup Board
+     * @apiName BoardView
+     * @apiDescription 게시글 본문·댓글·태그·URL·첨부파일을 함께 반환한다. 조회수가 1 증가한다.
+     *
+     * @apiParam  {String} bbsId        게시판 슬러그
+     * @apiParam  {Number} articleIdx   게시글 idx
+     * @apiSuccess {Object} post        게시글 (본문 포함)
+     * @apiSuccess {Array}  comments    댓글 목록
+     * @apiSuccess {Array}  tags        태그 목록
+     * @apiSuccess {Array}  urls        관련 URL 목록
+     * @apiSuccess {Array}  files       첨부파일 목록
+     */
     public function view(string $bbsId, int $articleIdx): string|RedirectResponse
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -146,6 +191,15 @@ class BoardController extends Controller
         ]);
     }
 
+    /**
+     * @api {get} /board/:bbsId/write 게시글 작성 폼
+     * @apiGroup Board
+     * @apiName BoardWrite
+     * @apiPermission write_article
+     *
+     * @apiParam  {String} bbsId  게시판 슬러그
+     * @apiSuccess {Object} board  게시판 정보
+     */
     public function write(string $bbsId): string|RedirectResponse
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -163,6 +217,20 @@ class BoardController extends Controller
         ]);
     }
 
+    /**
+     * @api {post} /board/:bbsId/write 게시글 저장
+     * @apiGroup Board
+     * @apiName BoardWriteProcess
+     * @apiPermission write_article
+     *
+     * @apiParam   {String} bbsId          게시판 슬러그
+     * @apiBody    {String} title           제목 (필수)
+     * @apiBody    {String} contents        본문 (필수)
+     * @apiBody    {String[]} [tags]        태그 배열
+     * @apiBody    {String[]} [urls]        관련 URL 배열
+     * @apiBody    {File[]}   [attachments] 첨부파일 (최대 5개, 개당 2MB)
+     * @apiSuccess {String} redirect         작성된 게시글 상세 페이지로 이동
+     */
     public function writeProcess(string $bbsId): RedirectResponse
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -215,6 +283,19 @@ class BoardController extends Controller
         return redirect()->to("/board/{$bbsId}/view/{$articleIdx}")->with('success', $msg);
     }
 
+    /**
+     * @api {get} /board/:bbsId/edit/:articleIdx 게시글 수정 폼
+     * @apiGroup Board
+     * @apiName BoardEdit
+     * @apiPermission 본인
+     *
+     * @apiParam  {String} bbsId        게시판 슬러그
+     * @apiParam  {Number} articleIdx   게시글 idx
+     * @apiSuccess {Object} post        게시글 (본문 포함)
+     * @apiSuccess {Array}  tags        기존 태그 목록
+     * @apiSuccess {Array}  urls        기존 URL 목록
+     * @apiSuccess {Array}  files       기존 첨부파일 목록
+     */
     public function edit(string $bbsId, int $articleIdx): string|RedirectResponse
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -241,6 +322,22 @@ class BoardController extends Controller
         ]);
     }
 
+    /**
+     * @api {post} /board/:bbsId/edit/:articleIdx 게시글 수정 저장
+     * @apiGroup Board
+     * @apiName BoardEditProcess
+     * @apiPermission 본인
+     *
+     * @apiParam   {String} bbsId          게시판 슬러그
+     * @apiParam   {Number} articleIdx     게시글 idx
+     * @apiBody    {String} title           수정할 제목
+     * @apiBody    {String} contents        수정할 본문
+     * @apiBody    {String[]} [tags]        태그 배열 (전체 교체)
+     * @apiBody    {String[]} [urls]        URL 배열 (전체 교체)
+     * @apiBody    {Number[]} [delete_files] 삭제할 파일 idx 배열
+     * @apiBody    {File[]}   [attachments]  추가 첨부파일
+     * @apiSuccess {String} redirect          수정된 게시글 상세 페이지로 이동
+     */
     public function editProcess(string $bbsId, int $articleIdx): RedirectResponse
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -296,6 +393,16 @@ class BoardController extends Controller
         return redirect()->to("/board/{$bbsId}/view/{$articleIdx}")->with('success', $msg);
     }
 
+    /**
+     * @api {get} /board/:bbsId/delete/:articleIdx 게시글 소프트 삭제
+     * @apiGroup Board
+     * @apiName BoardDelete
+     * @apiPermission 본인
+     *
+     * @apiParam  {String} bbsId       게시판 슬러그
+     * @apiParam  {Number} articleIdx  게시글 idx
+     * @apiSuccess {String} redirect    게시판 목록으로 이동
+     */
     public function delete(string $bbsId, int $articleIdx): RedirectResponse
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -318,6 +425,17 @@ class BoardController extends Controller
         return redirect()->to("/board/{$bbsId}")->with('success', lang('App.msg_post_deleted'));
     }
 
+    /**
+     * @api {post} /board/:bbsId/view/:articleIdx/comment 댓글 작성
+     * @apiGroup Board
+     * @apiName CommentWrite
+     * @apiPermission write_comment
+     *
+     * @apiParam  {String} bbsId       게시판 슬러그
+     * @apiParam  {Number} articleIdx  게시글 idx
+     * @apiBody   {String} comment     댓글 본문 (필수)
+     * @apiSuccess {String} redirect    게시글 상세 #comments 앵커로 이동
+     */
     public function commentWrite(string $bbsId, int $articleIdx): RedirectResponse
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -359,6 +477,18 @@ class BoardController extends Controller
         return redirect()->to("/board/{$bbsId}/view/{$articleIdx}#comments");
     }
 
+    /**
+     * @api {post} /board/:bbsId/view/:articleIdx/comment/:commentIdx/edit 댓글 수정
+     * @apiGroup Board
+     * @apiName CommentEdit
+     * @apiPermission 본인
+     *
+     * @apiParam  {String} bbsId        게시판 슬러그
+     * @apiParam  {Number} articleIdx   게시글 idx
+     * @apiParam  {Number} commentIdx   댓글 idx
+     * @apiBody   {String} comment      수정할 댓글 본문
+     * @apiSuccess {String} redirect     해당 댓글 앵커로 이동
+     */
     public function commentEdit(string $bbsId, int $articleIdx, int $commentIdx): RedirectResponse
     {
         $c = $this->comment->find($commentIdx);
@@ -385,6 +515,17 @@ class BoardController extends Controller
         return redirect()->to("/board/{$bbsId}/view/{$articleIdx}#comment-{$commentIdx}");
     }
 
+    /**
+     * @api {get} /board/:bbsId/view/:articleIdx/comment/:commentIdx/delete 댓글 소프트 삭제
+     * @apiGroup Board
+     * @apiName CommentDelete
+     * @apiPermission 본인
+     *
+     * @apiParam  {String} bbsId        게시판 슬러그
+     * @apiParam  {Number} articleIdx   게시글 idx
+     * @apiParam  {Number} commentIdx   댓글 idx
+     * @apiSuccess {String} redirect     게시글 상세 #comments 앵커로 이동
+     */
     public function commentDelete(string $bbsId, int $articleIdx, int $commentIdx): RedirectResponse
     {
         $c = $this->comment->find($commentIdx);

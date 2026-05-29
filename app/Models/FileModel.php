@@ -4,6 +4,10 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
+/**
+ * @apiDefine FileModel
+ * @apiDescription tb_bbs_file 을 관리하는 모델. 실제 파일은 WRITEPATH/uploads/{bbs_idx}/{Ymd}/ 에 저장된다.
+ */
 class FileModel extends Model
 {
     protected $table         = 'tb_bbs_file';
@@ -16,7 +20,16 @@ class FileModel extends Model
         'original_filename', 'conversion_filename', 'mime', 'capacity', 'sequence',
     ];
 
-    /** 게시물 첨부파일 목록 (is_wysiwyg=0만) */
+    /**
+     * @api {model} /model/FileModel/getByArticle FileModel::getByArticle
+     * @apiName FileModel_getByArticle
+     * @apiDescription 게시글 첨부파일 목록
+     * @apiGroup FileModel
+     * @apiDescription WYSIWYG 이미지(is_wysiwyg=1)를 제외한 일반 첨부파일만 반환한다.
+     *
+     * @apiParam  {Number} articleIdx  게시글 idx
+     * @apiSuccess {Array} rows        파일 배열 (sequence ASC 정렬)
+     */
     public function getByArticle(int $articleIdx): array
     {
         return $this->where('article_idx', $articleIdx)
@@ -26,13 +39,30 @@ class FileModel extends Model
                     ->findAll();
     }
 
-    /** 파일 저장 경로 반환 */
+    /**
+     * @api {model} /model/FileModel/storagePath FileModel::storagePath
+     * @apiName FileModel_storagePath
+     * @apiDescription 파일 절대 경로 반환
+     * @apiGroup FileModel
+     * @apiDescription conversion_filename 을 받아 WRITEPATH 기반의 절대 경로를 반환하는 정적 헬퍼.
+     *
+     * @apiParam  {String} conversionFilename  DB에 저장된 상대 경로 (예: 1/20260529/abc123.jpg)
+     * @apiSuccess {String} path 절대 파일 경로
+     */
     public static function storagePath(string $conversionFilename): string
     {
         return WRITEPATH . 'uploads/' . $conversionFilename;
     }
 
-    /** DB 레코드 + 실제 파일 삭제 */
+    /**
+     * @api {model} /model/FileModel/deleteFile FileModel::deleteFile
+     * @apiName FileModel_deleteFile
+     * @apiDescription DB 레코드 + 실제 파일 삭제
+     * @apiGroup FileModel
+     * @apiDescription 파일이 실제로 존재하면 unlink 후 DB 레코드를 삭제한다.
+     *
+     * @apiParam {Number} idx  파일 idx
+     */
     public function deleteFile(int $idx): void
     {
         $file = $this->find($idx);
@@ -46,7 +76,15 @@ class FileModel extends Model
         $this->delete($idx);
     }
 
-    /** 게시물의 모든 첨부파일 삭제 */
+    /**
+     * @api {model} /model/FileModel/deleteByArticle FileModel::deleteByArticle
+     * @apiName FileModel_deleteByArticle
+     * @apiDescription 게시글의 모든 첨부파일 삭제
+     * @apiGroup FileModel
+     * @apiDescription getByArticle() 결과를 순회하며 deleteFile() 을 호출한다.
+     *
+     * @apiParam {Number} articleIdx  게시글 idx
+     */
     public function deleteByArticle(int $articleIdx): void
     {
         $files = $this->getByArticle($articleIdx);

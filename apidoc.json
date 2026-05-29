@@ -1,0 +1,26 @@
+{
+  "name": "CI4 Board API",
+  "version": "1.0.0",
+  "description": "CI4 Board 컨트롤러 및 모델 API 문서",
+  "title": "CI4 Board Docs",
+  "url": "",
+  "sampleUrl": false,
+  "header": {
+    "title": "Overview"
+  },
+  "order": [
+    "Home",
+    "Auth",
+    "Board",
+    "Message",
+    "File",
+    "Admin",
+    "Filter",
+    "ArticleModel",
+    "BbsModel",
+    "CommentModel",
+    "FileModel",
+    "MessageModel",
+    "UserModel"
+  ]
+}

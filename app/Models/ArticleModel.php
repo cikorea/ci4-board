@@ -4,6 +4,11 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
+/**
+ * @apiDefine ArticleModel
+ * @apiDescription tb_bbs_article (메타) + tb_bbs_contents (본문) + tb_bbs_hit (조회수) +
+ *   tb_bbs_tag + tb_bbs_url 을 통합 관리하는 모델.
+ */
 class ArticleModel extends Model
 {
     protected $table         = 'tb_bbs_article';
@@ -19,7 +24,26 @@ class ArticleModel extends Model
         'html_used', 'is_notice', 'is_secret', 'is_deleted', 'agent_insert',
     ];
 
-    /** 게시판 글 목록 (페이지네이션, 조회수 JOIN) */
+    /** @var int 마지막 getList() 전체 레코드 수 */
+    public int $_pagerTotal   = 0;
+    /** @var int 마지막 getList() 페이지 번호 */
+    public int $_pagerPage    = 1;
+    /** @var int 마지막 getList() 페이지당 수 */
+    public int $_pagerPerPage = 15;
+
+    /**
+     * @api {model} /model/ArticleModel/getList ArticleModel::getList
+     * @apiName ArticleModel_getList
+     * @apiDescription 게시판 글 목록 조회
+     * @apiGroup ArticleModel
+     * @apiDescription 페이지네이션·검색·조회수 JOIN을 포함한 목록을 반환한다.
+     *   호출 후 _pagerTotal, _pagerPage, _pagerPerPage 프로퍼티에 페이지 메타가 저장된다.
+     *
+     * @apiParam {Number}  bbsIdx    게시판 idx
+     * @apiParam {String}  [keyword] 제목 검색어
+     * @apiParam {Number}  [perPage=15] 페이지당 레코드 수
+     * @apiSuccess {Array} rows      게시글 배열 (idx, title, comment_count, is_notice, timestamp_insert, nickname, hit_count)
+     */
     public function getList(int $bbsIdx, ?string $keyword = null, int $perPage = 15): array
     {
         $builder = $this->db->table('tb_bbs_article a')
@@ -49,11 +73,17 @@ class ArticleModel extends Model
         return $rows;
     }
 
-    public int $_pagerTotal   = 0;
-    public int $_pagerPage    = 1;
-    public int $_pagerPerPage = 15;
-
-    /** 단일 글 조회 (본문 포함) */
+    /**
+     * @api {model} /model/ArticleModel/getArticleWithContents ArticleModel::getArticleWithContents
+     * @apiName ArticleModel_getArticleWithContents
+     * @apiDescription 단일 게시글 조회 (본문 포함)
+     * @apiGroup ArticleModel
+     * @apiDescription article + contents + hit + user 를 LEFT JOIN 하여 반환한다.
+     *   삭제된(is_deleted=1) 게시글은 null 반환.
+     *
+     * @apiParam  {Number} articleIdx  게시글 idx
+     * @apiSuccess {Object} row 게시글 배열 (없으면 null)
+     */
     public function getArticleWithContents(int $articleIdx): ?array
     {
         $row = $this->db->table('tb_bbs_article a')
@@ -68,7 +98,17 @@ class ArticleModel extends Model
         return $row ?: null;
     }
 
-    /** 메인용 최신글 N개 */
+    /**
+     * @api {model} /model/ArticleModel/getLatest ArticleModel::getLatest
+     * @apiName ArticleModel_getLatest
+     * @apiDescription 최신 게시글 N개
+     * @apiGroup ArticleModel
+     * @apiDescription 메인 페이지 등에서 게시판별 최신 글을 가져올 때 사용한다.
+     *
+     * @apiParam  {Number} bbsIdx   게시판 idx
+     * @apiParam  {Number} [limit=10] 가져올 최대 수
+     * @apiSuccess {Array} rows     게시글 배열 (idx, title, timestamp_insert, is_notice, comment_count, nickname, hit_count)
+     */
     public function getLatest(int $bbsIdx, int $limit = 10): array
     {
         return $this->db->table('tb_bbs_article a')
@@ -83,7 +123,16 @@ class ArticleModel extends Model
             ->getResultArray();
     }
 
-    /** 조회수 증가 */
+    /**
+     * @api {model} /model/ArticleModel/incrementHit ArticleModel::incrementHit
+     * @apiName ArticleModel_incrementHit
+     * @apiDescription 조회수 증가
+     * @apiGroup ArticleModel
+     * @apiDescription tb_bbs_hit 행이 있으면 hit+1 UPDATE, 없으면 hit=1 INSERT.
+     *
+     * @apiParam {Number} bbsIdx      게시판 idx
+     * @apiParam {Number} articleIdx  게시글 idx
+     */
     public function incrementHit(int $bbsIdx, int $articleIdx): void
     {
         $existing = $this->db->table('tb_bbs_hit')
@@ -106,7 +155,17 @@ class ArticleModel extends Model
         }
     }
 
-    /** 글쓰기: article + contents + hit 동시 삽입 */
+    /**
+     * @api {model} /model/ArticleModel/writeArticle ArticleModel::writeArticle
+     * @apiName ArticleModel_writeArticle
+     * @apiDescription 게시글 작성 (트랜잭션)
+     * @apiGroup ArticleModel
+     * @apiDescription tb_bbs_article, tb_bbs_contents, tb_bbs_hit 을 하나의 트랜잭션으로 삽입한다.
+     *
+     * @apiParam  {Object} articleData  tb_bbs_article 컬럼 맵 (bbs_idx, user_idx, title 등)
+     * @apiParam  {String} contents     게시글 본문
+     * @apiSuccess {Number} articleIdx 새로 생성된 article idx
+     */
     public function writeArticle(array $articleData, string $contents): int
     {
         $this->db->transStart();
@@ -132,7 +191,17 @@ class ArticleModel extends Model
         return (int) $articleIdx;
     }
 
-    /** 글수정: article + contents 업데이트 */
+    /**
+     * @api {model} /model/ArticleModel/updateArticle ArticleModel::updateArticle
+     * @apiName ArticleModel_updateArticle
+     * @apiDescription 게시글 수정 (트랜잭션)
+     * @apiGroup ArticleModel
+     * @apiDescription tb_bbs_article 과 tb_bbs_contents 를 함께 업데이트한다.
+     *
+     * @apiParam {Number} articleIdx   게시글 idx
+     * @apiParam {Object} articleData  업데이트할 컬럼 맵 (title, timestamp_update 등)
+     * @apiParam {String} contents     새 본문
+     */
     public function updateArticle(int $articleIdx, array $articleData, string $contents): void
     {
         $this->db->transStart();
@@ -146,7 +215,17 @@ class ArticleModel extends Model
         $this->db->transComplete();
     }
 
-    /** 태그 저장 (기존 삭제 후 재삽입) */
+    /**
+     * @api {model} /model/ArticleModel/saveTagsForArticle ArticleModel::saveTagsForArticle
+     * @apiName ArticleModel_saveTagsForArticle
+     * @apiDescription 태그 저장 (전체 교체)
+     * @apiGroup ArticleModel
+     * @apiDescription 기존 태그를 모두 삭제한 뒤 새 배열로 재삽입한다.
+     *
+     * @apiParam {Number}   bbsIdx      게시판 idx
+     * @apiParam {Number}   articleIdx  게시글 idx
+     * @apiParam {String[]} tags        태그 문자열 배열
+     */
     public function saveTagsForArticle(int $bbsIdx, int $articleIdx, array $tags): void
     {
         $this->db->table('tb_bbs_tag')
@@ -166,7 +245,17 @@ class ArticleModel extends Model
         }
     }
 
-    /** URL 저장 (기존 삭제 후 재삽입) */
+    /**
+     * @api {model} /model/ArticleModel/saveUrlsForArticle ArticleModel::saveUrlsForArticle
+     * @apiName ArticleModel_saveUrlsForArticle
+     * @apiDescription URL 저장 (전체 교체)
+     * @apiGroup ArticleModel
+     * @apiDescription 기존 URL을 모두 삭제한 뒤 새 배열로 재삽입한다.
+     *
+     * @apiParam {Number}   bbsIdx      게시판 idx
+     * @apiParam {Number}   articleIdx  게시글 idx
+     * @apiParam {String[]} urls        URL 문자열 배열
+     */
     public function saveUrlsForArticle(int $bbsIdx, int $articleIdx, array $urls): void
     {
         $this->db->table('tb_bbs_url')
@@ -186,7 +275,15 @@ class ArticleModel extends Model
         }
     }
 
-    /** 태그 목록 */
+    /**
+     * @api {model} /model/ArticleModel/getTagsByArticle ArticleModel::getTagsByArticle
+     * @apiName ArticleModel_getTagsByArticle
+     * @apiDescription 게시글 태그 목록
+     * @apiGroup ArticleModel
+     *
+     * @apiParam  {Number} articleIdx  게시글 idx
+     * @apiSuccess {Array} rows        태그 배열 (sequence ASC 정렬)
+     */
     public function getTagsByArticle(int $articleIdx): array
     {
         return $this->db->table('tb_bbs_tag')
@@ -196,7 +293,15 @@ class ArticleModel extends Model
             ->get()->getResultArray();
     }
 
-    /** URL 목록 */
+    /**
+     * @api {model} /model/ArticleModel/getUrlsByArticle ArticleModel::getUrlsByArticle
+     * @apiName ArticleModel_getUrlsByArticle
+     * @apiDescription 게시글 URL 목록
+     * @apiGroup ArticleModel
+     *
+     * @apiParam  {Number} articleIdx  게시글 idx
+     * @apiSuccess {Array} rows        URL 배열 (sequence ASC 정렬)
+     */
     public function getUrlsByArticle(int $articleIdx): array
     {
         return $this->db->table('tb_bbs_url')
@@ -206,7 +311,15 @@ class ArticleModel extends Model
             ->get()->getResultArray();
     }
 
-    /** 소프트 삭제 */
+    /**
+     * @api {model} /model/ArticleModel/softDelete ArticleModel::softDelete
+     * @apiName ArticleModel_softDelete
+     * @apiDescription 게시글 소프트 삭제
+     * @apiGroup ArticleModel
+     * @apiDescription is_deleted=1 로 플래그를 세우며 실제 행은 보존한다.
+     *
+     * @apiParam {Number} articleIdx  게시글 idx
+     */
     public function softDelete(int $articleIdx): void
     {
         $this->update($articleIdx, [

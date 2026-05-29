@@ -4,6 +4,11 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
+/**
+ * @apiDefine UserModel
+ * @apiDescription tb_users 를 관리하는 모델.
+ *   비밀번호는 super_secured_password 컬럼에 bcrypt 해시로 저장된다.
+ */
 class UserModel extends Model
 {
     protected $table         = 'tb_users';
@@ -21,7 +26,15 @@ class UserModel extends Model
     ];
 
     /**
-     * 로그인 처리용 - group_name 까지 JOIN해서 반환
+     * @api {model} /model/UserModel/findByLoginId UserModel::findByLoginId
+     * @apiName UserModel_findByLoginId
+     * @apiDescription 로그인 ID로 사용자 조회 (group JOIN 포함)
+     * @apiGroup UserModel
+     * @apiDescription user_id 또는 email 로 검색하며 status=1(활성) 인 사용자만 반환한다.
+     *   group_name 을 함께 반환하여 세션 초기화에 사용한다.
+     *
+     * @apiParam  {String} loginId  아이디 또는 이메일
+     * @apiSuccess {Object} user 사용자 배열 (group_name 포함, 없으면 null)
      */
     public function findByLoginId(string $loginId): ?array
     {
@@ -39,11 +52,29 @@ class UserModel extends Model
         return $row ?: null;
     }
 
+    /**
+     * @api {model} /model/UserModel/findByUserId UserModel::findByUserId
+     * @apiName UserModel_findByUserId
+     * @apiDescription 아이디 중복 확인
+     * @apiGroup UserModel
+     *
+     * @apiParam  {String} userId  확인할 user_id
+     * @apiSuccess {Object} user 사용자 배열 (없으면 null)
+     */
     public function findByUserId(string $userId): ?array
     {
         return $this->where('user_id', $userId)->first();
     }
 
+    /**
+     * @api {model} /model/UserModel/findByEmail UserModel::findByEmail
+     * @apiName UserModel_findByEmail
+     * @apiDescription 이메일 중복 확인
+     * @apiGroup UserModel
+     *
+     * @apiParam  {String} email  확인할 이메일
+     * @apiSuccess {Object} user 사용자 배열 (없으면 null)
+     */
     public function findByEmail(string $email): ?array
     {
         return $this->where('email', $email)->first();

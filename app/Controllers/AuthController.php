@@ -5,8 +5,19 @@ namespace App\Controllers;
 use App\Models\UserModel;
 use CodeIgniter\Controller;
 
+/**
+ * @api {group} Auth 인증
+ * @apiGroup Auth
+ * @apiDescription 로그인·로그아웃·회원가입·프로필·회원탈퇴를 처리한다.
+ */
 class AuthController extends Controller
 {
+    /**
+     * @api {get} /auth/login 로그인 폼
+     * @apiGroup Auth
+     * @apiName LoginForm
+     * @apiDescription 이미 로그인된 경우 홈으로 리다이렉트한다.
+     */
     public function login(): string|\CodeIgniter\HTTP\RedirectResponse
     {
         if (session()->get('user_idx')) {
@@ -15,6 +26,17 @@ class AuthController extends Controller
         return view('auth/login', ['title' => lang('App.login')]);
     }
 
+    /**
+     * @api {post} /auth/login 로그인 처리
+     * @apiGroup Auth
+     * @apiName LoginProcess
+     * @apiDescription user_id 또는 email + 비밀번호로 인증한다. 성공 시 세션을 초기화하고 홈으로 이동한다.
+     *
+     * @apiBody  {String} login_id   아이디 또는 이메일
+     * @apiBody  {String} password   비밀번호
+     * @apiSuccess {String} redirect  홈으로 이동
+     * @apiError {String} error   로그인 폼으로 리다이렉트 (error 플래시 메시지 포함)
+     */
     public function loginProcess(): \CodeIgniter\HTTP\RedirectResponse
     {
         $loginId  = trim($this->request->getPost('login_id'));
@@ -46,6 +68,12 @@ class AuthController extends Controller
         return redirect()->to('/');
     }
 
+    /**
+     * @api {get} /auth/register 회원가입 폼
+     * @apiGroup Auth
+     * @apiName RegisterForm
+     * @apiDescription 이미 로그인된 경우 홈으로 리다이렉트한다.
+     */
     public function register(): string|\CodeIgniter\HTTP\RedirectResponse
     {
         if (session()->get('user_idx')) {
@@ -54,6 +82,20 @@ class AuthController extends Controller
         return view('auth/register', ['title' => lang('App.register')]);
     }
 
+    /**
+     * @api {post} /auth/register 회원가입 처리
+     * @apiGroup Auth
+     * @apiName RegisterProcess
+     * @apiDescription 유효성 검사 후 회원을 생성한다. 기본 그룹(group_idx=2), 레벨 1로 등록된다.
+     *
+     * @apiBody  {String} user_id    아이디 (3–32자)
+     * @apiBody  {String} nickname   닉네임 (2–64자)
+     * @apiBody  {String} email      이메일
+     * @apiBody  {String} password   비밀번호 (최소 6자)
+     * @apiBody  {String} password2  비밀번호 확인
+     * @apiSuccess {String} redirect  로그인 페이지로 이동
+     * @apiError {String} error   회원가입 폼으로 리다이렉트 (errors 플래시 배열 포함)
+     */
     public function registerProcess(): \CodeIgniter\HTTP\RedirectResponse
     {
         $userId   = trim($this->request->getPost('user_id'));
@@ -110,12 +152,26 @@ class AuthController extends Controller
         return redirect()->to('/auth/login')->with('success', lang('App.msg_register_done'));
     }
 
+    /**
+     * @api {get} /auth/logout 로그아웃
+     * @apiGroup Auth
+     * @apiName Logout
+     * @apiDescription 세션을 파기하고 홈으로 이동한다.
+     */
     public function logout(): \CodeIgniter\HTTP\RedirectResponse
     {
         session()->destroy();
         return redirect()->to('/');
     }
 
+    /**
+     * @api {get} /auth/profile 프로필 페이지
+     * @apiGroup Auth
+     * @apiName Profile
+     * @apiPermission 로그인
+     *
+     * @apiSuccess {Object} user  현재 로그인 사용자 정보
+     */
     public function profile(): string
     {
         $model = new UserModel();
@@ -127,6 +183,20 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * @api {post} /auth/profile 프로필 수정
+     * @apiGroup Auth
+     * @apiName ProfileProcess
+     * @apiPermission 로그인
+     * @apiDescription 현재 비밀번호 확인 후 닉네임·이메일·비밀번호를 수정한다.
+     *
+     * @apiBody  {String} current_password  현재 비밀번호 (필수)
+     * @apiBody  {String} nickname          새 닉네임 (2–64자)
+     * @apiBody  {String} email             새 이메일
+     * @apiBody  {String} [new_password]    새 비밀번호 (최소 6자, 변경 시에만)
+     * @apiBody  {String} [new_password2]   새 비밀번호 확인
+     * @apiSuccess {String} redirect         프로필 페이지로 이동
+     */
     public function profileProcess(): \CodeIgniter\HTTP\RedirectResponse
     {
         $userIdx  = (int) session()->get('user_idx');
@@ -198,6 +268,16 @@ class AuthController extends Controller
         return redirect()->to('/auth/profile')->with('success', lang('App.msg_profile_saved'));
     }
 
+    /**
+     * @api {post} /auth/withdraw 회원 탈퇴
+     * @apiGroup Auth
+     * @apiName WithdrawProcess
+     * @apiPermission 로그인
+     * @apiDescription 비밀번호 확인 후 status=0으로 소프트 삭제하고 세션을 파기한다.
+     *
+     * @apiBody  {String} withdraw_password  현재 비밀번호
+     * @apiSuccess {String} redirect          홈으로 이동
+     */
     public function withdrawProcess(): \CodeIgniter\HTTP\RedirectResponse
     {
         $userIdx   = (int) session()->get('user_idx');

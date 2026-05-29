@@ -6,6 +6,13 @@ use CodeIgniter\Controller;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\RedirectResponse;
 
+/**
+ * @api {group} Admin 관리자
+ * @apiGroup Admin
+ * @apiPermission 최고관리자
+ * @apiDescription 게시판 설정·사이트 설정·회원 관리·게시글 관리를 처리한다.
+ *   모든 메소드는 AdminFilter를 통해 최고관리자 권한을 검사한다.
+ */
 class AdminController extends Controller
 {
     private function db()
@@ -31,11 +38,26 @@ class AdminController extends Controller
         'site_block_used', 'site_block_contents',
     ];
 
+    /**
+     * @api {get} /admin 관리자 홈
+     * @apiGroup Admin
+     * @apiName AdminIndex
+     * @apiSuccess {String} redirect /admin/boards 로 이동
+     */
     public function index(): RedirectResponse
     {
         return redirect()->to('/admin/boards');
     }
 
+    /**
+     * @api {get} /admin/boards 게시판 목록
+     * @apiGroup Admin
+     * @apiName AdminBoards
+     * @apiDescription 전체 게시판과 각 게시판의 주요 설정값을 집계하여 표시한다.
+     *
+     * @apiSuccess {Array}  boards  게시판 행 (bbs_name, bbs_used, list_count, perm_view_list 등)
+     * @apiSuccess {Array}  groups  사용 가능한 사용자 그룹 목록
+     */
     public function boards(): string
     {
         $db = $this->db();
@@ -62,6 +84,16 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * @api {get} /admin/boards/:bbsId/edit 게시판 설정 폼
+     * @apiGroup Admin
+     * @apiName AdminBoardEdit
+     *
+     * @apiParam  {String} bbsId    게시판 슬러그
+     * @apiSuccess {Object} bbs     게시판 기본 정보
+     * @apiSuccess {Object} setting 설정 파라미터 맵 (parameter → value)
+     * @apiSuccess {Array}  groups  사용자 그룹 목록
+     */
     public function boardEdit(string $bbsId): string|RedirectResponse
     {
         $db  = $this->db();
@@ -90,6 +122,24 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * @api {post} /admin/boards/:bbsId/edit 게시판 설정 저장
+     * @apiGroup Admin
+     * @apiName AdminBoardEditProcess
+     * @apiDescription tb_bbs_setting 행이 존재하면 UPDATE, 없으면 INSERT(upsert)한다.
+     *   권한 파라미터 값은 PHP serialize() 형식으로 저장된다.
+     *
+     * @apiParam  {String}   bbsId                    게시판 슬러그
+     * @apiBody   {String}   bbs_name                 게시판 이름
+     * @apiBody   {Boolean}  [bbs_used]               활성화 여부
+     * @apiBody   {Number}   bbs_count_list_article   목록 표시 수 (최소 1)
+     * @apiBody   {Boolean}  [bbs_comment_used]       댓글 기능 여부
+     * @apiBody   {Number[]} [view_list]              view_list 허용 그룹 idx 배열
+     * @apiBody   {Number[]} [view_article]           view_article 허용 그룹 idx 배열
+     * @apiBody   {Number[]} [write_article]          write_article 허용 그룹 idx 배열
+     * @apiBody   {Number[]} [write_comment]          write_comment 허용 그룹 idx 배열
+     * @apiSuccess {String} redirect                   /admin/boards 로 이동
+     */
     public function boardEditProcess(string $bbsId): RedirectResponse
     {
         $db  = $this->db();
@@ -144,6 +194,14 @@ class AdminController extends Controller
         return redirect()->to('/admin/boards')->with('success', lang('App.msg_board_setting_saved', [$bbsId]));
     }
 
+    /**
+     * @api {get} /admin/setting 사이트 설정 폼
+     * @apiGroup Admin
+     * @apiName AdminSetting
+     *
+     * @apiSuccess {Object} setting  설정 파라미터 맵
+     *   (browser_title_fix_value, join_used, site_block_used, site_block_contents)
+     */
     public function setting(): string
     {
         $db = $this->db();
@@ -163,6 +221,17 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * @api {post} /admin/setting 사이트 설정 저장
+     * @apiGroup Admin
+     * @apiName AdminSettingProcess
+     *
+     * @apiBody  {String}  browser_title_fix_value  브라우저 타이틀 접미어
+     * @apiBody  {Boolean} [join_used]              회원가입 허용 여부
+     * @apiBody  {Boolean} [site_block_used]        사이트 차단 여부
+     * @apiBody  {String}  [site_block_contents]    차단 시 표시할 메시지
+     * @apiSuccess {String} redirect                 /admin/setting 으로 이동
+     */
     public function settingProcess(): RedirectResponse
     {
         $db       = $this->db();
@@ -190,6 +259,18 @@ class AdminController extends Controller
         return redirect()->to('/admin/setting')->with('success', lang('App.msg_site_setting_saved'));
     }
 
+    /**
+     * @api {get} /admin/members 회원 목록
+     * @apiGroup Admin
+     * @apiName AdminMembers
+     *
+     * @apiQuery {String} [keyword]  아이디·닉네임·이메일 검색어
+     * @apiQuery {Number} [status]   회원 상태 필터 (0=탈퇴, 1=정상)
+     * @apiQuery {Number} [page=1]   페이지 번호
+     * @apiSuccess {Array}  users    회원 목록 (group_name JOIN 포함)
+     * @apiSuccess {Array}  groups   전체 그룹 목록
+     * @apiSuccess {Object} pager    페이지네이션 메타
+     */
     public function members(): string
     {
         $db      = $this->db();
@@ -230,6 +311,15 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * @api {get} /admin/members/:idx/edit 회원 수정 폼
+     * @apiGroup Admin
+     * @apiName AdminMemberEdit
+     *
+     * @apiParam  {Number} idx   회원 idx
+     * @apiSuccess {Object} user   회원 정보 (group_name 포함)
+     * @apiSuccess {Array}  groups 전체 그룹 목록
+     */
     public function memberEdit(int $idx): string|RedirectResponse
     {
         $db   = $this->db();
@@ -252,6 +342,20 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * @api {post} /admin/members/:idx/edit 회원 수정 저장
+     * @apiGroup Admin
+     * @apiName AdminMemberEditProcess
+     * @apiDescription 닉네임·이메일 중복 여부를 검사한 뒤 저장한다. 비밀번호는 입력 시에만 변경된다.
+     *
+     * @apiParam  {Number} idx             회원 idx
+     * @apiBody   {Number} group_idx       그룹 idx
+     * @apiBody   {Number} status          상태 (0=탈퇴, 1=정상)
+     * @apiBody   {String} nickname        닉네임
+     * @apiBody   {String} email           이메일
+     * @apiBody   {String} [new_password]  새 비밀번호 (최소 6자, 생략 시 변경 안 함)
+     * @apiSuccess {String} redirect        /admin/members 로 이동
+     */
     public function memberEditProcess(int $idx): RedirectResponse
     {
         $db   = $this->db();
@@ -295,6 +399,18 @@ class AdminController extends Controller
         return redirect()->to('/admin/members')->with('success', lang('App.msg_profile_saved'));
     }
 
+    /**
+     * @api {get} /admin/posts 게시글 관리 목록
+     * @apiGroup Admin
+     * @apiName AdminPosts
+     *
+     * @apiQuery {String} [keyword]  제목·닉네임 검색어
+     * @apiQuery {String} [bbs_id]   게시판 슬러그 필터
+     * @apiQuery {Number} [page=1]   페이지 번호
+     * @apiSuccess {Array}  posts    게시글 목록 (bbs_name·nickname·hit_count 포함)
+     * @apiSuccess {Array}  boards   전체 게시판 목록 (필터용)
+     * @apiSuccess {Object} pager    페이지네이션 메타
+     */
     public function posts(): string
     {
         $db      = $this->db();
@@ -345,6 +461,14 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * @api {get} /admin/posts/:idx/edit 게시글 수정 폼 (관리자)
+     * @apiGroup Admin
+     * @apiName AdminPostEdit
+     *
+     * @apiParam  {Number} idx   게시글 idx
+     * @apiSuccess {Object} post  게시글 (본문·게시판명 포함)
+     */
     public function postEdit(int $idx): string|RedirectResponse
     {
         $db   = $this->db();
@@ -367,6 +491,19 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * @api {post} /admin/posts/:idx/edit 게시글 수정 저장 (관리자)
+     * @apiGroup Admin
+     * @apiName AdminPostEditProcess
+     * @apiDescription article + contents 를 트랜잭션으로 함께 업데이트한다. is_notice 토글 가능.
+     *
+     * @apiParam  {Number}  idx         게시글 idx
+     * @apiBody   {String}  title       수정할 제목
+     * @apiBody   {String}  contents    수정할 본문
+     * @apiBody   {Boolean} [is_notice] 공지 여부
+     * @apiBody   {String}  [back]      완료 후 리다이렉트 URL (기본: /admin/posts)
+     * @apiSuccess {String} redirect     back 파라미터 URL 또는 /admin/posts 로 이동
+     */
     public function postEditProcess(int $idx): RedirectResponse
     {
         $db   = $this->db();
@@ -407,6 +544,15 @@ class AdminController extends Controller
         return redirect()->to($back)->with('success', lang('App.msg_admin_post_updated'));
     }
 
+    /**
+     * @api {get} /admin/posts/:idx/delete 게시글 소프트 삭제 (관리자)
+     * @apiGroup Admin
+     * @apiName AdminPostDelete
+     *
+     * @apiParam  {Number} idx    게시글 idx
+     * @apiQuery  {String} [back] 완료 후 리다이렉트 URL (기본: /admin/posts)
+     * @apiSuccess {String} redirect
+     */
     public function postDelete(int $idx): RedirectResponse
     {
         $db   = $this->db();
