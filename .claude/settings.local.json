@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mysql -h localhost -u cikorea -pcikorea2026 codeigniter -e \"SHOW TABLES;\")",
+      "Bash(which mysql *)",
+      "Bash(find /opt /usr /usr/local /Applications -name \"mysql\" -type f 2>/dev/null | head -10 *)",
+      "Bash(/opt/homebrew/opt/mysql-client/bin/mysql -h localhost -u cikorea -pcikorea2026 codeigniter -e 'DESCRIBE __TRACKED_VAR__;')",
+      "Bash(php spark *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/)",
+      "Bash(curl -s http://localhost:8080/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/board/qna)",
+      "Bash(curl -s http://localhost:8080/board/qna)",
+      "Bash(/usr/bin/curl -s \"http://localhost:8080/\")",
+      "Bash(/usr/bin/curl -s \"http://localhost:8080/board/etc_qna\")",
+      "Bash(php -l /Users/jongwonbyun/claude-works/ci4-board/app/Controllers/AuthController.php)",
+      "Bash(php -l /Users/jongwonbyun/claude-works/ci4-board/app/Views/auth/profile.php)",
+      "Bash(/opt/homebrew/opt/mysql-client/bin/mysql -h localhost -u cikorea -pcikorea2026 --default-character-set=utf8mb4 codeigniter -e ' *)",
+      "Bash(php -l /Users/jongwonbyun/claude-works/ci4-board/app/Controllers/AdminController.php)",
+      "Bash(php -l /Users/jongwonbyun/claude-works/ci4-board/app/Filters/AdminFilter.php)",
+      "Bash(php -l /Users/jongwonbyun/claude-works/ci4-board/app/Views/admin/layout.php)",
+      "Bash(php -l /Users/jongwonbyun/claude-works/ci4-board/app/Views/admin/boards.php)",
+      "Bash(php -l /Users/jongwonbyun/claude-works/ci4-board/app/Views/admin/board_edit.php)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/admin/boards/notice)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/admin/setting)",
+      "Bash(php -l /Users/jongwonbyun/claude-works/ci4-board/app/Views/admin/members.php)",
+      "Bash(php -l /Users/jongwonbyun/claude-works/ci4-board/app/Views/admin/member_edit.php)",
+      "Bash(php -l /Users/jongwonbyun/claude-works/ci4-board/app/Views/admin/posts.php)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/admin/members)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/admin/posts)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/admin/members/1)"
+    ]
+  }
+}
