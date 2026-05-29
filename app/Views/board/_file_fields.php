@@ -1,8 +1,8 @@
 <!-- 첨부파일 -->
 <div class="mb-4">
     <label class="form-label small fw-semibold">
-        <i class="bi bi-paperclip me-1"></i>첨부파일
-        <span class="text-muted fw-normal ms-1">(최대 5개, 파일당 2MB)</span>
+        <i class="bi bi-paperclip me-1"></i><?= lang('App.attachments_label') ?>
+        <span class="text-muted fw-normal ms-1">(<?= lang('App.attachments_hint') ?>)</span>
     </label>
 
     <?php if (! empty($existingFiles)): ?>
@@ -34,18 +34,16 @@
                                name="delete_files[]" value="<?= $f['idx'] ?>"
                                id="del_file_<?= $f['idx'] ?>">
                         <label class="form-check-label text-danger small"
-                               for="del_file_<?= $f['idx'] ?>">삭제</label>
+                               for="del_file_<?= $f['idx'] ?>"><?= lang('App.file_delete_label') ?></label>
                     </div>
                 </div>
             <?php endforeach; ?>
         </div>
-        <div class="form-text text-danger mb-2">삭제할 파일은 체크 후 저장하면 제거됩니다.</div>
+        <div class="form-text text-danger mb-2"><?= lang('App.delete_file_hint') ?></div>
     <?php endif; ?>
 
     <input type="file" name="attachments[]" id="attachments"
            class="form-control form-control-sm" multiple
            accept=".jpg,.jpeg,.gif,.png,.txt,.doc,.docx,.xls,.xlsx,.pdf,.ppt,.pptx,.zip,.7z,.alz,.rar">
-    <div class="form-text">
-        허용: jpg, jpeg, gif, png, txt, doc, docx, xls, xlsx, pdf, ppt, pptx, zip, 7z, alz, rar
-    </div>
+    <div class="form-text"><?= lang('App.allowed_files') ?></div>
 </div>

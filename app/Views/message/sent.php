@@ -11,30 +11,30 @@ $lastPage = (int) ceil($total / $perPage) ?: 1;
 <div class="card board-card">
     <div class="card-header d-flex justify-content-between align-items-center py-3">
         <div class="d-flex gap-3">
-            <a href="/message" class="text-muted text-decoration-none" style="font-size:.88rem">받은 쪽지함</a>
-            <span class="fw-bold"><i class="bi bi-send me-1 text-primary"></i>보낸 쪽지함</span>
+            <a href="/message" class="text-muted text-decoration-none" style="font-size:.88rem"><?= lang('App.inbox') ?></a>
+            <span class="fw-bold"><i class="bi bi-send me-1 text-primary"></i><?= lang('App.sent_box') ?></span>
         </div>
         <div class="d-flex align-items-center gap-2">
-            <small class="text-muted">총 <?= number_format($total) ?>개</small>
+            <small class="text-muted"><?= lang('App.total_count', [number_format($total)]) ?></small>
             <a href="/message/write" class="btn btn-sm btn-primary">
-                <i class="bi bi-pencil-square me-1"></i>쪽지 쓰기
+                <i class="bi bi-pencil-square me-1"></i><?= lang('App.write_message') ?>
             </a>
         </div>
     </div>
 
     <div class="card-body p-0">
         <?php if (empty($messages)): ?>
-            <p class="text-center text-muted py-5 mb-0">보낸 쪽지가 없습니다.</p>
+            <p class="text-center text-muted py-5 mb-0"><?= lang('App.no_messages_sent') ?></p>
         <?php else: ?>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th style="width:110px" class="ps-3">받는 사람</th>
-                            <th>내용</th>
-                            <th class="text-center d-none d-sm-table-cell" style="width:55px">읽음</th>
-                            <th class="text-center d-none d-sm-table-cell" style="width:130px">보낸 시각</th>
-                            <th class="text-center" style="width:60px">삭제</th>
+                            <th style="width:110px" class="ps-3"><?= lang('App.col_receiver') ?></th>
+                            <th><?= lang('App.col_content') ?></th>
+                            <th class="text-center d-none d-sm-table-cell" style="width:55px"><?= lang('App.col_read') ?></th>
+                            <th class="text-center d-none d-sm-table-cell" style="width:130px"><?= lang('App.col_sent_time') ?></th>
+                            <th class="text-center" style="width:60px"><?= lang('App.delete') ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -43,7 +43,7 @@ $lastPage = (int) ceil($total / $perPage) ?: 1;
                         ?>
                             <tr>
                                 <td class="ps-3 fw-semibold" style="font-size:.88rem">
-                                    <?= esc_db($m['receiver_nickname'] ?? '알 수 없음') ?>
+                                    <?= esc_db($m['receiver_nickname'] ?? lang('App.unknown')) ?>
                                 </td>
                                 <td>
                                     <a href="/message/<?= $m['idx'] ?>" class="text-decoration-none text-dark d-block">
@@ -51,7 +51,7 @@ $lastPage = (int) ceil($total / $perPage) ?: 1;
                                             <span class="fw-semibold"><?= esc_db($m['title']) ?></span>
                                             <span class="text-muted ms-2" style="font-size:.83rem"><?= esc($preview) ?></span>
                                         <?php else: ?>
-                                            <?= esc($preview ?: '(내용 없음)') ?>
+                                            <?= esc($preview ?: lang('App.no_content')) ?>
                                         <?php endif; ?>
                                     </a>
                                 </td>
@@ -66,7 +66,7 @@ $lastPage = (int) ceil($total / $perPage) ?: 1;
                                 <td class="text-center">
                                     <a href="/message/<?= $m['idx'] ?>/delete?from=sent"
                                        class="btn btn-link btn-sm text-danger p-0"
-                                       onclick="return confirm('이 쪽지를 삭제하시겠습니까?')">
+                                       onclick="return confirm('<?= lang('App.delete_message_confirm') ?>')">
                                         <i class="bi bi-trash"></i>
                                     </a>
                                 </td>

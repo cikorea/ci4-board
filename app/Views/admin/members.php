@@ -7,8 +7,6 @@ $page     = $pager['page'];
 $perPage  = $pager['perPage'];
 $lastPage = (int) ceil($total / $perPage) ?: 1;
 
-$groupColors = ['최고관리자' => 'danger', '개발자' => 'warning text-dark'];
-
 function memberGroupBadge(string $name): string {
     $map = ['최고관리자' => 'danger', '개발자' => 'warning text-dark'];
     $c   = $map[$name] ?? 'primary';
@@ -30,17 +28,17 @@ function buildQuery(array $extra = []): string {
     <div class="card-body py-2">
         <form method="get" class="d-flex flex-wrap gap-2 align-items-center">
             <input type="text" name="keyword" class="form-control form-control-sm" style="max-width:220px"
-                   placeholder="아이디·닉네임·이메일" value="<?= esc($keyword) ?>">
+                   placeholder="<?= lang('App.search_member_ph') ?>" value="<?= esc($keyword) ?>">
             <select name="status" class="form-select form-select-sm" style="max-width:120px">
-                <option value="">전체 상태</option>
-                <option value="1" <?= $status === '1' ? 'selected' : '' ?>>활성</option>
-                <option value="0" <?= $status === '0' ? 'selected' : '' ?>>비활성</option>
+                <option value=""><?= lang('App.all_status') ?></option>
+                <option value="1" <?= $status === '1' ? 'selected' : '' ?>><?= lang('App.status_active') ?></option>
+                <option value="0" <?= $status === '0' ? 'selected' : '' ?>><?= lang('App.status_inactive') ?></option>
             </select>
-            <button class="btn btn-sm btn-primary"><i class="bi bi-search me-1"></i>검색</button>
+            <button class="btn btn-sm btn-primary"><i class="bi bi-search me-1"></i></button>
             <?php if ($keyword || $status !== ''): ?>
-                <a href="/admin/members" class="btn btn-sm btn-outline-secondary">초기화</a>
+                <a href="/admin/members" class="btn btn-sm btn-outline-secondary"><?= lang('App.reset') ?></a>
             <?php endif; ?>
-            <span class="ms-auto text-muted" style="font-size:.83rem">총 <?= number_format($total) ?>명</span>
+            <span class="ms-auto text-muted" style="font-size:.83rem"><?= lang('App.total_count', [number_format($total)]) ?></span>
         </form>
     </div>
 </div>
@@ -53,20 +51,20 @@ function buildQuery(array $extra = []): string {
                 <thead class="table-light">
                     <tr>
                         <th class="ps-3" style="width:60px">#</th>
-                        <th style="width:130px">아이디</th>
-                        <th style="width:130px">닉네임</th>
-                        <th>이메일</th>
-                        <th class="text-center" style="width:90px">그룹</th>
-                        <th class="text-center" style="width:65px">상태</th>
-                        <th class="text-center d-none d-md-table-cell" style="width:60px">글</th>
-                        <th class="text-center d-none d-md-table-cell" style="width:60px">댓글</th>
-                        <th class="text-center d-none d-lg-table-cell" style="width:110px">가입일</th>
-                        <th class="text-center" style="width:60px">수정</th>
+                        <th style="width:130px"><?= lang('App.col_user_id') ?></th>
+                        <th style="width:130px"><?= lang('App.col_nickname') ?></th>
+                        <th><?= lang('App.col_email') ?></th>
+                        <th class="text-center" style="width:90px"><?= lang('App.col_group') ?></th>
+                        <th class="text-center" style="width:65px"><?= lang('App.col_status') ?></th>
+                        <th class="text-center d-none d-md-table-cell" style="width:60px"><?= lang('App.col_articles') ?></th>
+                        <th class="text-center d-none d-md-table-cell" style="width:60px"><?= lang('App.col_comments_count') ?></th>
+                        <th class="text-center d-none d-lg-table-cell" style="width:110px"><?= lang('App.col_joined') ?></th>
+                        <th class="text-center" style="width:60px"><?= lang('App.edit') ?></th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($users)): ?>
-                        <tr><td colspan="10" class="text-center text-muted py-4">검색 결과가 없습니다.</td></tr>
+                        <tr><td colspan="10" class="text-center text-muted py-4"><?= lang('App.board_no_posts') ?></td></tr>
                     <?php else: ?>
                         <?php foreach ($users as $u): ?>
                             <tr>
@@ -79,8 +77,8 @@ function buildQuery(array $extra = []): string {
                                 </td>
                                 <td class="text-center">
                                     <?= $u['status'] == 1
-                                        ? '<span class="badge bg-success" style="font-size:.7rem">활성</span>'
-                                        : '<span class="badge bg-secondary" style="font-size:.7rem">비활성</span>' ?>
+                                        ? '<span class="badge bg-success" style="font-size:.7rem">' . lang('App.status_active') . '</span>'
+                                        : '<span class="badge bg-secondary" style="font-size:.7rem">' . lang('App.status_inactive') . '</span>' ?>
                                 </td>
                                 <td class="text-center text-muted"><?= number_format($u['article_count']) ?></td>
                                 <td class="text-center text-muted"><?= number_format($u['comment_count']) ?></td>

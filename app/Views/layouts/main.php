@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="<?= service('language')->getLocale() ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= esc($title ?? '게시판') ?> — CI4 Board</title>
+    <title><?= esc($title ?? lang('App.page_title_board')) ?> — CI4 Board</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
@@ -144,7 +144,6 @@
 
         <!-- 브랜드 로고 -->
         <a class="ci-brand" href="/">
-            <!-- CodeIgniter 불꽃 SVG 로고 -->
             <svg width="28" height="34" viewBox="0 0 28 34" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                     <linearGradient id="flameGrad" x1="0%" y1="100%" x2="50%" y2="0%">
@@ -158,16 +157,13 @@
                         <stop offset="100%" stop-color="#ffe066"/>
                     </linearGradient>
                 </defs>
-                <!-- 외부 불꽃 -->
                 <path d="M14 1 C9 7 2 13 3 21 C4 27 8 32 14 33 C20 32 24 27 25 21 C26 13 19 7 14 1Z"
                       fill="url(#flameGrad)"/>
-                <!-- 내부 불꽃 (밝은 심지) -->
                 <path d="M14 10 C11 15 9 19 10 24 C11 27 13 29 14 29 C15 29 17 27 18 24 C19 19 17 15 14 10Z"
                       fill="url(#innerFlame)" opacity=".9"/>
-                <!-- 하이라이트 -->
                 <ellipse cx="11" cy="18" rx="2" ry="4" fill="rgba(255,220,120,.35)" transform="rotate(-15 11 18)"/>
             </svg>
-            CodeIgniter 한국사용자포럼
+            <?= lang('App.site_title') ?>
         </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
@@ -181,12 +177,10 @@
                 $navBoards   = $bbsModel->getActiveBoards();
                 $currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-                // bbs_id 기준으로 인덱싱
                 $boardsIndex = array_column($navBoards, null, 'bbs_id');
 
-                // 그룹 정의: 포럼 / 개발 은 DB 게시판, 매뉴얼은 DB + 외부링크 fallback
                 $navGroupDefs = [
-                    '포럼' => [
+                    lang('App.nav_group_forum') => [
                         ['id' => 'notice'],
                         ['id' => 'news'],
                         ['id' => 'free'],
@@ -194,30 +188,29 @@
                         ['id' => 'job'],
                         ['id' => 'cibook'],
                     ],
-                    '개발' => [
+                    lang('App.nav_group_dev') => [
                         ['id' => 'qna'],
                         ['id' => 'source'],
                         ['id' => 'etc_qna'],
                         ['id' => 'tip'],
                         ['id' => 'file'],
                     ],
-                    '매뉴얼' => [
-                        ['id' => 'ci4manual', 'label' => 'CodeIgniter4 매뉴얼', 'fallback' => 'https://codeigniter.com/user_guide/'],
-                        ['id' => 'ci4sample',  'label' => 'CodeIgniter4 샘플',   'fallback' => 'https://codeigniter4.github.io/userguide/'],
-                        ['id' => 'ci3manual',  'label' => 'CodeIgniter3 매뉴얼', 'fallback' => 'https://codeigniter.com/userguide3/'],
+                    lang('App.nav_group_manual') => [
+                        ['id' => 'ci4manual', 'label' => lang('App.nav_manual_ci4'),     'fallback' => 'https://codeigniter.com/user_guide/'],
+                        ['id' => 'ci4sample',  'label' => lang('App.nav_manual_ci4sample'), 'fallback' => 'https://codeigniter4.github.io/userguide/'],
+                        ['id' => 'ci3manual',  'label' => lang('App.nav_manual_ci3'),     'fallback' => 'https://codeigniter.com/userguide3/'],
                     ],
-                    '운영자' => [
-                        ['id' => 'su'],   // 운영자 게시판 — 최고관리자(1)만
-                        ['id' => 'ci'],   // 포럼 개발자  — 최고관리자(1) + 개발자(3)
+                    lang('App.nav_group_admin') => [
+                        ['id' => 'su'],
+                        ['id' => 'ci'],
                     ],
                 ];
 
                 foreach ($navGroupDefs as $groupLabel => $items):
-                    // 이 그룹에서 실제로 표시할 항목 수집
                     $visibleItems = [];
                     foreach ($items as $item) {
-                        $inDB      = isset($boardsIndex[$item['id']]);
-                        $hasLabel  = isset($item['label']);   // 매뉴얼 고정 항목
+                        $inDB        = isset($boardsIndex[$item['id']]);
+                        $hasLabel    = isset($item['label']);
                         $hasFallback = isset($item['fallback']);
 
                         if ($inDB) {
@@ -228,19 +221,16 @@
                                 'external' => false,
                             ];
                         } elseif ($hasLabel && $hasFallback) {
-                            // 매뉴얼처럼 DB에 없어도 항상 표시
                             $visibleItems[] = [
                                 'label'    => $item['label'],
                                 'href'     => $item['fallback'],
                                 'external' => true,
                             ];
                         }
-                        // DB에 없고 fallback도 없으면 표시 안 함
                     }
 
                     if (empty($visibleItems)) continue;
 
-                    // 현재 경로가 이 그룹 내 어떤 게시판에 속하는지 확인
                     $groupActive = false;
                     foreach ($visibleItems as $vi) {
                         if (!$vi['external'] && str_starts_with($currentPath, $vi['href'])) {
@@ -293,7 +283,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link position-relative" href="/message">
-                            <i class="bi bi-envelope me-1"></i>쪽지
+                            <i class="bi bi-envelope me-1"></i><?= lang('App.nav_message') ?>
                             <?php if ($unreadCount > 0): ?>
                                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
                                       style="font-size:.58rem"><?= $unreadCount > 99 ? '99+' : $unreadCount ?></span>
@@ -303,16 +293,25 @@
                     <?php if ($groupName === '최고관리자'): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="/admin/boards" style="color:#ffb067 !important">
-                                <i class="bi bi-shield-lock me-1"></i>관리자
+                                <i class="bi bi-shield-lock me-1"></i><?= lang('App.nav_admin') ?>
                             </a>
                         </li>
                     <?php endif; ?>
-                    <li class="nav-item"><a class="nav-link" href="/auth/profile">정보수정</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/auth/logout">로그아웃</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/auth/profile"><?= lang('App.nav_profile') ?></a></li>
+                    <li class="nav-item"><a class="nav-link" href="/auth/logout"><?= lang('App.nav_logout') ?></a></li>
                 <?php else: ?>
-                    <li class="nav-item"><a class="nav-link" href="/auth/login">로그인</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/auth/register">회원가입</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/auth/login"><?= lang('App.nav_login') ?></a></li>
+                    <li class="nav-item"><a class="nav-link" href="/auth/register"><?= lang('App.nav_register') ?></a></li>
                 <?php endif; ?>
+
+                <!-- 언어 전환 -->
+                <?php $currentLocale = service('language')->getLocale(); ?>
+                <li class="nav-item">
+                    <a class="nav-link" href="/lang/<?= $currentLocale === 'ko' ? 'en' : 'ko' ?>"
+                       style="font-size:.8rem; opacity:.75">
+                        <?= $currentLocale === 'ko' ? 'EN' : 'KO' ?>
+                    </a>
+                </li>
             </ul>
         </div>
     </div>

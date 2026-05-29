@@ -13,7 +13,6 @@ class AdminController extends Controller
         return \Config\Database::connect();
     }
 
-    /** 게시판 설정 파라미터 목록 (관리 대상만) */
     private const BBS_PERM_PARAMS = [
         'bbs_allow_group_view_list',
         'bbs_allow_group_view_article',
@@ -32,13 +31,11 @@ class AdminController extends Controller
         'site_block_used', 'site_block_contents',
     ];
 
-    /** 대시보드 */
     public function index(): RedirectResponse
     {
         return redirect()->to('/admin/boards');
     }
 
-    /** 게시판 목록 */
     public function boards(): string
     {
         $db = $this->db();
@@ -59,13 +56,12 @@ class AdminController extends Controller
         $groups = $db->table('tb_users_group')->where('is_used', 1)->orderBy('idx')->get()->getResultArray();
 
         return view('admin/boards', [
-            'title'  => '게시판 관리',
+            'title'  => lang('App.admin_boards'),
             'boards' => $rows,
             'groups' => $groups,
         ]);
     }
 
-    /** 게시판 개별 설정 폼 */
     public function boardEdit(string $bbsId): string|RedirectResponse
     {
         $db  = $this->db();
@@ -87,14 +83,13 @@ class AdminController extends Controller
         $groups = $db->table('tb_users_group')->where('is_used', 1)->orderBy('idx')->get()->getResultArray();
 
         return view('admin/board_edit', [
-            'title'   => '게시판 설정',
+            'title'   => lang('App.board_basic_settings'),
             'bbs'     => $bbs,
             'setting' => $settingMap,
             'groups'  => $groups,
         ]);
     }
 
-    /** 게시판 설정 저장 */
     public function boardEditProcess(string $bbsId): RedirectResponse
     {
         $db  = $this->db();
@@ -131,25 +126,24 @@ class AdminController extends Controller
                     ->where('bbs_idx', $bbs['idx'])
                     ->where('parameter', $parameter)
                     ->update([
-                        'value'        => $value,
+                        'value'         => $value,
                         'exec_user_idx' => $userIdx,
-                        'client_ip'    => $clientIp,
+                        'client_ip'     => $clientIp,
                     ]);
             } else {
                 $db->table('tb_bbs_setting')->insert([
-                    'bbs_idx'      => $bbs['idx'],
-                    'parameter'    => $parameter,
-                    'value'        => $value,
+                    'bbs_idx'       => $bbs['idx'],
+                    'parameter'     => $parameter,
+                    'value'         => $value,
                     'exec_user_idx' => $userIdx,
-                    'client_ip'    => $clientIp,
+                    'client_ip'     => $clientIp,
                 ]);
             }
         }
 
-        return redirect()->to('/admin/boards')->with('success', "'{$bbsId}' 게시판 설정이 저장되었습니다.");
+        return redirect()->to('/admin/boards')->with('success', lang('App.msg_board_setting_saved', [$bbsId]));
     }
 
-    /** 사이트 설정 폼 */
     public function setting(): string
     {
         $db = $this->db();
@@ -164,12 +158,11 @@ class AdminController extends Controller
         }
 
         return view('admin/setting', [
-            'title'   => '사이트 설정',
+            'title'   => lang('App.admin_setting'),
             'setting' => $settingMap,
         ]);
     }
 
-    /** 사이트 설정 저장 */
     public function settingProcess(): RedirectResponse
     {
         $db       = $this->db();
@@ -194,18 +187,14 @@ class AdminController extends Controller
                 ]);
         }
 
-        return redirect()->to('/admin/setting')->with('success', '사이트 설정이 저장되었습니다.');
+        return redirect()->to('/admin/setting')->with('success', lang('App.msg_site_setting_saved'));
     }
-
-    /* ------------------------------------------------------------------ */
-    /* 회원 관리                                                             */
-    /* ------------------------------------------------------------------ */
 
     public function members(): string
     {
         $db      = $this->db();
         $keyword = trim($this->request->getGet('keyword') ?? '');
-        $status  = $this->request->getGet('status');   // '' | '0' | '1'
+        $status  = $this->request->getGet('status');
         $perPage = 30;
         $page    = max(1, (int) ($this->request->getGet('page') ?? 1));
 
@@ -232,7 +221,7 @@ class AdminController extends Controller
         $groups = $db->table('tb_users_group')->orderBy('idx')->get()->getResultArray();
 
         return view('admin/members', [
-            'title'   => '회원 관리',
+            'title'   => lang('App.admin_members'),
             'users'   => $users,
             'groups'  => $groups,
             'keyword' => $keyword,
@@ -257,7 +246,7 @@ class AdminController extends Controller
         $groups = $db->table('tb_users_group')->orderBy('idx')->get()->getResultArray();
 
         return view('admin/member_edit', [
-            'title'  => '회원 정보 수정',
+            'title'  => lang('App.admin_member_info'),
             'user'   => $user,
             'groups' => $groups,
         ]);
@@ -284,33 +273,27 @@ class AdminController extends Controller
             'client_ip_update' => $clientIp,
         ];
 
-        // 비밀번호 재설정 (입력된 경우만)
         $newPw = trim($post['new_password'] ?? '');
         if ($newPw !== '') {
             if (strlen($newPw) < 6) {
-                return redirect()->back()->with('error', '비밀번호는 6자 이상이어야 합니다.');
+                return redirect()->back()->with('error', lang('App.msg_password_length'));
             }
             $data['super_secured_password']    = password_hash($newPw, PASSWORD_BCRYPT);
             $data['timestamp_update_password'] = time();
             $data['client_ip_update_password'] = $clientIp;
         }
 
-        // 닉네임·이메일 중복 체크 (본인 제외)
         if ($db->table('tb_users')->where('nickname', $data['nickname'])->where('idx !=', $idx)->countAllResults()) {
-            return redirect()->back()->with('error', '이미 사용 중인 닉네임입니다.')->withInput();
+            return redirect()->back()->with('error', lang('App.msg_nickname_taken'))->withInput();
         }
         if ($db->table('tb_users')->where('email', $data['email'])->where('idx !=', $idx)->countAllResults()) {
-            return redirect()->back()->with('error', '이미 사용 중인 이메일입니다.')->withInput();
+            return redirect()->back()->with('error', lang('App.msg_email_taken'))->withInput();
         }
 
         $db->table('tb_users')->where('idx', $idx)->update($data);
 
-        return redirect()->to('/admin/members')->with('success', "회원 정보가 수정되었습니다. ({$user['user_id']})");
+        return redirect()->to('/admin/members')->with('success', lang('App.msg_profile_saved'));
     }
-
-    /* ------------------------------------------------------------------ */
-    /* 게시물 관리                                                           */
-    /* ------------------------------------------------------------------ */
 
     public function posts(): string
     {
@@ -346,7 +329,6 @@ class AdminController extends Controller
         $offset = ($page - 1) * $perPage;
         $posts  = $builder->limit($perPage, $offset)->get()->getResultArray();
 
-        // 게시판 목록 (필터용)
         $boards = $db->table('tb_bbs b')
             ->select("b.bbs_id, COALESCE(sn.value, b.bbs_id) AS bbs_name")
             ->join('tb_bbs_setting sn', "sn.bbs_idx = b.idx AND sn.parameter = 'bbs_name'", 'left')
@@ -354,7 +336,7 @@ class AdminController extends Controller
             ->get()->getResultArray();
 
         return view('admin/posts', [
-            'title'   => '게시물 관리',
+            'title'   => lang('App.admin_posts_title'),
             'posts'   => $posts,
             'boards'  => $boards,
             'keyword' => $keyword,
@@ -380,7 +362,7 @@ class AdminController extends Controller
         }
 
         return view('admin/post_edit', [
-            'title' => '게시물 수정',
+            'title' => lang('App.admin_post_edit'),
             'post'  => $post,
         ]);
     }
@@ -398,7 +380,7 @@ class AdminController extends Controller
         $isNotice = (int) (bool) $this->request->getPost('is_notice');
 
         if (! $title || ! $contents) {
-            return redirect()->back()->with('error', '제목과 내용을 입력해주세요.')->withInput();
+            return redirect()->back()->with('error', lang('App.msg_admin_title_required'))->withInput();
         }
 
         $db->transStart();
@@ -421,9 +403,8 @@ class AdminController extends Controller
 
         clear_home_cache();
 
-        // 돌아갈 URL 복원
         $back = $this->request->getPost('back') ?? '/admin/posts';
-        return redirect()->to($back)->with('success', '게시물이 수정되었습니다.');
+        return redirect()->to($back)->with('success', lang('App.msg_admin_post_updated'));
     }
 
     public function postDelete(int $idx): RedirectResponse
@@ -443,8 +424,7 @@ class AdminController extends Controller
 
         clear_home_cache();
 
-        // 돌아갈 URL 복원
         $back = $this->request->getGet('back') ?? '/admin/posts';
-        return redirect()->to($back)->with('success', '게시물이 삭제되었습니다.');
+        return redirect()->to($back)->with('success', lang('App.msg_admin_post_deleted'));
     }
 }

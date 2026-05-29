@@ -5,6 +5,7 @@ namespace Config;
 use CodeIgniter\Config\Filters as BaseFilters;
 use App\Filters\AuthFilter;
 use App\Filters\AdminFilter;
+use App\Filters\LocaleFilter;
 use CodeIgniter\Filters\Cors;
 use CodeIgniter\Filters\CSRF;
 use CodeIgniter\Filters\DebugToolbar;
@@ -38,6 +39,7 @@ class Filters extends BaseFilters
         'performance'   => PerformanceMetrics::class,
         'auth'          => AuthFilter::class,
         'admin'         => AdminFilter::class,
+        'locale'        => LocaleFilter::class,
     ];
 
     /**
@@ -76,6 +78,7 @@ class Filters extends BaseFilters
      */
     public array $globals = [
         'before' => [
+            'locale',
             // 'honeypot',
             // 'csrf',
             // 'invalidchars',

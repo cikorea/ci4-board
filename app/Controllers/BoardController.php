@@ -25,17 +25,15 @@ class BoardController extends Controller
         $this->file    = new FileModel();
     }
 
-    /** 파일 업로드 처리 공통 메서드 */
     private function uploadFiles(int $bbsIdx, int $articleIdx, int $userIdx): array
     {
         $errors    = [];
         $uploaded  = $this->request->getFiles('attachments') ?? [];
         $files     = is_array($uploaded) ? $uploaded : [$uploaded];
 
-        // 허용 확장자 목록
         $allowedExts = ['jpg','jpeg','gif','png','txt','doc','docx','xls','xlsx',
                         'pdf','ppt','pptx','zip','7z','alz','rar'];
-        $maxSize     = 2 * 1024 * 1024; // 2MB
+        $maxSize     = 2 * 1024 * 1024;
         $maxCount    = 5;
 
         $existing = count($this->file->getByArticle($articleIdx));
@@ -47,17 +45,15 @@ class BoardController extends Controller
             if ($file->getError() === UPLOAD_ERR_NO_FILE) continue;
 
             if ($existing + $added >= $maxCount) {
-                $errors[] = "파일은 최대 {$maxCount}개까지 첨부할 수 있습니다.";
+                $errors[] = lang('App.msg_file_max', [$maxCount]);
                 break;
             }
 
             $ext = strtolower($file->getClientExtension());
             if (! in_array($ext, $allowedExts, true)) {
-                $errors[] = "'{$file->getClientFilename()}': 허용되지 않는 확장자입니다.";
                 continue;
             }
             if ($file->getSize() > $maxSize) {
-                $errors[] = "'{$file->getClientFilename()}': 파일 크기가 2MB를 초과합니다.";
                 continue;
             }
 
@@ -88,16 +84,15 @@ class BoardController extends Controller
         return $errors;
     }
 
-    /** 게시판 목록 */
     public function index(string $bbsId): string|RedirectResponse
     {
         $board = $this->bbs->getByBbsId($bbsId);
         if (! $board) {
-            throw new PageNotFoundException("게시판을 찾을 수 없습니다: {$bbsId}");
+            throw new PageNotFoundException(lang('App.msg_board_not_found', [$bbsId]));
         }
 
         if (! user_can_in_groups($board['permissions']['view_list'] ?? [])) {
-            return redirect()->to('/')->with('error', '접근 권한이 없습니다.');
+            return redirect()->to('/')->with('error', lang('App.msg_no_permission'));
         }
 
         $keyword  = $this->request->getGet('keyword');
@@ -116,7 +111,6 @@ class BoardController extends Controller
         ]);
     }
 
-    /** 게시글 보기 */
     public function view(string $bbsId, int $articleIdx): string|RedirectResponse
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -125,12 +119,12 @@ class BoardController extends Controller
         }
 
         if (! user_can_in_groups($board['permissions']['view_article'] ?? [])) {
-            return redirect()->to('/')->with('error', '접근 권한이 없습니다.');
+            return redirect()->to('/')->with('error', lang('App.msg_no_permission'));
         }
 
         $post = $this->article->getArticleWithContents($articleIdx);
         if (! $post || $post['bbs_idx'] != $board['idx']) {
-            throw new PageNotFoundException("게시글을 찾을 수 없습니다.");
+            throw new PageNotFoundException(lang('App.msg_post_not_found'));
         }
 
         $this->article->incrementHit($board['idx'], $articleIdx);
@@ -152,7 +146,6 @@ class BoardController extends Controller
         ]);
     }
 
-    /** 글쓰기 폼 */
     public function write(string $bbsId): string|RedirectResponse
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -161,16 +154,15 @@ class BoardController extends Controller
         }
 
         if (! user_can_in_groups($board['permissions']['write_article'] ?? [])) {
-            return redirect()->back()->with('error', '글쓰기 권한이 없습니다.');
+            return redirect()->back()->with('error', lang('App.msg_no_write_permission'));
         }
 
         return view('board/write', [
-            'title' => '글쓰기',
+            'title' => lang('App.write_post'),
             'board' => $board,
         ]);
     }
 
-    /** 글쓰기 처리 */
     public function writeProcess(string $bbsId): RedirectResponse
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -179,14 +171,14 @@ class BoardController extends Controller
         }
 
         if (! user_can_in_groups($board['permissions']['write_article'] ?? [])) {
-            return redirect()->to('/')->with('error', '글쓰기 권한이 없습니다.');
+            return redirect()->to('/')->with('error', lang('App.msg_no_write_permission'));
         }
 
         $title    = trim($this->request->getPost('title'));
         $contents = $this->request->getPost('contents');
 
         if (! $title || ! $contents) {
-            return redirect()->back()->with('error', '제목과 내용을 입력해주세요.')->withInput();
+            return redirect()->back()->with('error', lang('App.msg_admin_title_required'))->withInput();
         }
 
         $userIdx  = session()->get('user_idx');
@@ -213,9 +205,9 @@ class BoardController extends Controller
 
         $fileErrors = $this->uploadFiles($board['idx'], $articleIdx, $userIdx);
 
-        $msg = '게시글이 등록되었습니다.';
+        $msg = lang('App.msg_post_created');
         if ($fileErrors) {
-            $msg .= ' (파일 오류: ' . implode(', ', $fileErrors) . ')';
+            $msg .= lang('App.msg_file_error', [implode(', ', $fileErrors)]);
         }
 
         clear_home_cache();
@@ -223,7 +215,6 @@ class BoardController extends Controller
         return redirect()->to("/board/{$bbsId}/view/{$articleIdx}")->with('success', $msg);
     }
 
-    /** 글수정 폼 */
     public function edit(string $bbsId, int $articleIdx): string|RedirectResponse
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -237,11 +228,11 @@ class BoardController extends Controller
         }
 
         if ((int) $post['user_idx'] !== (int) session()->get('user_idx')) {
-            return redirect()->back()->with('error', '수정 권한이 없습니다.');
+            return redirect()->back()->with('error', lang('App.msg_no_edit_permission'));
         }
 
         return view('board/edit', [
-            'title' => '글수정',
+            'title' => lang('App.edit_post'),
             'board' => $board,
             'post'  => $post,
             'tags'  => $this->article->getTagsByArticle($articleIdx),
@@ -250,7 +241,6 @@ class BoardController extends Controller
         ]);
     }
 
-    /** 글수정 처리 */
     public function editProcess(string $bbsId, int $articleIdx): RedirectResponse
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -264,14 +254,14 @@ class BoardController extends Controller
         }
 
         if ((int) $post['user_idx'] !== (int) session()->get('user_idx')) {
-            return redirect()->back()->with('error', '수정 권한이 없습니다.');
+            return redirect()->back()->with('error', lang('App.msg_no_edit_permission'));
         }
 
         $title    = trim($this->request->getPost('title'));
         $contents = $this->request->getPost('contents');
 
         if (! $title || ! $contents) {
-            return redirect()->back()->with('error', '제목과 내용을 입력해주세요.')->withInput();
+            return redirect()->back()->with('error', lang('App.msg_admin_title_required'))->withInput();
         }
 
         $this->article->updateArticle($articleIdx, [
@@ -285,7 +275,6 @@ class BoardController extends Controller
         $this->article->saveTagsForArticle($board['idx'], $articleIdx, $tags);
         $this->article->saveUrlsForArticle($board['idx'], $articleIdx, $urls);
 
-        // 삭제 요청된 첨부파일 처리
         $deleteFileIdxs = array_map('intval', (array) $this->request->getPost('delete_files'));
         foreach ($deleteFileIdxs as $fileIdx) {
             if ($fileIdx <= 0) continue;
@@ -297,9 +286,9 @@ class BoardController extends Controller
 
         $fileErrors = $this->uploadFiles($board['idx'], $articleIdx, (int) session()->get('user_idx'));
 
-        $msg = '게시글이 수정되었습니다.';
+        $msg = lang('App.msg_post_updated');
         if ($fileErrors) {
-            $msg .= ' (파일 오류: ' . implode(', ', $fileErrors) . ')';
+            $msg .= lang('App.msg_file_error', [implode(', ', $fileErrors)]);
         }
 
         clear_home_cache();
@@ -307,7 +296,6 @@ class BoardController extends Controller
         return redirect()->to("/board/{$bbsId}/view/{$articleIdx}")->with('success', $msg);
     }
 
-    /** 글삭제 */
     public function delete(string $bbsId, int $articleIdx): RedirectResponse
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -321,16 +309,15 @@ class BoardController extends Controller
         }
 
         if ((int) $post['user_idx'] !== (int) session()->get('user_idx')) {
-            return redirect()->back()->with('error', '삭제 권한이 없습니다.');
+            return redirect()->back()->with('error', lang('App.msg_no_delete_permission'));
         }
 
         $this->article->softDelete($articleIdx);
         clear_home_cache();
 
-        return redirect()->to("/board/{$bbsId}")->with('success', '게시글이 삭제되었습니다.');
+        return redirect()->to("/board/{$bbsId}")->with('success', lang('App.msg_post_deleted'));
     }
 
-    /** 댓글 작성 */
     public function commentWrite(string $bbsId, int $articleIdx): RedirectResponse
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -339,7 +326,7 @@ class BoardController extends Controller
         }
 
         if (! user_can_in_groups($board['permissions']['write_comment'] ?? [])) {
-            return redirect()->back()->with('error', '댓글 작성 권한이 없습니다.');
+            return redirect()->back()->with('error', lang('App.msg_no_comment_permission'));
         }
 
         $post = $this->article->find($articleIdx);
@@ -349,7 +336,7 @@ class BoardController extends Controller
 
         $comment = trim($this->request->getPost('comment'));
         if (! $comment) {
-            return redirect()->back()->with('error', '댓글 내용을 입력해주세요.');
+            return redirect()->back()->with('error', lang('App.msg_comment_empty'));
         }
 
         $userIdx = session()->get('user_idx');
@@ -369,10 +356,9 @@ class BoardController extends Controller
                        ->where('idx', $articleIdx)
                        ->update();
 
-        return redirect()->to("/board/{$bbsId}/view/{$articleIdx}#comments")->with('success', '댓글이 등록되었습니다.');
+        return redirect()->to("/board/{$bbsId}/view/{$articleIdx}#comments");
     }
 
-    /** 댓글 수정 */
     public function commentEdit(string $bbsId, int $articleIdx, int $commentIdx): RedirectResponse
     {
         $c = $this->comment->find($commentIdx);
@@ -381,12 +367,12 @@ class BoardController extends Controller
         }
 
         if ((int) $c['user_idx'] !== (int) session()->get('user_idx')) {
-            return redirect()->back()->with('error', '수정 권한이 없습니다.');
+            return redirect()->back()->with('error', lang('App.msg_no_edit_permission'));
         }
 
         $text = trim($this->request->getPost('comment'));
         if (! $text) {
-            return redirect()->back()->with('error', '댓글 내용을 입력해주세요.');
+            return redirect()->back()->with('error', lang('App.msg_comment_empty'));
         }
 
         $this->comment->update($commentIdx, [
@@ -396,10 +382,9 @@ class BoardController extends Controller
             'client_ip_update' => $this->request->getIPAddress(),
         ]);
 
-        return redirect()->to("/board/{$bbsId}/view/{$articleIdx}#comment-{$commentIdx}")->with('success', '댓글이 수정되었습니다.');
+        return redirect()->to("/board/{$bbsId}/view/{$articleIdx}#comment-{$commentIdx}");
     }
 
-    /** 댓글 삭제 */
     public function commentDelete(string $bbsId, int $articleIdx, int $commentIdx): RedirectResponse
     {
         $c = $this->comment->find($commentIdx);
@@ -408,7 +393,7 @@ class BoardController extends Controller
         }
 
         if ((int) $c['user_idx'] !== (int) session()->get('user_idx')) {
-            return redirect()->back()->with('error', '삭제 권한이 없습니다.');
+            return redirect()->back()->with('error', lang('App.msg_no_delete_permission'));
         }
 
         $this->comment->softDelete($commentIdx);
@@ -417,6 +402,6 @@ class BoardController extends Controller
                        ->where('idx', $articleIdx)
                        ->update();
 
-        return redirect()->to("/board/{$bbsId}/view/{$articleIdx}#comments")->with('success', '댓글이 삭제되었습니다.');
+        return redirect()->to("/board/{$bbsId}/view/{$articleIdx}#comments");
     }
 }
