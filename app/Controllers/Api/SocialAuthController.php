@@ -46,7 +46,7 @@ class SocialAuthController extends BaseController
         }
 
         // state 검증
-        if ($state !== session()->get('oauth2_state')) {
+        if (empty($state) || $state !== session()->get('oauth2_state')) {
             return $this->fail('유효하지 않은 state 값입니다.', 400);
         }
         session()->remove('oauth2_state');
@@ -55,7 +55,8 @@ class SocialAuthController extends BaseController
             $oauth      = new GoogleOAuthService();
             $googleInfo = $oauth->getUserInfo($code);
         } catch (\Exception $e) {
-            return $this->fail('Google 인증 처리 중 오류가 발생했습니다: ' . $e->getMessage(), 502);
+            log_message('error', '[GoogleOAuth] callback error: ' . $e->getMessage());
+            return $this->fail('Google 인증 처리 중 오류가 발생했습니다.', 502);
         }
 
         $userModel   = new UserModel();
@@ -65,16 +66,16 @@ class SocialAuthController extends BaseController
         $social = $socialModel->findByProvider('google', $googleInfo['provider_id']);
 
         if ($social) {
-            // 기존 연결 계정 → 토큰 업데이트 후 JWT 발급
+            // 기존 연결 계정 → 프로필 업데이트 후 JWT 발급 ($social을 전달해 findByProvider 재조회 생략)
             $socialModel->upsert(
                 $social['user_idx'],
                 'google',
                 $googleInfo['provider_id'],
                 [
-                    'email'        => $googleInfo['email'],
-                    'nickname'     => $googleInfo['nickname'],
-                    'access_token' => $googleInfo['access_token'],
-                ]
+                    'email'    => $googleInfo['email'],
+                    'nickname' => $googleInfo['nickname'],
+                ],
+                $social
             );
 
             $user = $this->getUserWithGroup($userModel, $social['user_idx']);
@@ -108,9 +109,8 @@ class SocialAuthController extends BaseController
                 'google',
                 $googleInfo['provider_id'],
                 [
-                    'email'        => $googleInfo['email'],
-                    'nickname'     => $googleInfo['nickname'],
-                    'access_token' => $googleInfo['access_token'],
+                    'email'    => $googleInfo['email'],
+                    'nickname' => $googleInfo['nickname'],
                 ]
             );
         }

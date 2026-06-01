@@ -87,7 +87,7 @@ class Filters extends BaseFilters
     public array $globals = [
         'before' => [
             'locale',
-            'navdata',
+            'navdata' => ['except' => 'api/*'],
             // 'honeypot',
             // 'csrf',
             // 'invalidchars',

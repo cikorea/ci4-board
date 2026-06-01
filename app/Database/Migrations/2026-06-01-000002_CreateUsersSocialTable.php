@@ -16,7 +16,6 @@ class CreateUsersSocialTable extends Migration
                 `provider_id`      varchar(128)  NOT NULL                 COMMENT '소셜 플랫폼 고유 ID',
                 `email`            varchar(128)  DEFAULT NULL             COMMENT '소셜 계정 이메일',
                 `nickname`         varchar(64)   DEFAULT NULL             COMMENT '소셜 계정 닉네임',
-                `access_token`     text          DEFAULT NULL             COMMENT 'OAuth 액세스 토큰',
                 `timestamp_insert` int unsigned  NOT NULL                 COMMENT '등록 시각 (UNIX)',
                 `timestamp_update` int unsigned  DEFAULT NULL             COMMENT '수정 시각 (UNIX)',
                 PRIMARY KEY (`idx`),

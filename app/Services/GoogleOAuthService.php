@@ -44,10 +44,9 @@ class GoogleOAuthService
         $googleUser = $this->provider->getResourceOwner($token);
 
         return [
-            'provider_id'  => (string) $googleUser->getId(),
-            'email'        => $googleUser->getEmail() ?? '',
-            'nickname'     => $googleUser->getName() ?? '',
-            'access_token' => $token->getToken(),
+            'provider_id' => (string) $googleUser->getId(),
+            'email'       => $googleUser->getEmail() ?? '',
+            'nickname'    => $googleUser->getName() ?? '',
         ];
     }
 }

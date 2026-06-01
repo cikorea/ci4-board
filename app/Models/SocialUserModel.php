@@ -13,7 +13,7 @@ class SocialUserModel extends Model
 
     protected $allowedFields = [
         'user_idx', 'provider', 'provider_id',
-        'email', 'nickname', 'access_token',
+        'email', 'nickname',
         'timestamp_insert', 'timestamp_update',
     ];
 
@@ -24,9 +24,9 @@ class SocialUserModel extends Model
                     ->first();
     }
 
-    public function upsert(int $userIdx, string $provider, string $providerId, array $data = []): void
+    public function upsert(int $userIdx, string $provider, string $providerId, array $data = [], ?array $existing = null): void
     {
-        $existing = $this->findByProvider($provider, $providerId);
+        $existing = $existing ?? $this->findByProvider($provider, $providerId);
         $now      = time();
 
         if ($existing) {
