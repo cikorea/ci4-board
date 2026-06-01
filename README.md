@@ -1,6 +1,6 @@
 # CI4 Board
 
-CodeIgniter 4 기반의 PHP 게시판 웹 애플리케이션입니다.  
+CodeIgniter 4 기반의 PHP 게시판 웹 애플리케이션 + REST API 서버입니다.  
 배강민, 전상민이 CodeIgniter 2 시절 만들었던 **tab bbs**의 데이터베이스 스키마를 기반으로, Claude Code를 이용해 CodeIgniter 4로 재작성한 게시판입니다.
 
 > 작성자: 웅파 (blumine@gmail.com)
@@ -18,6 +18,8 @@ CodeIgniter 4 기반의 PHP 게시판 웹 애플리케이션입니다.
 | **다국어** | 한국어 / 영어 / 일본어 (CI4 Localization, 세션 기반 전환) |
 | **권한** | 그룹 기반 게시판별 읽기/쓰기/댓글 권한 제어 |
 | **캐싱** | 메인 페이지 그룹별 5분 캐시 |
+| **REST API** | JWT 인증 기반 헤드리스 API (`/api/v1/*`, `/api/admin/v1/*`) |
+| **소셜 로그인** | Google · 네이버 · 카카오 OAuth2 |
 
 ---
 
@@ -26,6 +28,7 @@ CodeIgniter 4 기반의 PHP 게시판 웹 애플리케이션입니다.
 - **Backend** — PHP 8.2+, CodeIgniter 4.7+
 - **Database** — MySQL 5.7+ / MariaDB 10.4+
 - **Frontend** — Bootstrap 5.3.3, Bootstrap Icons 1.11.3 (CDN: jsDelivr)
+- **인증** — JWT (`firebase/php-jwt ^7.0`), OAuth2 (`league/oauth2-client`)
 - **Package Manager** — Composer
 - **Test** — PHPUnit 10.5+
 
@@ -60,27 +63,51 @@ CI_ENVIRONMENT = development
 
 app.baseURL = 'http://localhost:8080/'
 
+# 서비스 DB
 database.default.hostname = localhost
 database.default.database = ci4_board
 database.default.username = root
 database.default.password =
 database.default.DBDriver = MySQLi
 database.default.DBCollat  = utf8mb4_general_ci
+
+# Admin DB (별도 DB 사용 시)
+database.admin.hostname = localhost
+database.admin.database = ci4_board_admin
+database.admin.username = root
+database.admin.password =
+database.admin.DBDriver = MySQLi
+
+# JWT (반드시 변경)
+jwt.secret = your-secret-key-change-this-in-production
+
+# 소셜 로그인 (사용 시 설정)
+# google.client_id     = your-google-client-id
+# google.client_secret = your-google-client-secret
+# google.redirect_uri  = http://localhost:8080/auth/google/callback
+# naver.client_id      = your-naver-client-id
+# naver.client_secret  = your-naver-client-secret
+# kakao.client_id      = your-kakao-rest-api-key
 ```
 
 ### 4. 데이터베이스 생성
 
-MySQL에서 데이터베이스를 먼저 생성합니다.
-
 ```sql
+-- 서비스 DB
 CREATE DATABASE ci4_board CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+-- Admin DB (선택)
+CREATE DATABASE ci4_board_admin CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 ```
 
 ### 5. 마이그레이션 실행
 
 ```bash
-# 테이블 생성
+# 서비스 DB 테이블 생성
 php spark migrate
+
+# Admin DB 테이블 생성 (선택)
+php spark migrate --database admin
 
 # 초기 데이터 입력 (회원 그룹, 관리자 계정, 게시판, 사이트 설정)
 php spark db:seed InitialSeeder
@@ -93,7 +120,7 @@ php spark db:seed InitialSeeder
 | 아이디 | `admin` |
 | 비밀번호 | `admin1234` |
 
-> **⚠️ 보안 주의:** 운영 환경에서는 로그인 후 즉시 비밀번호를 변경하세요.
+> **⚠️ 보안 주의:** 운영 환경에서는 로그인 후 즉시 비밀번호를 변경하고, `jwt.secret`을 반드시 변경하세요.
 
 ### 6. writable/ 디렉토리 권한 설정
 
@@ -133,6 +160,8 @@ php spark serve --php /usr/bin/php8.3
 
 ## 주요 접속 URL
 
+### 웹 UI
+
 | URL | 설명 |
 |-----|------|
 | `http://localhost:8080/` | 메인 페이지 |
@@ -140,6 +169,53 @@ php spark serve --php /usr/bin/php8.3
 | `http://localhost:8080/auth/register` | 회원가입 |
 | `http://localhost:8080/board/free` | 자유게시판 |
 | `http://localhost:8080/admin` | 관리자 패널 (최고관리자 전용) |
+
+### REST API
+
+| URL | 설명 |
+|-----|------|
+| `POST http://localhost:8080/api/v1/auth/login` | 로그인 → JWT 발급 |
+| `GET  http://localhost:8080/api/v1/boards` | 게시판 목록 |
+| `GET  http://localhost:8080/api/v1/boards/free/articles` | 게시글 목록 |
+| `POST http://localhost:8080/api/admin/v1/auth/login` | 관리자 로그인 |
+
+전체 API 명세는 [`docs/api-reference.md`](docs/api-reference.md) 참조
+
+---
+
+## REST API 인증
+
+JWT Bearer Token 방식을 사용합니다.
+
+```bash
+# 1. 로그인으로 토큰 발급
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"login_id":"admin","password":"admin1234"}'
+
+# 2. 발급된 access_token으로 요청
+curl -X GET http://localhost:8080/api/v1/boards \
+  -H "Authorization: Bearer {access_token}"
+```
+
+| 토큰 | 유효시간 | 설명 |
+|------|----------|------|
+| Access Token | 1시간 | API 요청 인증 |
+| Refresh Token | 30일 | Access Token 재발급 |
+
+---
+
+## 소셜 로그인
+
+Google, 네이버, 카카오 OAuth2 로그인을 지원합니다.
+
+| 플랫폼 | 콜백 경로 |
+|--------|-----------|
+| Google | `/auth/google/callback` |
+| 네이버 | `/auth/naver/callback` |
+| 카카오 | `/auth/kakao/callback` |
+
+각 플랫폼 개발자 콘솔에서 앱을 등록하고 `.env`에 Client ID/Secret을 설정하세요.
 
 ---
 
@@ -155,7 +231,7 @@ php spark serve --php /usr/bin/php8.3
 | 3 | 개발자 | 개발자 전용 그룹 |
 
 게시판별로 **목록 보기 / 글 보기 / 글 쓰기 / 댓글 쓰기** 권한을 그룹 단위로 설정할 수 있습니다.  
-관리자 패널(`/admin/boards`)에서 설정합니다.
+웹 관리자 패널(`/admin/boards`) 또는 Admin API(`PUT /api/admin/v1/boards/:bbsId`)에서 설정합니다.
 
 ---
 
@@ -194,18 +270,22 @@ php spark serve --php /usr/bin/php8.3
 
 ## 마이그레이션 & 시더
 
-| 파일 | 설명 |
-|------|------|
-| `app/Database/Migrations/2026-05-29-000001_CreateInitialSchema.php` | 전체 테이블 생성 (29개) |
-| `app/Database/Seeds/InitialSeeder.php` | 회원 그룹 · 관리자 계정 · 사이트 설정 · 게시판 13개 |
+| 파일 | 대상 DB | 설명 |
+|------|---------|------|
+| `2026-05-29-000001_CreateInitialSchema.php` | default | 서비스 테이블 29개 생성 |
+| `2026-06-01-000002_CreateUsersToken.php` | default | JWT Refresh Token 테이블 |
+| `2026-06-01-000002_CreateUsersSocialTable.php` | default | 소셜 로그인 연결 테이블 |
+| `2026-06-01-000003_CreateAdminSchema.php` | admin | 어드민 전용 테이블 4개 |
+| `app/Database/Seeds/InitialSeeder.php` | default | 회원 그룹·관리자·게시판·설정 |
 
 유용한 spark 명령어:
 
 ```bash
-php spark migrate                    # 마이그레이션 실행
-php spark migrate:rollback           # 마이그레이션 롤백
-php spark migrate:status             # 마이그레이션 상태 확인
-php spark db:seed InitialSeeder      # 초기 데이터 입력
+php spark migrate                        # 서비스 DB 마이그레이션
+php spark migrate --database admin       # Admin DB 마이그레이션
+php spark migrate:rollback               # 마이그레이션 롤백
+php spark migrate:status                 # 마이그레이션 상태 확인
+php spark db:seed InitialSeeder          # 초기 데이터 입력
 ```
 
 ---
@@ -215,25 +295,60 @@ php spark db:seed InitialSeeder      # 초기 데이터 입력
 ```
 ci4-board/
 ├── app/
-│   ├── Controllers/        컨트롤러 (Auth, Board, Message, Admin, Home, File, Language)
-│   ├── Models/             모델 (User, Bbs, Article, Comment, File, Message)
-│   ├── Views/              뷰 템플릿
-│   │   ├── layouts/        공통 레이아웃
-│   │   ├── auth/           로그인 · 회원가입 · 프로필
-│   │   ├── board/          게시판 목록 · 글보기 · 작성 · 수정
-│   │   ├── message/        쪽지
-│   │   └── admin/          관리자 패널
-│   ├── Config/             설정 파일 (Routes, Filters, App, …)
-│   ├── Filters/            필터 (Auth, Admin, Locale, NavData)
-│   ├── Language/           다국어 파일 (ko / en / ja)
-│   ├── Common.php          전역 헬퍼 함수 (권한 판정, 캐시 삭제 등)
+│   ├── Controllers/
+│   │   ├── Api/
+│   │   │   ├── SocialAuthController.php   소셜 로그인 콜백
+│   │   │   └── V1/                        REST API 컨트롤러
+│   │   │       ├── Admin/                 관리자 API
+│   │   │       ├── AuthController.php
+│   │   │       ├── ArticleController.php
+│   │   │       ├── BoardController.php
+│   │   │       ├── CommentController.php
+│   │   │       ├── FileController.php
+│   │   │       └── MessageController.php
+│   │   ├── AdminController.php            웹 관리자 패널
+│   │   ├── AuthController.php             웹 인증
+│   │   ├── BoardController.php            웹 게시판
+│   │   └── ...
+│   ├── Filters/
+│   │   ├── JwtFilter.php                  JWT 필수 인증
+│   │   ├── JwtOptionalFilter.php          JWT 선택 인증
+│   │   ├── AdminJwtFilter.php             관리자 JWT 인증
+│   │   ├── AuthFilter.php                 웹 세션 인증
+│   │   ├── AdminFilter.php                웹 관리자 인증
+│   │   ├── LocaleFilter.php               언어 설정
+│   │   └── NavDataFilter.php              네비게이션 데이터 주입
+│   ├── Models/
+│   │   ├── Admin/                         Admin DB 전용 모델
+│   │   ├── ArticleModel.php
+│   │   ├── BbsModel.php
+│   │   ├── CommentModel.php
+│   │   ├── FileModel.php
+│   │   ├── MessageModel.php
+│   │   ├── SocialUserModel.php
+│   │   ├── UserModel.php
+│   │   └── UserTokenModel.php
+│   ├── Services/
+│   │   ├── JwtService.php                 JWT 발급·검증
+│   │   ├── GoogleOAuthService.php         Google OAuth2
+│   │   └── KakaoOAuthService.php          카카오 OAuth2
+│   ├── Traits/
+│   │   └── ApiResponse.php                표준 JSON 응답
+│   ├── Views/                             웹 UI 뷰 템플릿
+│   ├── Config/                            설정 파일
+│   ├── Language/                          다국어 파일 (ko / en / ja)
+│   ├── Common.php                         전역 헬퍼 함수
 │   └── Database/
-│       ├── Migrations/     마이그레이션 파일
-│       └── Seeds/          시더 파일
-├── public/                 웹 루트 (index.php, API 문서)
-├── writable/               캐시 · 로그 · 세션 · 업로드
-├── docs/                   프로젝트 분석 문서
-└── vendor/                 Composer 패키지
+│       ├── Migrations/
+│       └── Seeds/
+├── docs/                                  프로젝트 문서
+│   ├── api-reference.md                   API 엔드포인트 명세
+│   ├── headless-board-design.md           헤드리스 전환 설계
+│   ├── project-analysis.md                프로젝트 구조 분석
+│   └── roadmap.md                         개발 로드맵
+├── public/                                웹 루트 (index.php)
+├── writable/                              캐시 · 로그 · 세션 · 업로드
+└── vendor/                                Composer 패키지
 ```
 
 ---
@@ -281,16 +396,14 @@ server {
 
 ---
 
-## API 문서
+## 문서
 
-컨트롤러와 모델에 [apiDoc](https://apidocjs.com/) 주석이 작성되어 있습니다.
-
-```bash
-# 빌드 (npx 사용)
-npx apidoc -i app/ -o public/docs/
-```
-
-빌드 후 `http://localhost:8080/docs/` 에서 확인할 수 있습니다.
+| 파일 | 설명 |
+|------|------|
+| [`docs/api-reference.md`](docs/api-reference.md) | REST API 엔드포인트 전체 명세 |
+| [`docs/headless-board-design.md`](docs/headless-board-design.md) | 헤드리스 전환 설계 문서 |
+| [`docs/project-analysis.md`](docs/project-analysis.md) | 프로젝트 구조 분석 |
+| [`docs/roadmap.md`](docs/roadmap.md) | 개발 로드맵 |
 
 ---
 
@@ -301,8 +414,10 @@ npx apidoc -i app/ -o public/docs/
 - `CI_ENVIRONMENT`를 `production`으로 변경
 - `.env` 파일이 웹에 노출되지 않도록 확인
 - 초기 관리자 비밀번호(`admin1234`) 즉시 변경
+- `jwt.secret`을 충분히 긴 랜덤 문자열로 변경
 - `app/Config/Filters.php`의 `csrf` 필터 활성화 (현재 주석 처리 상태)
 - `writable/` 디렉토리 권한 최소화
+- 소셜 로그인 Client Secret은 `.env`에만 저장, 코드에 하드코딩 금지
 
 ---
 
