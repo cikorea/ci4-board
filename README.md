@@ -106,11 +106,28 @@ chown -R www-data:www-data writable/   # Apache/Nginx
 
 ### 7. 개발 서버 실행
 
+CodeIgniter 내장 개발 서버(`php spark serve`)를 사용합니다.
+
 ```bash
+# 기본 실행 (host: localhost, port: 8080)
 php spark serve
+
+# 호스트·포트 지정
+php spark serve --host 0.0.0.0 --port 8000
+
+# PHP 버전 지정
+php spark serve --php /usr/bin/php8.3
 ```
 
+| 옵션 | 기본값 | 설명 |
+|------|--------|------|
+| `--host` | `localhost` | 바인딩 호스트 |
+| `--port` | `8080` | 바인딩 포트 |
+| `--php` | 시스템 기본 PHP | 사용할 PHP 실행 파일 경로 |
+
 브라우저에서 `http://localhost:8080` 으로 접속합니다.
+
+> **참고:** `php spark serve`는 개발 전용입니다. 운영 환경에서는 Apache 또는 Nginx를 사용하세요.
 
 ---
 
