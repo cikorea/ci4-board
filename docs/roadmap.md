@@ -407,32 +407,33 @@ tb_cms_menu          (idx, parent_idx, label, url, target, sequence, is_used)
 
 ## 로드맵 우선순위 및 일정
 
-### Phase 1 — API 기반 인프라 (1주)
+### Phase 1 — API 기반 인프라 ✅ 완료
 
 - [x] 헤드리스 전환 설계 문서 완성
-- [ ] JWT 인프라 구축 (`JwtService`, `JwtFilter`, `ApiResponse` 트레이트)
-- [ ] 어드민/프론트 API 라우팅 분리
-- [ ] Admin DB 분리 설정
+- [x] JWT 인프라 구축 (`JwtService`, `JwtFilter`, `ApiResponse` 트레이트)
+- [x] 어드민/프론트 API 라우팅 분리 (`/api/v1/*`, `/api/admin/v1/*`)
+- [x] Admin DB 분리 설정 (`ci4_board_admin`, Admin 전용 모델 4개)
 
-### Phase 2 — 인증 API (1주)
+### Phase 2 — 인증 API ✅ 완료
 
-- [ ] 자체 로그인 API (User / Admin 분리)
-- [ ] Refresh Token 발급·갱신·폐기
-- [ ] `tb_users_token` 마이그레이션
+- [x] 자체 로그인 API (User / Admin JWT 분리 발급)
+- [x] Refresh Token 발급·갱신·폐기 (`/api/v1/auth/refresh`)
+- [x] `tb_users_token` 마이그레이션
+- [x] 회원가입·프로필 수정·회원 탈퇴 API
 
-### Phase 3 — 서비스 API (2주)
+### Phase 3 — 서비스 API ✅ 완료
 
-- [ ] 게시판/게시글/댓글 API
-- [ ] 파일 업로드 API
-- [ ] 쪽지 API
-- [ ] 어드민 API (게시판 설정, 회원 관리, 사이트 설정)
+- [x] 게시판/게시글/댓글 API (CRUD + 페이지네이션 + 권한 검사)
+- [x] 파일 업로드 API (multipart, 5개/2MB/확장자 검증)
+- [x] 쪽지 API (inbox/sent/읽음 처리)
+- [x] 어드민 API (게시판 설정, 회원 관리, 사이트 설정, 게시글 관리)
 
-### Phase 4 — 소셜 로그인 (1주)
+### Phase 4 — 소셜 로그인 ✅ 완료
 
-- [ ] `tb_users_social` 마이그레이션
-- [ ] Google OAuth2 연동
-- [ ] 네이버 로그인 연동
-- [ ] 카카오 로그인 연동
+- [x] `tb_users_social` 마이그레이션
+- [x] Google OAuth2 연동
+- [x] 네이버 로그인 연동
+- [x] 카카오 로그인 연동
 
 ### Phase 5 — 프론트엔드 (별도 프로젝트, FE 개발자 필요)
 
@@ -453,4 +454,5 @@ tb_cms_menu          (idx, parent_idx, label, url, target, sequence, is_used)
 - [ ] Rate Limiting 적용
 - [ ] CSRF 필터 활성화
 - [ ] API 문서 자동화 (Swagger / apiDoc)
+- [x] PHPStan 레벨 3 정적 분석 적용
 - [ ] 통합 테스트 작성
