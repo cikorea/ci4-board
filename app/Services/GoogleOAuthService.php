@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use League\OAuth2\Client\Provider\Google;
+use League\OAuth2\Client\Provider\GoogleUser;
 
 class GoogleOAuthService
 {
@@ -42,6 +43,10 @@ class GoogleOAuthService
     {
         $token      = $this->provider->getAccessToken('authorization_code', ['code' => $code]);
         $googleUser = $this->provider->getResourceOwner($token);
+
+        if (! $googleUser instanceof GoogleUser) {
+            throw new \RuntimeException('Google 사용자 정보를 가져올 수 없습니다.');
+        }
 
         return [
             'provider_id' => (string) $googleUser->getId(),

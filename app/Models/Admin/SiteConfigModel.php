@@ -25,7 +25,7 @@ class SiteConfigModel extends Model
         return $row ? $row['config_value'] : $default;
     }
 
-    public function set(string $key, mixed $value, int $adminIdx = 0): void
+    public function setConfig(string $key, mixed $value, int $adminIdx = 0): void
     {
         $existing = $this->where('config_key', $key)->first();
 
