@@ -33,7 +33,7 @@ class NavDataFilter implements FilterInterface
             $unreadCount = $msgModel->getUnreadCount((int) session()->get('user_idx'));
         }
 
-        view()->setData([
+        service('renderer')->setData([
             'navBoards'   => $navBoards,
             'unreadCount' => $unreadCount,
         ]);
