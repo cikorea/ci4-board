@@ -131,6 +131,12 @@ $routes->group('api/v1', ['namespace' => 'App\Controllers\Api\V1'], static funct
         $routes->post  ('',           'MessageController::send');
         $routes->delete('(:num)',     'MessageController::delete/$1');
     });
+
+    // CMS (공개)
+    $routes->get('cms/pages/(:segment)', 'Cms\PageController::show/$1');
+    $routes->get('cms/banners',          'Cms\BannerController::index');
+    $routes->get('cms/popups',           'Cms\PopupController::index');
+    $routes->get('cms/menus',            'Cms\MenuController::index');
 });
 
 // ================================================================
@@ -153,5 +159,27 @@ $routes->group('api/admin/v1', ['namespace' => 'App\Controllers\Api\V1\Admin'], 
         $routes->get   ('articles',            'ArticleController::index');
         $routes->put   ('articles/(:num)',     'ArticleController::update/$1');
         $routes->delete('articles/(:num)',     'ArticleController::delete/$1');
+
+        // CMS 관리
+        $routes->get   ('cms/pages',              'Cms\PageController::index');
+        $routes->post  ('cms/pages',              'Cms\PageController::create');
+        $routes->put   ('cms/pages/(:num)',        'Cms\PageController::update/$1');
+        $routes->delete('cms/pages/(:num)',        'Cms\PageController::delete/$1');
+
+        $routes->get   ('cms/banners',             'Cms\BannerController::index');
+        $routes->post  ('cms/banners',             'Cms\BannerController::create');
+        $routes->put   ('cms/banners/(:num)',       'Cms\BannerController::update/$1');
+        $routes->delete('cms/banners/(:num)',       'Cms\BannerController::delete/$1');
+
+        $routes->get   ('cms/popups',              'Cms\PopupController::index');
+        $routes->post  ('cms/popups',              'Cms\PopupController::create');
+        $routes->put   ('cms/popups/(:num)',        'Cms\PopupController::update/$1');
+        $routes->delete('cms/popups/(:num)',        'Cms\PopupController::delete/$1');
+
+        $routes->get   ('cms/menus',               'Cms\MenuController::index');
+        $routes->post  ('cms/menus',               'Cms\MenuController::create');
+        $routes->put   ('cms/menus/reorder',        'Cms\MenuController::reorder');
+        $routes->put   ('cms/menus/(:num)',          'Cms\MenuController::update/$1');
+        $routes->delete('cms/menus/(:num)',          'Cms\MenuController::delete/$1');
     });
 });
