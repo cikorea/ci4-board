@@ -45,7 +45,7 @@ class BoardController extends Controller
     private function uploadFiles(int $bbsIdx, int $articleIdx, int $userIdx): array
     {
         $errors    = [];
-        $uploaded  = $this->request->getFiles('attachments') ?? [];
+        $uploaded  = $this->request->getFiles()['attachments'] ?? [];
         $files     = is_array($uploaded) ? $uploaded : [$uploaded];
 
         $allowedExts = ['jpg','jpeg','gif','png','txt','doc','docx','xls','xlsx',
@@ -88,7 +88,7 @@ class BoardController extends Controller
                 'article_idx'         => $articleIdx,
                 'user_idx'            => $userIdx,
                 'is_wysiwyg'          => 0,
-                'original_filename'   => $file->getClientFilename(),
+                'original_filename'   => $file->getClientName(),
                 'conversion_filename' => $datePath . '/' . $newName,
                 'mime'                => $file->getClientMimeType(),
                 'capacity'            => $file->getSize(),

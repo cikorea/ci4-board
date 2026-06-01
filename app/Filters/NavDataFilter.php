@@ -22,7 +22,7 @@ class NavDataFilter implements FilterInterface
      * @apiDescription 모든 웹 요청 전에 실행되어 네비게이션 게시판 목록과 안 읽은
      *   쪽지 수를 뷰 공유 변수로 설정한다. 뷰 파일에서 직접 모델을 호출하지 않아도 된다.
      */
-    public function before(RequestInterface $request, $arguments = null): void
+    public function before(RequestInterface $request, $arguments = null): mixed
     {
         $bbsModel  = new BbsModel();
         $navBoards = $bbsModel->getActiveBoards();
@@ -37,7 +37,12 @@ class NavDataFilter implements FilterInterface
             'navBoards'   => $navBoards,
             'unreadCount' => $unreadCount,
         ]);
+
+        return null;
     }
 
-    public function after(RequestInterface $request, ResponseInterface $response, $arguments = null): void {}
+    public function after(RequestInterface $request, ResponseInterface $response, $arguments = null): mixed
+    {
+        return null;
+    }
 }
