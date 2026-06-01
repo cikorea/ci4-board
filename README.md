@@ -57,6 +57,7 @@ cd ci4-board-web   && npm run dev        # 사용자 프론트 (:3000)
 - **인증** — JWT (`firebase/php-jwt ^7.0`), OAuth2 (`league/oauth2-client`)
 - **Package Manager** — Composer
 - **Test** — PHPUnit 10.5+
+- **정적 분석** — PHPStan 2.2+ (레벨 3)
 
 ---
 
@@ -469,6 +470,26 @@ server {
 | `tb_cms_banner` | 배너 (position, image_path, link_url, start_at, end_at) |
 | `tb_cms_popup` | 팝업 (title, contents, start_at, end_at, position) |
 | `tb_cms_menu` | 메뉴 (parent_idx 자기참조, label, url, target, sequence) |
+## 코드 품질
+
+### 정적 분석 (PHPStan 레벨 3)
+
+```bash
+vendor/bin/phpstan analyse --level=3
+```
+
+설정 파일: `phpstan.neon` (분석 대상: `app/`, Views 제외)
+
+### 테스트 (PHPUnit)
+
+```bash
+composer test
+# 또는
+php spark test
+```
+
+> 통합 테스트(`UserAuthApiTest`, `AdminAuthApiTest`)는 MySQL 테스트 DB 설정이 필요합니다.  
+> `phpunit.dist.xml`의 `database.tests.*` 주석을 해제하세요.
 
 ---
 
