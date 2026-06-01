@@ -70,6 +70,17 @@ class PopupController extends BaseAdminApiController
         return $this->created(['idx' => $db->insertID()], '팝업이 생성되었습니다.');
     }
 
+    public function show(int $idx): ResponseInterface
+    {
+        $db    = \Config\Database::connect();
+        $popup = $db->table('tb_cms_popup')->where('idx', $idx)->get()->getRowArray();
+        if (! $popup) {
+            return $this->failNotFound('팝업을 찾을 수 없습니다.');
+        }
+
+        return $this->success($popup);
+    }
+
     public function update(int $idx): ResponseInterface
     {
         $db    = \Config\Database::connect();

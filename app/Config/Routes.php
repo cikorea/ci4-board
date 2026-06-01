@@ -177,6 +177,7 @@ $routes->group('api/admin/v1', ['namespace' => 'App\Controllers\Api\V1\Admin'], 
         $routes->delete('cms/banners/(:num)',       'Cms\BannerController::delete/$1');
 
         $routes->get   ('cms/popups',              'Cms\PopupController::index');
+        $routes->get   ('cms/popups/(:num)',        'Cms\PopupController::show/$1');
         $routes->post  ('cms/popups',              'Cms\PopupController::create');
         $routes->put   ('cms/popups/(:num)',        'Cms\PopupController::update/$1');
         $routes->delete('cms/popups/(:num)',        'Cms\PopupController::delete/$1');
