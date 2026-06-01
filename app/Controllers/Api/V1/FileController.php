@@ -36,8 +36,16 @@ class FileController extends BaseApiController
             return $this->failValidation([], 'bbs_idx, article_idx 가 필요합니다.');
         }
 
-        $uploaded = $this->request->getFiles('attachments') ?? [];
-        $files    = is_array($uploaded) ? $uploaded : [$uploaded];
+        // getFileMultiple: name="attachments[]" 다중 파일
+        // getFile: name="attachments" 단일 파일
+        $multi = $this->request->getFileMultiple('attachments');
+        if ($multi !== null) {
+            $files = $multi;
+        } elseif ($this->request->getFile('attachments') !== null) {
+            $files = [$this->request->getFile('attachments')];
+        } else {
+            $files = [];
+        }
         $existing = count($this->file->getByArticle($articleIdx));
         $added    = 0;
         $errors   = [];
@@ -55,11 +63,11 @@ class FileController extends BaseApiController
 
             $ext = strtolower($file->getClientExtension());
             if (! in_array($ext, self::ALLOWED_EXTS, true)) {
-                $errors[] = "{$file->getClientFilename()}: 허용되지 않는 확장자입니다.";
+                $errors[] = "{$file->getClientName()}: 허용되지 않는 확장자입니다.";
                 continue;
             }
             if ($file->getSize() > self::MAX_SIZE) {
-                $errors[] = "{$file->getClientFilename()}: 파일 크기는 2MB 이하여야 합니다.";
+                $errors[] = "{$file->getClientName()}: 파일 크기는 2MB 이하여야 합니다.";
                 continue;
             }
 
@@ -75,14 +83,14 @@ class FileController extends BaseApiController
                 'article_idx'         => $articleIdx,
                 'user_idx'            => $userIdx,
                 'is_wysiwyg'          => 0,
-                'original_filename'   => $file->getClientFilename(),
+                'original_filename'   => $file->getClientName(),
                 'conversion_filename' => $datePath . '/' . $newName,
                 'mime'                => $file->getClientMimeType(),
                 'capacity'            => $file->getSize(),
                 'sequence'            => $existing + $added + 1,
             ], true);
 
-            $result[] = ['idx' => $fileIdx, 'original_filename' => $file->getClientFilename(), 'capacity' => $file->getSize()];
+            $result[] = ['idx' => $fileIdx, 'original_filename' => $file->getClientName(), 'capacity' => $file->getSize()];
             $added++;
         }
 
