@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Models\SocialUserModel;
 use App\Models\UserModel;
 use App\Services\GoogleOAuthService;
+use App\Services\KakaoOAuthService;
 use App\Services\JwtService;
 use App\Traits\ApiResponse;
 
@@ -26,8 +27,7 @@ class SocialAuthController extends BaseController
             return $this->fail($e->getMessage(), 500);
         }
 
-        // state를 세션에 저장해 CSRF 방지
-        session()->set('oauth2_state', $state);
+        session()->set('oauth2_google_state', $state);
 
         return $this->success(['redirect_url' => $url], 'Google 인증 URL을 발급했습니다.');
     }
@@ -45,11 +45,10 @@ class SocialAuthController extends BaseController
             return $this->fail('인증 코드가 없습니다.', 400);
         }
 
-        // state 검증
-        if (empty($state) || $state !== session()->get('oauth2_state')) {
+        if (empty($state) || $state !== session()->get('oauth2_google_state')) {
             return $this->fail('유효하지 않은 state 값입니다.', 400);
         }
-        session()->remove('oauth2_state');
+        session()->remove('oauth2_google_state');
 
         try {
             $oauth      = new GoogleOAuthService();
@@ -111,6 +110,125 @@ class SocialAuthController extends BaseController
                 [
                     'email'    => $googleInfo['email'],
                     'nickname' => $googleInfo['nickname'],
+                ]
+            );
+        }
+
+        if (! $user) {
+            return $this->fail('사용자 정보를 불러올 수 없습니다.', 500);
+        }
+
+        $accessToken  = JwtService::issueAccess($user);
+        $refreshToken = JwtService::issueRefresh((int) $user['idx']);
+
+        return $this->success([
+            'access_token'  => $accessToken,
+            'refresh_token' => $refreshToken,
+            'token_type'    => 'Bearer',
+            'expires_in'    => JwtService::accessTtl(),
+            'user'          => [
+                'idx'        => (int) $user['idx'],
+                'user_id'    => $user['user_id'],
+                'nickname'   => $user['nickname'],
+                'email'      => $user['email'],
+                'group_idx'  => (int) $user['group_idx'],
+                'group_name' => $user['group_name'] ?? '',
+            ],
+        ], '소셜 로그인 성공');
+    }
+
+    // ------------------------------------------------------------------ //
+    // GET /api/v1/auth/social/kakao
+    // ------------------------------------------------------------------ //
+
+    public function kakaoRedirect(): \CodeIgniter\HTTP\ResponseInterface
+    {
+        try {
+            $oauth = new KakaoOAuthService();
+            ['url' => $url, 'state' => $state] = $oauth->getAuthorizationUrl();
+        } catch (\RuntimeException $e) {
+            return $this->fail($e->getMessage(), 500);
+        }
+
+        session()->set('oauth2_kakao_state', $state);
+
+        return $this->success(['redirect_url' => $url], '카카오 인증 URL을 발급했습니다.');
+    }
+
+    // ------------------------------------------------------------------ //
+    // GET /api/v1/auth/social/kakao/callback
+    // ------------------------------------------------------------------ //
+
+    public function kakaoCallback(): \CodeIgniter\HTTP\ResponseInterface
+    {
+        $code  = $this->request->getGet('code');
+        $state = $this->request->getGet('state');
+
+        if (empty($code)) {
+            return $this->fail('인증 코드가 없습니다.', 400);
+        }
+
+        if (empty($state) || $state !== session()->get('oauth2_kakao_state')) {
+            return $this->fail('유효하지 않은 state 값입니다.', 400);
+        }
+        session()->remove('oauth2_kakao_state');
+
+        try {
+            $oauth      = new KakaoOAuthService();
+            $kakaoInfo  = $oauth->getUserInfo($code);
+        } catch (\Exception $e) {
+            log_message('error', '[KakaoOAuth] callback error: ' . $e->getMessage());
+            return $this->fail('카카오 인증 처리 중 오류가 발생했습니다.', 502);
+        }
+
+        $userModel   = new UserModel();
+        $socialModel = new SocialUserModel();
+
+        $social = $socialModel->findByProvider('kakao', $kakaoInfo['provider_id']);
+
+        if ($social) {
+            $socialModel->upsert(
+                $social['user_idx'],
+                'kakao',
+                $kakaoInfo['provider_id'],
+                [
+                    'email'    => $kakaoInfo['email'],
+                    'nickname' => $kakaoInfo['nickname'],
+                ],
+                $social
+            );
+
+            $user = $this->getUserWithGroup($userModel, $social['user_idx']);
+        } else {
+            // 이메일이 있을 때만 기존 회원 매핑 (카카오는 이메일 동의가 선택 사항)
+            $user = $kakaoInfo['email'] !== '' ? $userModel->findByEmail($kakaoInfo['email']) : null;
+
+            if (! $user) {
+                $userId   = 'kakao_' . substr($kakaoInfo['provider_id'], 0, 20);
+                $nickname = $this->resolveNickname($userModel, $kakaoInfo['nickname']);
+
+                $newIdx = $userModel->insert([
+                    'user_id'                => $userId,
+                    'super_secured_password' => null,
+                    'email'                  => $kakaoInfo['email'],
+                    'nickname'               => $nickname,
+                    'name'                   => $kakaoInfo['nickname'],
+                    'level'                  => 1,
+                    'group_idx'              => 2,
+                    'status'                 => 1,
+                    'timestamp_insert'       => time(),
+                ], true);
+
+                $user = $this->getUserWithGroup($userModel, $newIdx);
+            }
+
+            $socialModel->upsert(
+                (int) $user['idx'],
+                'kakao',
+                $kakaoInfo['provider_id'],
+                [
+                    'email'    => $kakaoInfo['email'],
+                    'nickname' => $kakaoInfo['nickname'],
                 ]
             );
         }
