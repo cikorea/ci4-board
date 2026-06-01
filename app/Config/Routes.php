@@ -157,6 +157,7 @@ $routes->group('api/admin/v1', ['namespace' => 'App\Controllers\Api\V1\Admin'], 
         $routes->get   ('members',             'MemberController::index');
         $routes->put   ('members/(:num)',      'MemberController::update/$1');
         $routes->get   ('articles',            'ArticleController::index');
+        $routes->get   ('articles/(:num)',     'ArticleController::show/$1');
         $routes->put   ('articles/(:num)',     'ArticleController::update/$1');
         $routes->delete('articles/(:num)',     'ArticleController::delete/$1');
 
