@@ -53,6 +53,12 @@ $routes->get('auth/profile',    'AuthController::profile',    ['filter' => 'auth
 $routes->post('auth/profile',   'AuthController::profileProcess', ['filter' => 'auth']);
 $routes->post('auth/withdraw',  'AuthController::withdrawProcess', ['filter' => 'auth']);
 
+// API v1 — 소셜 로그인
+$routes->group('api/v1/auth/social', static function ($routes) {
+    $routes->get('google',          'Api\SocialAuthController::googleRedirect');
+    $routes->get('google/callback', 'Api\SocialAuthController::googleCallback');
+});
+
 // 게시판 - 로그인 불필요
 $routes->get('board/(:segment)',              'BoardController::index/$1');
 $routes->get('board/(:segment)/view/(:num)', 'BoardController::view/$1/$2');
