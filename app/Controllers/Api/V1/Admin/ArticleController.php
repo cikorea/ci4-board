@@ -8,6 +8,7 @@ use CodeIgniter\HTTP\ResponseInterface;
  * 관리자 게시글 API
  *
  * GET    /api/admin/v1/articles
+ * GET    /api/admin/v1/articles/:idx
  * PUT    /api/admin/v1/articles/:idx
  * DELETE /api/admin/v1/articles/:idx
  */
@@ -52,6 +53,28 @@ class ArticleController extends BaseAdminApiController
             'total'     => $total,
             'last_page' => (int) ceil($total / $perPage),
         ]);
+    }
+
+    public function show(int $idx): ResponseInterface
+    {
+        $db   = \Config\Database::connect();
+        $post = $db->table('tb_bbs_article a')
+            ->select('a.idx, a.title, a.is_notice, a.timestamp_insert, a.timestamp_update,
+                      b.bbs_id, COALESCE(sn.value, b.bbs_id) AS bbs_name,
+                      u.nickname, c.contents')
+            ->join('tb_bbs b', 'b.idx = a.bbs_idx')
+            ->join('tb_bbs_setting sn', "sn.bbs_idx = b.idx AND sn.parameter = 'bbs_name'", 'left')
+            ->join('tb_users u', 'u.idx = a.user_idx', 'left')
+            ->join('tb_bbs_contents c', 'c.article_idx = a.idx', 'left')
+            ->where('a.idx', $idx)
+            ->where('a.is_deleted', 0)
+            ->get()->getRowArray();
+
+        if (! $post) {
+            return $this->failNotFound('게시글을 찾을 수 없습니다.');
+        }
+
+        return $this->success($post);
     }
 
     public function update(int $idx): ResponseInterface
