@@ -59,6 +59,8 @@ $routes->group('api/v1/auth/social', static function ($routes) {
     $routes->get('google/callback', 'Api\SocialAuthController::googleCallback');
     $routes->get('kakao',           'Api\SocialAuthController::kakaoRedirect');
     $routes->get('kakao/callback',  'Api\SocialAuthController::kakaoCallback');
+    $routes->get('naver',           'Api\SocialAuthController::naverRedirect');
+    $routes->get('naver/callback',  'Api\SocialAuthController::naverCallback');
 });
 
 // 게시판 - 로그인 불필요
