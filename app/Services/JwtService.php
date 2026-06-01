@@ -97,6 +97,11 @@ class JwtService
         self::$currentUser = $payload;
     }
 
+    public static function reset(): void
+    {
+        self::$currentUser = null;
+    }
+
     public static function getCurrentUser(): ?object
     {
         return self::$currentUser;
