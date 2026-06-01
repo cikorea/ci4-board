@@ -119,8 +119,9 @@ $routes->group('api/v1', ['namespace' => 'App\Controllers\Api\V1'], static funct
     // 파일
     $routes->get('files/(:num)/download', 'FileController::download/$1');
     $routes->group('', ['filter' => 'jwt'], static function ($routes) {
-        $routes->post  ('files',         'FileController::upload');
-        $routes->delete('files/(:num)',  'FileController::delete/$1');
+        $routes->post  ('files',           'FileController::upload');
+        $routes->delete('files/(:num)',    'FileController::delete/$1');
+        $routes->post  ('files/wysiwyg',   'WysiwygController::upload');   // 에디터 이미지 업로드
     });
 
     // 쪽지 (로그인 필요)
