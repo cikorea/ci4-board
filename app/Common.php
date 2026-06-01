@@ -41,10 +41,16 @@ if (! function_exists('parse_group_setting')) {
 
 /**
  * 현재 로그인 사용자의 group_idx 반환 (비로그인 = 0).
+ * JWT 요청이면 JwtService에서, 웹 세션 요청이면 session에서 읽는다.
  */
 if (! function_exists('current_group_idx')) {
     function current_group_idx(): int
     {
+        // API 요청 (JWT)
+        if (\App\Services\JwtService::isLoggedIn()) {
+            return \App\Services\JwtService::getGroupIdx();
+        }
+        // 웹 요청 (세션)
         return (int) (session()->get('group_idx') ?? 0);
     }
 }
