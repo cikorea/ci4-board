@@ -7,6 +7,9 @@ use App\Filters\AuthFilter;
 use App\Filters\AdminFilter;
 use App\Filters\LocaleFilter;
 use App\Filters\NavDataFilter;
+use App\Filters\JwtFilter;
+use App\Filters\JwtOptionalFilter;
+use App\Filters\AdminJwtFilter;
 use CodeIgniter\Filters\Cors;
 use CodeIgniter\Filters\CSRF;
 use CodeIgniter\Filters\DebugToolbar;
@@ -42,6 +45,9 @@ class Filters extends BaseFilters
         'admin'         => AdminFilter::class,
         'locale'        => LocaleFilter::class,
         'navdata'       => NavDataFilter::class,
+        'jwt'           => JwtFilter::class,
+        'jwt_optional'  => JwtOptionalFilter::class,
+        'admin_jwt'     => AdminJwtFilter::class,
     ];
 
     /**
