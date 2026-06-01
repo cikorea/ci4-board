@@ -27,8 +27,7 @@ class SocialAuthController extends BaseController
             return $this->fail($e->getMessage(), 500);
         }
 
-        // state를 세션에 저장해 CSRF 방지
-        session()->set('oauth2_state', $state);
+        session()->set('oauth2_google_state', $state);
 
         return $this->success(['redirect_url' => $url], 'Google 인증 URL을 발급했습니다.');
     }
@@ -46,11 +45,10 @@ class SocialAuthController extends BaseController
             return $this->fail('인증 코드가 없습니다.', 400);
         }
 
-        // state 검증
-        if (empty($state) || $state !== session()->get('oauth2_state')) {
+        if (empty($state) || $state !== session()->get('oauth2_google_state')) {
             return $this->fail('유효하지 않은 state 값입니다.', 400);
         }
-        session()->remove('oauth2_state');
+        session()->remove('oauth2_google_state');
 
         try {
             $oauth      = new GoogleOAuthService();
@@ -152,7 +150,7 @@ class SocialAuthController extends BaseController
             return $this->fail($e->getMessage(), 500);
         }
 
-        session()->set('oauth2_state', $state);
+        session()->set('oauth2_kakao_state', $state);
 
         return $this->success(['redirect_url' => $url], '카카오 인증 URL을 발급했습니다.');
     }
@@ -170,10 +168,10 @@ class SocialAuthController extends BaseController
             return $this->fail('인증 코드가 없습니다.', 400);
         }
 
-        if (empty($state) || $state !== session()->get('oauth2_state')) {
+        if (empty($state) || $state !== session()->get('oauth2_kakao_state')) {
             return $this->fail('유효하지 않은 state 값입니다.', 400);
         }
-        session()->remove('oauth2_state');
+        session()->remove('oauth2_kakao_state');
 
         try {
             $oauth      = new KakaoOAuthService();
@@ -202,7 +200,8 @@ class SocialAuthController extends BaseController
 
             $user = $this->getUserWithGroup($userModel, $social['user_idx']);
         } else {
-            $user = $userModel->findByEmail($kakaoInfo['email']);
+            // 이메일이 있을 때만 기존 회원 매핑 (카카오는 이메일 동의가 선택 사항)
+            $user = $kakaoInfo['email'] !== '' ? $userModel->findByEmail($kakaoInfo['email']) : null;
 
             if (! $user) {
                 $userId   = 'kakao_' . substr($kakaoInfo['provider_id'], 0, 20);

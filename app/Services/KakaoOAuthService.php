@@ -52,8 +52,13 @@ class KakaoOAuthService
                  ?? $kakaoUser['properties']['nickname']
                  ?? '';
 
+        $providerId = (string) ($kakaoUser['id'] ?? '');
+        if ($providerId === '') {
+            throw new \RuntimeException('카카오 응답에서 사용자 ID를 확인할 수 없습니다.');
+        }
+
         return [
-            'provider_id' => (string) ($kakaoUser['id'] ?? ''),
+            'provider_id' => $providerId,
             'email'       => $email,
             'nickname'    => $nickname,
         ];
