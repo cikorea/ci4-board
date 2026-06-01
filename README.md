@@ -442,6 +442,7 @@ server {
 | PUT | `/api/admin/v1/cms/banners/:idx` | 배너 수정 |
 | DELETE | `/api/admin/v1/cms/banners/:idx` | 배너 삭제 |
 | GET | `/api/admin/v1/cms/popups` | 팝업 목록 |
+| GET | `/api/admin/v1/cms/popups/:idx` | 팝업 단건 조회 (수정 폼 로드용) |
 | POST | `/api/admin/v1/cms/popups` | 팝업 생성 |
 | PUT | `/api/admin/v1/cms/popups/:idx` | 팝업 수정 |
 | DELETE | `/api/admin/v1/cms/popups/:idx` | 팝업 삭제 |
