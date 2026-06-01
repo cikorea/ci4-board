@@ -7,6 +7,7 @@ use App\Models\SocialUserModel;
 use App\Models\UserModel;
 use App\Services\GoogleOAuthService;
 use App\Services\KakaoOAuthService;
+use App\Services\NaverOAuthService;
 use App\Services\JwtService;
 use App\Traits\ApiResponse;
 
@@ -229,6 +230,124 @@ class SocialAuthController extends BaseController
                 [
                     'email'    => $kakaoInfo['email'],
                     'nickname' => $kakaoInfo['nickname'],
+                ]
+            );
+        }
+
+        if (! $user) {
+            return $this->fail('사용자 정보를 불러올 수 없습니다.', 500);
+        }
+
+        $accessToken  = JwtService::issueAccess($user);
+        $refreshToken = JwtService::issueRefresh((int) $user['idx']);
+
+        return $this->success([
+            'access_token'  => $accessToken,
+            'refresh_token' => $refreshToken,
+            'token_type'    => 'Bearer',
+            'expires_in'    => JwtService::accessTtl(),
+            'user'          => [
+                'idx'        => (int) $user['idx'],
+                'user_id'    => $user['user_id'],
+                'nickname'   => $user['nickname'],
+                'email'      => $user['email'],
+                'group_idx'  => (int) $user['group_idx'],
+                'group_name' => $user['group_name'] ?? '',
+            ],
+        ], '소셜 로그인 성공');
+    }
+
+    // ------------------------------------------------------------------ //
+    // GET /api/v1/auth/social/naver
+    // ------------------------------------------------------------------ //
+
+    public function naverRedirect(): \CodeIgniter\HTTP\ResponseInterface
+    {
+        try {
+            $oauth = new NaverOAuthService();
+            ['url' => $url, 'state' => $state] = $oauth->getAuthorizationUrl();
+        } catch (\RuntimeException $e) {
+            return $this->fail($e->getMessage(), 500);
+        }
+
+        session()->set('oauth2_naver_state', $state);
+
+        return $this->success(['redirect_url' => $url], '네이버 인증 URL을 발급했습니다.');
+    }
+
+    // ------------------------------------------------------------------ //
+    // GET /api/v1/auth/social/naver/callback
+    // ------------------------------------------------------------------ //
+
+    public function naverCallback(): \CodeIgniter\HTTP\ResponseInterface
+    {
+        $code  = $this->request->getGet('code');
+        $state = $this->request->getGet('state');
+
+        if (empty($code)) {
+            return $this->fail('인증 코드가 없습니다.', 400);
+        }
+
+        if (empty($state) || $state !== session()->get('oauth2_naver_state')) {
+            return $this->fail('유효하지 않은 state 값입니다.', 400);
+        }
+        session()->remove('oauth2_naver_state');
+
+        try {
+            $oauth      = new NaverOAuthService();
+            $naverInfo  = $oauth->getUserInfo($code);
+        } catch (\Exception $e) {
+            log_message('error', '[NaverOAuth] callback error: ' . $e->getMessage());
+            return $this->fail('네이버 인증 처리 중 오류가 발생했습니다.', 502);
+        }
+
+        $userModel   = new UserModel();
+        $socialModel = new SocialUserModel();
+
+        $social = $socialModel->findByProvider('naver', $naverInfo['provider_id']);
+
+        if ($social) {
+            $socialModel->upsert(
+                $social['user_idx'],
+                'naver',
+                $naverInfo['provider_id'],
+                [
+                    'email'    => $naverInfo['email'],
+                    'nickname' => $naverInfo['nickname'],
+                ],
+                $social
+            );
+
+            $user = $this->getUserWithGroup($userModel, $social['user_idx']);
+        } else {
+            $user = $naverInfo['email'] !== '' ? $userModel->findByEmail($naverInfo['email']) : null;
+
+            if (! $user) {
+                $userId   = 'naver_' . substr($naverInfo['provider_id'], 0, 20);
+                $nickname = $this->resolveNickname($userModel, $naverInfo['nickname']);
+
+                $newIdx = $userModel->insert([
+                    'user_id'                => $userId,
+                    'super_secured_password' => null,
+                    'email'                  => $naverInfo['email'],
+                    'nickname'               => $nickname,
+                    'name'                   => $naverInfo['nickname'],
+                    'level'                  => 1,
+                    'group_idx'              => 2,
+                    'status'                 => 1,
+                    'timestamp_insert'       => time(),
+                ], true);
+
+                $user = $this->getUserWithGroup($userModel, $newIdx);
+            }
+
+            $socialModel->upsert(
+                (int) $user['idx'],
+                'naver',
+                $naverInfo['provider_id'],
+                [
+                    'email'    => $naverInfo['email'],
+                    'nickname' => $naverInfo['nickname'],
                 ]
             );
         }
