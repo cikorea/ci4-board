@@ -68,3 +68,80 @@ $routes->group('board', ['filter' => 'auth'], static function ($routes) {
     $routes->get('(:segment)/view/(:num)/comment/(:num)/delete', 'BoardController::commentDelete/$1/$2/$3');
     $routes->post('(:segment)/view/(:num)/comment/(:num)/edit',   'BoardController::commentEdit/$1/$2/$3');
 });
+
+// ================================================================
+// API v1 — 프론트엔드용
+// ================================================================
+$routes->group('api/v1', ['namespace' => 'App\Controllers\Api\V1'], static function ($routes) {
+
+    // 인증 (공개)
+    $routes->post('auth/login',    'AuthController::login');
+    $routes->post('auth/register', 'AuthController::register');
+    $routes->post('auth/refresh',  'AuthController::refresh');
+
+    // 인증 (로그인 필요)
+    $routes->group('', ['filter' => 'jwt'], static function ($routes) {
+        $routes->post  ('auth/logout',   'AuthController::logout');
+        $routes->get   ('auth/me',       'AuthController::me');
+        $routes->put   ('auth/profile',  'AuthController::updateProfile');
+        $routes->delete('auth/withdraw', 'AuthController::withdraw');
+    });
+
+    // 게시판·게시글·댓글 (선택적 인증 — 권한은 컨트롤러에서 판단)
+    $routes->group('', ['filter' => 'jwt_optional'], static function ($routes) {
+        $routes->get('boards',                                               'BoardController::index');
+        $routes->get('boards/(:segment)',                                    'BoardController::show/$1');
+        $routes->get('boards/(:segment)/articles',                          'ArticleController::index/$1');
+        $routes->get('boards/(:segment)/articles/(:num)',                   'ArticleController::show/$1/$2');
+        $routes->get('boards/(:segment)/articles/(:num)/comments',          'CommentController::index/$1/$2');
+    });
+
+    // 게시글·댓글 쓰기 (로그인 필요)
+    $routes->group('', ['filter' => 'jwt'], static function ($routes) {
+        $routes->post  ('boards/(:segment)/articles',                              'ArticleController::create/$1');
+        $routes->put   ('boards/(:segment)/articles/(:num)',                       'ArticleController::update/$1/$2');
+        $routes->delete('boards/(:segment)/articles/(:num)',                       'ArticleController::delete/$1/$2');
+        $routes->post  ('boards/(:segment)/articles/(:num)/comments',              'CommentController::create/$1/$2');
+        $routes->put   ('boards/(:segment)/articles/(:num)/comments/(:num)',       'CommentController::update/$1/$2/$3');
+        $routes->delete('boards/(:segment)/articles/(:num)/comments/(:num)',       'CommentController::delete/$1/$2/$3');
+    });
+
+    // 파일
+    $routes->get('files/(:num)/download', 'FileController::download/$1');
+    $routes->group('', ['filter' => 'jwt'], static function ($routes) {
+        $routes->post  ('files',         'FileController::upload');
+        $routes->delete('files/(:num)',  'FileController::delete/$1');
+    });
+
+    // 쪽지 (로그인 필요)
+    $routes->group('messages', ['filter' => 'jwt'], static function ($routes) {
+        $routes->get   ('inbox',      'MessageController::inbox');
+        $routes->get   ('sent',       'MessageController::sent');
+        $routes->get   ('(:num)',     'MessageController::show/$1');
+        $routes->post  ('',           'MessageController::send');
+        $routes->delete('(:num)',     'MessageController::delete/$1');
+    });
+});
+
+// ================================================================
+// API v1 — 관리자용
+// ================================================================
+$routes->group('api/admin/v1', ['namespace' => 'App\Controllers\Api\V1\Admin'], static function ($routes) {
+
+    // 관리자 로그인 (공개)
+    $routes->post('auth/login', 'AuthController::login');
+
+    // 관리자 전용 (Admin JWT 필요)
+    $routes->group('', ['filter' => 'admin_jwt'], static function ($routes) {
+        $routes->post  ('auth/logout',         'AuthController::logout');
+        $routes->get   ('boards',              'BoardController::index');
+        $routes->put   ('boards/(:segment)',   'BoardController::update/$1');
+        $routes->get   ('setting',             'SettingController::index');
+        $routes->put   ('setting',             'SettingController::update');
+        $routes->get   ('members',             'MemberController::index');
+        $routes->put   ('members/(:num)',      'MemberController::update/$1');
+        $routes->get   ('articles',            'ArticleController::index');
+        $routes->put   ('articles/(:num)',     'ArticleController::update/$1');
+        $routes->delete('articles/(:num)',     'ArticleController::delete/$1');
+    });
+});
