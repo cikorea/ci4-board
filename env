@@ -73,3 +73,14 @@
 #--------------------------------------------------------------------
 
 # jwt.secret = your-secret-key-change-this-in-production
+
+#--------------------------------------------------------------------
+# ADMIN DATABASE
+#--------------------------------------------------------------------
+
+# database.admin.hostname = localhost
+# database.admin.database = ci4_board_admin
+# database.admin.username = root
+# database.admin.password =
+# database.admin.DBDriver = MySQLi
+# database.admin.DBCollat = utf8mb4_general_ci
