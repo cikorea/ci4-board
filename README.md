@@ -3,7 +3,7 @@
 CodeIgniter 4 기반의 PHP 게시판 웹 애플리케이션 + REST API 서버입니다.  
 배강민, 전상민이 CodeIgniter 2 시절 만들었던 **tab bbs**의 데이터베이스 스키마를 기반으로, Claude Code를 이용해 CodeIgniter 4로 재작성한 게시판입니다.
 
-> 작성자: 웅파 (blumine@gmail.com)
+> 작성자: 웅파 (blumine@gmail.com), 불의회상 (hoksi3k@gmail.com)
 
 ---
 
