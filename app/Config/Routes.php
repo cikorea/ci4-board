@@ -132,6 +132,9 @@ $routes->group('api/v1', ['namespace' => 'App\Controllers\Api\V1'], static funct
         $routes->delete('(:num)',     'MessageController::delete/$1');
     });
 
+    // 사이트 공개 설정
+    $routes->get('config', 'ConfigController::index');
+
     // CMS (공개)
     $routes->get('cms/pages/(:segment)', 'Cms\PageController::show/$1');
     $routes->get('cms/banners',          'Cms\BannerController::index');
