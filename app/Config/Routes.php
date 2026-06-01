@@ -57,6 +57,8 @@ $routes->post('auth/withdraw',  'AuthController::withdrawProcess', ['filter' => 
 $routes->group('api/v1/auth/social', static function ($routes) {
     $routes->get('google',          'Api\SocialAuthController::googleRedirect');
     $routes->get('google/callback', 'Api\SocialAuthController::googleCallback');
+    $routes->get('kakao',           'Api\SocialAuthController::kakaoRedirect');
+    $routes->get('kakao/callback',  'Api\SocialAuthController::kakaoCallback');
 });
 
 // 게시판 - 로그인 불필요
