@@ -82,12 +82,15 @@ database.admin.DBDriver = MySQLi
 jwt.secret = your-secret-key-change-this-in-production
 
 # 소셜 로그인 (사용 시 설정)
-# google.client_id     = your-google-client-id
-# google.client_secret = your-google-client-secret
-# google.redirect_uri  = http://localhost:8080/auth/google/callback
-# naver.client_id      = your-naver-client-id
-# naver.client_secret  = your-naver-client-secret
-# kakao.client_id      = your-kakao-rest-api-key
+# GOOGLE_CLIENT_ID     = your-google-client-id
+# GOOGLE_CLIENT_SECRET = your-google-client-secret
+# GOOGLE_REDIRECT_URI  = http://localhost:8080/api/v1/auth/social/google/callback
+# NAVER_CLIENT_ID      = your-naver-client-id
+# NAVER_CLIENT_SECRET  = your-naver-client-secret
+# NAVER_REDIRECT_URI   = http://localhost:8080/api/v1/auth/social/naver/callback
+# KAKAO_CLIENT_ID      = your-kakao-rest-api-key
+# KAKAO_CLIENT_SECRET  =
+# KAKAO_REDIRECT_URI   = http://localhost:8080/api/v1/auth/social/kakao/callback
 ```
 
 ### 4. 데이터베이스 생성
@@ -103,15 +106,14 @@ CREATE DATABASE ci4_board_admin CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci
 ### 5. 마이그레이션 실행
 
 ```bash
-# 서비스 DB 테이블 생성
+# 서비스 DB + Admin DB 테이블 생성 (한 번에 실행)
 php spark migrate
-
-# Admin DB 테이블 생성 (선택)
-php spark migrate --database admin
 
 # 초기 데이터 입력 (회원 그룹, 관리자 계정, 게시판, 사이트 설정)
 php spark db:seed InitialSeeder
 ```
+
+> `CreateAdminSchema` 마이그레이션은 `$DBGroup = 'admin'`으로 설정되어 있어 `spark migrate` 한 번으로 Admin DB에도 자동 적용됩니다. `.env`에 `database.admin.*` 값을 반드시 설정하세요.
 
 초기 관리자 계정:
 
@@ -209,13 +211,13 @@ curl -X GET http://localhost:8080/api/v1/boards \
 
 Google, 네이버, 카카오 OAuth2 로그인을 지원합니다.
 
-| 플랫폼 | 콜백 경로 |
-|--------|-----------|
-| Google | `/auth/google/callback` |
-| 네이버 | `/auth/naver/callback` |
-| 카카오 | `/auth/kakao/callback` |
+| 플랫폼 | 인증 시작 URL | 콜백 URL |
+|--------|--------------|---------|
+| Google | `GET /api/v1/auth/social/google` | `/api/v1/auth/social/google/callback` |
+| 네이버 | `GET /api/v1/auth/social/naver` | `/api/v1/auth/social/naver/callback` |
+| 카카오 | `GET /api/v1/auth/social/kakao` | `/api/v1/auth/social/kakao/callback` |
 
-각 플랫폼 개발자 콘솔에서 앱을 등록하고 `.env`에 Client ID/Secret을 설정하세요.
+각 플랫폼 개발자 콘솔에서 앱을 등록하고 `.env`에 `GOOGLE_CLIENT_ID` 등 Client ID/Secret을 설정하세요.
 
 ---
 
@@ -273,16 +275,15 @@ Google, 네이버, 카카오 OAuth2 로그인을 지원합니다.
 | 파일 | 대상 DB | 설명 |
 |------|---------|------|
 | `2026-05-29-000001_CreateInitialSchema.php` | default | 서비스 테이블 29개 생성 |
+| `2026-06-01-000001_CreateUsersSocialTable.php` | default | 소셜 로그인 연결 테이블 |
 | `2026-06-01-000002_CreateUsersToken.php` | default | JWT Refresh Token 테이블 |
-| `2026-06-01-000002_CreateUsersSocialTable.php` | default | 소셜 로그인 연결 테이블 |
 | `2026-06-01-000003_CreateAdminSchema.php` | admin | 어드민 전용 테이블 4개 |
 | `app/Database/Seeds/InitialSeeder.php` | default | 회원 그룹·관리자·게시판·설정 |
 
 유용한 spark 명령어:
 
 ```bash
-php spark migrate                        # 서비스 DB 마이그레이션
-php spark migrate --database admin       # Admin DB 마이그레이션
+php spark migrate                        # 전체 마이그레이션 (default + admin 자동 적용)
 php spark migrate:rollback               # 마이그레이션 롤백
 php spark migrate:status                 # 마이그레이션 상태 확인
 php spark db:seed InitialSeeder          # 초기 데이터 입력
@@ -331,7 +332,8 @@ ci4-board/
 │   ├── Services/
 │   │   ├── JwtService.php                 JWT 발급·검증
 │   │   ├── GoogleOAuthService.php         Google OAuth2
-│   │   └── KakaoOAuthService.php          카카오 OAuth2
+│   │   ├── KakaoOAuthService.php          카카오 OAuth2
+│   │   └── NaverOAuthService.php          네이버 OAuth2
 │   ├── Traits/
 │   │   └── ApiResponse.php                표준 JSON 응답
 │   ├── Views/                             웹 UI 뷰 템플릿
