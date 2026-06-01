@@ -36,8 +36,16 @@ class FileController extends BaseApiController
             return $this->failValidation([], 'bbs_idx, article_idx 가 필요합니다.');
         }
 
-        $uploaded = $this->request->getFiles()['attachments'] ?? [];
-        $files    = is_array($uploaded) ? $uploaded : [$uploaded];
+        // getFileMultiple: name="attachments[]" 다중 파일
+        // getFile: name="attachments" 단일 파일
+        $multi = $this->request->getFileMultiple('attachments');
+        if ($multi !== null) {
+            $files = $multi;
+        } elseif ($this->request->getFile('attachments') !== null) {
+            $files = [$this->request->getFile('attachments')];
+        } else {
+            $files = [];
+        }
         $existing = count($this->file->getByArticle($articleIdx));
         $added    = 0;
         $errors   = [];
