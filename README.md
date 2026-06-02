@@ -470,6 +470,9 @@ server {
 | `tb_cms_banner` | 배너 (position, image_path, link_url, start_at, end_at) |
 | `tb_cms_popup` | 팝업 (title, contents, start_at, end_at, position) |
 | `tb_cms_menu` | 메뉴 (parent_idx 자기참조, label, url, target, sequence) |
+
+---
+
 ## 코드 품질
 
 ### 정적 분석 (PHPStan 레벨 3)
