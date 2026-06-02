@@ -10,6 +10,7 @@ use App\Filters\NavDataFilter;
 use App\Filters\JwtFilter;
 use App\Filters\JwtOptionalFilter;
 use App\Filters\AdminJwtFilter;
+use App\Filters\RateLimitFilter;
 use CodeIgniter\Filters\Cors;
 use CodeIgniter\Filters\CSRF;
 use CodeIgniter\Filters\DebugToolbar;
@@ -48,6 +49,7 @@ class Filters extends BaseFilters
         'jwt'           => JwtFilter::class,
         'jwt_optional'  => JwtOptionalFilter::class,
         'admin_jwt'     => AdminJwtFilter::class,
+        'rate_limit'    => RateLimitFilter::class,
     ];
 
     /**
