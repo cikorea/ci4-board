@@ -90,8 +90,8 @@ class Filters extends BaseFilters
         'before' => [
             'locale'  => ['except' => 'api/*'],
             'navdata' => ['except' => 'api/*'],
+            'csrf'    => ['except' => 'api/*'],
             // 'honeypot',
-            // 'csrf',
             // 'invalidchars',
         ],
         'after' => [
