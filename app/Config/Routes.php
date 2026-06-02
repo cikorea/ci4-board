@@ -82,12 +82,12 @@ $routes->group('board', ['filter' => 'auth'], static function ($routes) {
 // ================================================================
 // API v1 — 프론트엔드용
 // ================================================================
-$routes->group('api/v1', ['namespace' => 'App\Controllers\Api\V1'], static function ($routes) {
+$routes->group('api/v1', ['namespace' => 'App\Controllers\Api\V1', 'filter' => 'rate_limit:60'], static function ($routes) {
 
     // 인증 (공개)
-    $routes->post('auth/login',    'AuthController::login');
-    $routes->post('auth/register', 'AuthController::register');
-    $routes->post('auth/refresh',  'AuthController::refresh');
+    $routes->post('auth/login',    'AuthController::login',    ['filter' => 'rate_limit:10']);
+    $routes->post('auth/register', 'AuthController::register', ['filter' => 'rate_limit:10']);
+    $routes->post('auth/refresh',  'AuthController::refresh',  ['filter' => 'rate_limit:20']);
 
     // 인증 (로그인 필요)
     $routes->group('', ['filter' => 'jwt'], static function ($routes) {
@@ -149,7 +149,7 @@ $routes->group('api/v1', ['namespace' => 'App\Controllers\Api\V1'], static funct
 $routes->group('api/admin/v1', ['namespace' => 'App\Controllers\Api\V1\Admin'], static function ($routes) {
 
     // 관리자 로그인 (공개)
-    $routes->post('auth/login', 'AuthController::login');
+    $routes->post('auth/login', 'AuthController::login', ['filter' => 'rate_limit:10']);
 
     // 관리자 전용 (Admin JWT 필요)
     $routes->group('', ['filter' => 'admin_jwt'], static function ($routes) {
