@@ -859,3 +859,246 @@ Authorization: Bearer {admin_access_token}
 | join_used | bool | 회원가입 허용 여부 |
 | site_block_used | bool | 사이트 차단 여부 |
 | site_block_contents | string | 차단 시 표시 메시지 |
+
+---
+
+## 12. 공개 사이트 설정 API `/api/v1/config`
+
+### 12.1 사이트 설정 조회
+
+```
+GET /api/v1/config
+```
+
+인증 불필요. 프론트엔드 초기화 시 호출합니다.
+
+**Response 200**
+```json
+{
+    "success": true,
+    "data": {
+        "browser_title_fix_value": "CI4 Board",
+        "join_used": "1",
+        "site_block_used": "0",
+        "site_block_contents": "현재 사이트 점검 중입니다."
+    }
+}
+```
+
+---
+
+## 13. WYSIWYG 이미지 업로드 `/api/v1/files/wysiwyg`
+
+### 13.1 이미지 업로드
+
+```
+POST /api/v1/files/wysiwyg
+Authorization: Bearer {access_token}
+Content-Type: multipart/form-data
+```
+
+**Form Data**
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| image | file | ✅ | 이미지 파일 |
+
+**허용 형식:** jpg, png, gif, webp (최대 5MB)  
+**저장 경로:** `public/uploads/wysiwyg/YYYY/MM/`
+
+**Response 201**
+```json
+{
+    "success": true,
+    "data": {
+        "url": "http://localhost:8080/uploads/wysiwyg/2026/06/abc123.png"
+    }
+}
+```
+
+---
+
+## 14. CMS 페이지 API
+
+### 14.1 프론트 — 페이지 조회
+
+```
+GET /api/v1/cms/pages/:slug
+```
+
+`status=1` (발행) 상태의 페이지만 반환합니다.
+
+**Response 200**
+```json
+{
+    "success": true,
+    "data": {
+        "idx": 1,
+        "slug": "about",
+        "title": "서비스 소개",
+        "contents": "<p>...</p>",
+        "timestamp_insert": 1748736000
+    }
+}
+```
+
+### 14.2 관리자 — 페이지 목록
+
+```
+GET /api/admin/v1/cms/pages
+Authorization: Bearer {admin_access_token}
+```
+
+**Query Parameters:** `keyword`, `status` (0=임시저장, 1=발행), `page`
+
+### 14.3 관리자 — 페이지 생성
+
+```
+POST /api/admin/v1/cms/pages
+Authorization: Bearer {admin_access_token}
+```
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| slug | string | ✅ | URL 슬러그 (소문자·숫자·하이픈) |
+| title | string | ✅ | 페이지 제목 |
+| contents | string | ✅ | 본문 (HTML) |
+| status | bool | - | 발행 여부 (기본: 0=임시저장) |
+
+### 14.4 관리자 — 페이지 수정 / 삭제
+
+```
+PUT    /api/admin/v1/cms/pages/:idx
+DELETE /api/admin/v1/cms/pages/:idx
+Authorization: Bearer {admin_access_token}
+```
+
+---
+
+## 15. CMS 배너 API
+
+### 15.1 프론트 — 활성 배너 목록
+
+```
+GET /api/v1/cms/banners?position=main-top
+```
+
+`is_used=1` + 현재 시각이 `start_at~end_at` 범위 내인 배너만 반환합니다.
+
+### 15.2 관리자 — 배너 CRUD
+
+```
+GET    /api/admin/v1/cms/banners[?position=코드]
+POST   /api/admin/v1/cms/banners
+PUT    /api/admin/v1/cms/banners/:idx
+DELETE /api/admin/v1/cms/banners/:idx
+Authorization: Bearer {admin_access_token}
+```
+
+**생성/수정 Body**
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| position | string | ✅ | 노출 위치 코드 |
+| image_path | string | ✅ | 이미지 경로 |
+| link_url | string | - | 클릭 링크 URL |
+| start_at | int\|string | - | 노출 시작 (Unix timestamp 또는 ISO 8601) |
+| end_at | int\|string | - | 노출 종료 |
+| sequence | int | - | 노출 순서 (기본 0) |
+| is_used | bool | - | 사용 여부 (기본 true) |
+
+---
+
+## 16. CMS 팝업 API
+
+### 16.1 프론트 — 활성 팝업 목록
+
+```
+GET /api/v1/cms/popups
+```
+
+`is_used=1` + 현재 시각이 `start_at~end_at` 범위 내인 팝업만 반환합니다.
+
+### 16.2 관리자 — 팝업 CRUD
+
+```
+GET    /api/admin/v1/cms/popups[?is_used=1]
+GET    /api/admin/v1/cms/popups/:idx
+POST   /api/admin/v1/cms/popups
+PUT    /api/admin/v1/cms/popups/:idx
+DELETE /api/admin/v1/cms/popups/:idx
+Authorization: Bearer {admin_access_token}
+```
+
+**생성/수정 Body**
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| title | string | ✅ | 팝업 제목 |
+| contents | string | ✅ | 내용 (HTML) |
+| position | string | - | 노출 위치 코드 |
+| start_at | int\|string | - | 노출 시작 |
+| end_at | int\|string | - | 노출 종료 |
+| is_used | bool | - | 사용 여부 |
+
+---
+
+## 17. CMS 메뉴 API
+
+### 17.1 프론트 — 메뉴 트리 조회
+
+```
+GET /api/v1/cms/menus
+```
+
+`is_used=1` 메뉴를 트리 구조로 반환합니다.
+
+**Response 200**
+```json
+{
+    "success": true,
+    "data": [
+        {
+            "idx": 1,
+            "parent_idx": null,
+            "label": "게시판",
+            "url": "/board/free",
+            "target": "_self",
+            "sequence": 0,
+            "children": [
+                { "idx": 2, "parent_idx": 1, "label": "자유게시판", "children": [] }
+            ]
+        }
+    ]
+}
+```
+
+### 17.2 관리자 — 메뉴 CRUD + 순서 변경
+
+```
+GET    /api/admin/v1/cms/menus
+POST   /api/admin/v1/cms/menus
+PUT    /api/admin/v1/cms/menus/reorder   ← 드래그앤드롭 순서 일괄 저장
+PUT    /api/admin/v1/cms/menus/:idx
+DELETE /api/admin/v1/cms/menus/:idx      ← 하위 메뉴 있으면 422
+Authorization: Bearer {admin_access_token}
+```
+
+**reorder Body** (배열)
+```json
+[
+    { "idx": 1, "sequence": 0, "parent_idx": null },
+    { "idx": 3, "sequence": 1, "parent_idx": 1 }
+]
+```
+
+**생성/수정 Body**
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| label | string | ✅ | 메뉴 표시명 |
+| url | string | - | 링크 URL |
+| target | string | - | `_self` 또는 `_blank` (기본 `_self`) |
+| parent_idx | int\|null | - | 부모 메뉴 idx (null=최상위) |
+| sequence | int | - | 같은 depth 내 순서 |
+| is_used | bool | - | 사용 여부 |

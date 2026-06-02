@@ -442,12 +442,13 @@ tb_cms_menu          (idx, parent_idx, label, url, target, sequence, is_used)
 - [ ] next-auth 소셜 로그인 연동
 - [ ] CI4 API 연동
 
-### Phase 6 — CMS (2주)
+### Phase 6 — CMS 🔄 진행 중
 
-- [ ] CMS 테이블 마이그레이션
-- [ ] CMS API 설계 및 구현
-- [ ] 에디터 연동 (Tiptap / TinyMCE)
-- [ ] 어드민 CMS 관리 화면
+- [x] CMS 테이블 마이그레이션 (`tb_cms_page`, `tb_cms_banner`, `tb_cms_popup`, `tb_cms_menu`)
+- [x] CMS API 설계 및 구현 (어드민 CRUD + 프론트 공개 API)
+- [x] WYSIWYG 이미지 업로드 API (`POST /api/v1/files/wysiwyg`)
+- [ ] 에디터 연동 (Tiptap / TinyMCE) — FE 작업
+- [ ] 어드민 CMS 관리 화면 — FE 작업
 
 ### Phase 7 — 안정화
 
