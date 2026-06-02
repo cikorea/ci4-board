@@ -125,7 +125,13 @@ ci4-board/
 | `CommentController` | 댓글 CRUD |
 | `FileController` | 파일 업로드·다운로드·삭제 |
 | `MessageController` | 쪽지 발신·수신·읽기·삭제 |
+| `ConfigController` | 공개 사이트 설정 조회 |
+| `WysiwygController` | WYSIWYG 이미지 업로드 (jpg/png/gif/webp, 5MB) |
 | `SocialAuthController` | 소셜 로그인 콜백 처리 |
+| `Cms/PageController` | 발행된 페이지 공개 조회 |
+| `Cms/BannerController` | 활성 배너 공개 목록 |
+| `Cms/PopupController` | 활성 팝업 공개 목록 |
+| `Cms/MenuController` | 메뉴 트리 공개 조회 |
 
 ### 4.3 관리자 REST API (`Controllers/Api/V1/Admin/`)
 
@@ -136,6 +142,10 @@ ci4-board/
 | `MemberController` | 회원 목록·수정 |
 | `ArticleController` | 게시글 목록·수정·삭제 |
 | `SettingController` | 사이트 설정 조회·수정 |
+| `Cms/PageController` | CMS 페이지 CRUD (slug 중복 검증) |
+| `Cms/BannerController` | CMS 배너 CRUD (기간·위치 설정) |
+| `Cms/PopupController` | CMS 팝업 CRUD + 단건 조회 |
+| `Cms/MenuController` | CMS 메뉴 CRUD + reorder (트리 구조, 순환 참조 방지) |
 
 ---
 
