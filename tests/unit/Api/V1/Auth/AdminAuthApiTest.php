@@ -17,21 +17,26 @@ final class AdminAuthApiTest extends CIUnitTestCase
     use DatabaseTestTrait;
 
     protected $migrate     = true;
-    protected $migrateOnce = false;
-    protected $refresh     = true;
+    protected $migrateOnce = true;
+    protected $refresh     = false;
     protected $seed        = 'App\Database\Seeds\InitialSeeder';
 
     protected function setUp(): void
     {
+        ob_start();
         parent::setUp();
-        putenv('jwt.secret=test-secret-for-admin-auth');
-        $_ENV['jwt.secret'] = 'test-secret-for-admin-auth';
+        ob_end_clean();
+        putenv('jwt.secret=test-secret-for-admin-auth-minimum32chars!!');
+        $_ENV['jwt.secret'] = 'test-secret-for-admin-auth-minimum32chars!!';
+        service('cache')->clean();
+        $this->db->table('tb_users')->where('user_id !=', 'admin')->delete();
+        $this->db->table('tb_users_token')->truncate();
     }
 
     protected function tearDown(): void
     {
         parent::tearDown();
-        putenv('jwt.secret');
+        putenv('jwt.secret=');
         unset($_ENV['jwt.secret']);
     }
 
@@ -50,7 +55,7 @@ final class AdminAuthApiTest extends CIUnitTestCase
         $result->assertStatus(200);
         $result->assertJSONFragment(['success' => true]);
 
-        $body = json_decode($result->getBody(), true);
+        $body = json_decode($result->getJSON(), true);
         $this->assertArrayHasKey('access_token', $body['data']);
         $this->assertSame(1, $body['data']['user']['group_idx']);
     }
@@ -104,8 +109,7 @@ final class AdminAuthApiTest extends CIUnitTestCase
         $result = $this->withHeaders(['Authorization' => "Bearer {$token}"])
                        ->get('/api/admin/v1/boards');
 
-        // 라우팅 PR 머지 전이므로 404 또는 501 모두 허용
-        $this->assertContains($result->getStatusCode(), [200, 404, 501]);
+        $result->assertStatus(200);
     }
 
     public function testAdminApiWithUserToken(): void
@@ -157,7 +161,7 @@ final class AdminAuthApiTest extends CIUnitTestCase
                            'password' => 'admin1234',
                        ]);
 
-        return json_decode($result->getBody(), true)['data'];
+        return json_decode($result->getJSON(), true)['data'];
     }
 
     private function userLoginAndGetToken(): string
