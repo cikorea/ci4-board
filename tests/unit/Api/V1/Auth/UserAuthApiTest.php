@@ -19,15 +19,20 @@ final class UserAuthApiTest extends CIUnitTestCase
     use DatabaseTestTrait;
 
     protected $migrate     = true;
-    protected $migrateOnce = false;
-    protected $refresh     = true;
+    protected $migrateOnce = true;
+    protected $refresh     = false;
     protected $seed        = 'App\Database\Seeds\InitialSeeder';
 
     protected function setUp(): void
     {
+        ob_start();
         parent::setUp();
-        putenv('jwt.secret=test-secret-for-auth-api');
-        $_ENV['jwt.secret'] = 'test-secret-for-auth-api';
+        ob_end_clean();
+        putenv('jwt.secret=test-secret-for-auth-api-minimum32chars!!');
+        $_ENV['jwt.secret'] = 'test-secret-for-auth-api-minimum32chars!!';
+        service('cache')->clean();
+        $this->db->table('tb_users')->where('user_id !=', 'admin')->delete();
+        $this->db->table('tb_users_token')->truncate();
     }
 
     protected function tearDown(): void
@@ -52,7 +57,7 @@ final class UserAuthApiTest extends CIUnitTestCase
         $result->assertStatus(200);
         $result->assertJSONFragment(['success' => true]);
 
-        $body = json_decode($result->getBody(), true);
+        $body = json_decode($result->getJSON(), true);
         $this->assertArrayHasKey('access_token',  $body['data']);
         $this->assertArrayHasKey('refresh_token', $body['data']);
         $this->assertSame('Bearer', $body['data']['token_type']);
@@ -173,7 +178,7 @@ final class UserAuthApiTest extends CIUnitTestCase
         $result->assertStatus(200);
         $result->assertJSONFragment(['success' => true]);
 
-        $body = json_decode($result->getBody(), true);
+        $body = json_decode($result->getJSON(), true);
         $this->assertSame('admin', $body['data']['user_id']);
         $this->assertArrayNotHasKey('super_secured_password', $body['data']);
     }
@@ -215,7 +220,7 @@ final class UserAuthApiTest extends CIUnitTestCase
                        ]);
 
         $result->assertStatus(200);
-        $body = json_decode($result->getBody(), true);
+        $body = json_decode($result->getJSON(), true);
         $this->assertArrayHasKey('access_token', $body['data']);
     }
 
@@ -246,6 +251,6 @@ final class UserAuthApiTest extends CIUnitTestCase
                            'password' => $password,
                        ]);
 
-        return json_decode($result->getBody(), true)['data'];
+        return json_decode($result->getJSON(), true)['data'];
     }
 }

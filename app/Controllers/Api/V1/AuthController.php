@@ -33,8 +33,9 @@ class AuthController extends BaseApiController
 
     public function login(): ResponseInterface
     {
-        $loginId  = trim((string) $this->request->getJSON(true)['login_id']  ?? '');
-        $password = (string) ($this->request->getJSON(true)['password'] ?? '');
+        $body     = $this->request->getJSON(true) ?? [];
+        $loginId  = trim((string) ($body['login_id'] ?? ''));
+        $password = (string) ($body['password'] ?? '');
 
         if (! $loginId || ! $password) {
             return $this->failValidation([], '아이디와 비밀번호를 입력해주세요.');
@@ -142,7 +143,7 @@ class AuthController extends BaseApiController
         }
 
         $user = $this->users->find((int) $payload->sub);
-        if (! $user || $user['status'] !== 1) {
+        if (! $user || (int) $user['status'] !== 1) {
             return $this->fail('존재하지 않거나 비활성화된 계정입니다.', 401);
         }
 
