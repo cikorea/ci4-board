@@ -418,11 +418,33 @@ server {
 네비게이션 바 우측의 **KO / EN / JA** 드롭다운에서 언어를 전환합니다.  
 선택한 언어는 세션에 저장되어 페이지 이동 후에도 유지됩니다.
 
+### UI 메시지
+
 | 언어 | 언어 파일 |
 |------|-----------|
 | 한국어 | `app/Language/ko/App.php` |
 | 영어 | `app/Language/en/App.php` |
 | 일본어 | `app/Language/ja/App.php` |
+
+### API 응답 메시지
+
+API 컨트롤러의 모든 응답 메시지는 `lang('Api.key')` 형식으로 관리됩니다.
+
+| 언어 | 언어 파일 | 키 수 |
+|------|-----------|-------|
+| 한국어 | `app/Language/ko/Api.php` | 131개 |
+| 영어 | `app/Language/en/Api.php` | 131개 |
+
+```php
+// 단순 메시지
+return $this->failNotFound(lang('Api.article_not_found'));
+
+// 동적 메시지 (원문 주석으로 의미 명시)
+// "게시판 '{0}'을 찾을 수 없습니다."
+return $this->failNotFound(lang('Api.board_not_found', [$bbsId]));
+```
+
+> 일본어(`ja`) API 메시지 파일은 추후 추가 예정입니다.
 
 ---
 
