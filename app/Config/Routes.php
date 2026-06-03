@@ -7,6 +7,11 @@ use CodeIgniter\Router\RouteCollection;
 // 메인
 $routes->get('/', 'HomeController::index');
 
+// API 문서 (Swagger UI)
+$routes->get('swagger', static function () {
+    return redirect()->to('/docs/swagger.html');
+});
+
 // 언어 전환
 $routes->get('lang/(:segment)', 'LanguageController::switchLocale/$1');
 
