@@ -507,7 +507,7 @@ vendor/bin/phpstan analyse --level=3
 
 ### 테스트 (PHPUnit)
 
-**총 149개 테스트** (단위 14개 + 통합 135개)
+**총 162개 테스트** (단위 14개 + 통합 148개)
 
 ```bash
 # 전체 실행
@@ -521,6 +521,27 @@ php vendor/bin/phpunit tests/unit/Api/V1/Auth/UserAuthApiTest.php
 
 > **최초 실행 전** 테스트 DB(`ci4_board_test`) 생성 및 마이그레이션이 필요합니다.  
 > 자세한 방법은 [테스트 가이드](docs/testing.md#2-테스트-db-초기화)를 참고하세요.
+
+### 성능 최적화
+
+#### DB 인덱스
+
+hot-path 쿼리에 맞춘 복합 인덱스가 적용되어 있습니다.
+
+| 테이블 | 인덱스 | 대상 쿼리 |
+|--------|--------|-----------|
+| `tb_bbs_article` | `(bbs_idx, is_deleted, is_notice, idx)` | 게시글 목록 filter+sort |
+| `tb_bbs_comment` | `(article_idx, is_deleted, idx)` | 댓글 목록 filter+sort |
+| `tb_users_message` | `(receiver_user_idx, is_deleted_receiver, idx)` | 받은 쪽지함 |
+| `tb_users_message` | `(receiver_user_idx, is_deleted_receiver, is_read)` | 안읽은 쪽지 카운트 |
+| `tb_users_message` | `(sender_user_idx, is_deleted_sender, idx)` | 보낸 쪽지함 |
+| `tb_bbs_file` | `(article_idx, is_wysiwyg)` | 파일 목록 |
+
+#### 쿼리 최적화
+
+- **게시판 설정 저장**: 파라미터별 SELECT+UPDATE/INSERT 루프(최대 16쿼리) → `INSERT ON DUPLICATE KEY UPDATE` 단일 upsert
+- **태그/URL 저장**: 건당 INSERT 루프 → `insertBatch()` 단일 호출
+- **파일 일괄 삭제**: 중복 `find()` 제거, 조회된 row 직접 재활용
 
 ### API 문서 (Swagger UI)
 
