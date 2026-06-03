@@ -64,7 +64,13 @@ class InitialSeeder extends Seeder
 
     private function seedAdminUser(int $now, string $ip): void
     {
-        $adminDb = \Config\Database::connect('admin');
+        try {
+            $adminDb = \Config\Database::connect('admin');
+            $adminDb->table('tb_admin_users')->countAllResults(); // 접속 검증
+        } catch (\Throwable $e) {
+            echo "  ⚠ admin DB 미설정, 관리자 계정 시딩 건너뜀\n";
+            return;
+        }
 
         $exists = $adminDb->table('tb_admin_users')
             ->where('user_id', 'admin')->countAllResults();
@@ -124,7 +130,13 @@ class InitialSeeder extends Seeder
 
     private function seedSiteConfig(int $now, string $ip): void
     {
-        $adminDb = \Config\Database::connect('admin');
+        try {
+            $adminDb = \Config\Database::connect('admin');
+            $adminDb->table('tb_site_config')->countAllResults(); // 접속 검증
+        } catch (\Throwable $e) {
+            echo "  ⚠ admin DB 미설정, 사이트 설정 시딩 건너뜀\n";
+            return;
+        }
 
         $configs = [
             ['config_key' => 'browser_title_fix_value', 'config_value' => 'CI4 Board',              'description' => '브라우저 탭 제목'],

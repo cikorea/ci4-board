@@ -22,7 +22,8 @@ class CreateAdminSchema extends Migration
 
     public function getDBGroup(): ?string
     {
-        return 'admin';
+        // 테스트 환경에서는 tests 그룹(ci4_board_test)에 함께 생성
+        return ENVIRONMENT === 'testing' ? null : 'admin';
     }
 
     public function up(): void
