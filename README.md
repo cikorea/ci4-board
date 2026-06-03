@@ -208,7 +208,7 @@ php spark serve --php /usr/bin/php8.3
 | `GET  http://localhost:8080/api/v1/boards/free/articles` | 게시글 목록 |
 | `POST http://localhost:8080/api/admin/v1/auth/login` | 관리자 로그인 |
 
-전체 API 명세는 [`docs/api-reference.md`](docs/api-reference.md) 참조
+전체 API 명세: [`docs/api-reference.md`](docs/api-reference.md) 또는 **[Swagger UI](#api-문서-swagger-ui)** 참조
 
 ---
 
@@ -500,6 +500,27 @@ php vendor/bin/phpunit tests/unit/Api/V1/Auth/UserAuthApiTest.php
 > **최초 실행 전** 테스트 DB(`ci4_board_test`) 생성 및 마이그레이션이 필요합니다.  
 > 자세한 방법은 [테스트 가이드](docs/testing.md#2-테스트-db-초기화)를 참고하세요.
 
+### API 문서 (Swagger UI)
+
+개발 서버 실행 후 브라우저에서 접근:
+
+```
+http://localhost:8080/swagger
+```
+
+| 경로 | 설명 |
+|------|------|
+| `/swagger` | Swagger UI (인터랙티브, 30개 엔드포인트) |
+| `/docs/openapi.yaml` | OpenAPI 3.0 원본 스펙 |
+
+```bash
+# 스펙 유효성 검사
+php spark swagger:generate --validate
+
+# PHP 애노테이션에서 스펙 재생성 (애노테이션 작성 후)
+php spark swagger:generate --yaml
+```
+
 ---
 
 ## 문서
@@ -507,6 +528,7 @@ php vendor/bin/phpunit tests/unit/Api/V1/Auth/UserAuthApiTest.php
 | 파일 | 설명 |
 |------|------|
 | [`docs/api-reference.md`](docs/api-reference.md) | REST API 엔드포인트 전체 명세 |
+| [`public/docs/openapi.yaml`](public/docs/openapi.yaml) | OpenAPI 3.0 스펙 (Swagger UI 원본) |
 | [`docs/testing.md`](docs/testing.md) | 통합 테스트 가이드 (환경 설정·실행·CI) |
 | [`docs/headless-board-design.md`](docs/headless-board-design.md) | 헤드리스 전환 설계 문서 |
 | [`docs/project-analysis.md`](docs/project-analysis.md) | 프로젝트 구조 분석 |
