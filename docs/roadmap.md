@@ -435,25 +435,46 @@ tb_cms_menu          (idx, parent_idx, label, url, target, sequence, is_used)
 - [x] 네이버 로그인 연동
 - [x] 카카오 로그인 연동
 
-### Phase 5 — 프론트엔드 (별도 프로젝트, FE 개발자 필요)
+### Phase 5 — 프론트엔드 ✅ 완료
 
-- [ ] Next.js 프로젝트 세팅 (`ci4-board-web`)
-- [ ] React + Vite 어드민 프로젝트 세팅 (`ci4-board-admin`)
-- [ ] next-auth 소셜 로그인 연동
-- [ ] CI4 API 연동
+- [x] Next.js 프로젝트 세팅 (`ci4-board-web`)
+- [x] React + Vite 어드민 프로젝트 세팅 (`ci4-board-admin`)
+- [x] next-auth 소셜 로그인 연동
+- [x] CI4 API 연동
 
-### Phase 6 — CMS 🔄 진행 중
+### Phase 6 — CMS ✅ 완료
 
 - [x] CMS 테이블 마이그레이션 (`tb_cms_page`, `tb_cms_banner`, `tb_cms_popup`, `tb_cms_menu`)
 - [x] CMS API 설계 및 구현 (어드민 CRUD + 프론트 공개 API)
 - [x] WYSIWYG 이미지 업로드 API (`POST /api/v1/files/wysiwyg`)
-- [ ] 에디터 연동 (Tiptap / TinyMCE) — FE 작업
-- [ ] 어드민 CMS 관리 화면 — FE 작업
+- [x] 에디터 연동 (Tiptap / TinyMCE)
+- [x] 어드민 CMS 관리 화면
 
-### Phase 7 — 안정화
+### Phase 7 — 안정화 ✅ 완료
 
-- [ ] Rate Limiting 적용
-- [ ] CSRF 필터 활성화
-- [ ] API 문서 자동화 (Swagger / apiDoc)
+- [x] Rate Limiting 적용
+- [x] CSRF 필터 활성화
+- [x] API 문서 자동화 (Swagger / apiDoc)
 - [x] PHPStan 레벨 3 정적 분석 적용
+- [x] 통합 테스트 작성 (인증 21개 + 소셜 32개 + CMS 18개 + 어드민 15개 + 파일 업로드 12개)
+
+### Phase 8 — 다국어(I18n) ✅ 완료
+
+- [x] API 메시지 다국어 파일 구조 설계 및 공통·인증 메시지 전환
+- [x] 게시글/댓글/파일/쪽지 API 메시지 언어 파일 전환
+- [x] CMS 및 Admin API 메시지 언어 파일 전환
+- [x] 소셜 로그인 API 메시지 언어 파일 전환
+
+### Phase 9 — 성능 최적화 ✅ 완료
+
+- [x] 복합 인덱스 추가 (article/comment/message/file)
+- [x] `FileModel::deleteByArticle` 중복 `find()` 제거
+- [x] 태그/URL insert를 `insertBatch()`로 전환
+- [x] Admin `BoardController` 설정 저장 루프 → upsert 전환
+
+### Phase 10 — 파일 라이브러리 🔄 진행 중
+
+- [ ] `tb_file_library` 테이블 마이그레이션
+- [ ] 어드민 파일 라이브러리 API (업로드·목록·수정·삭제·사용처 조회)
+- [ ] 사용자 개인 파일 관리 API (본인 파일 CRUD)
 - [ ] 통합 테스트 작성
