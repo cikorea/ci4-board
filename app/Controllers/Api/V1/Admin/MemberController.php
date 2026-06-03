@@ -55,7 +55,7 @@ class MemberController extends BaseAdminApiController
         $db   = \Config\Database::connect();
         $user = $db->table('tb_users')->where('idx', $idx)->get()->getRowArray();
         if (! $user) {
-            return $this->failNotFound('회원을 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.member_not_found'));
         }
 
         $body     = (array) $this->request->getJSON(true);
@@ -64,10 +64,10 @@ class MemberController extends BaseAdminApiController
         $ip       = $this->request->getIPAddress();
 
         if ($db->table('tb_users')->where('nickname', $nickname)->where('idx !=', $idx)->countAllResults()) {
-            return $this->failValidation([], '이미 사용 중인 닉네임입니다.');
+            return $this->failValidation([], lang('Api.admin_member_nickname_dup'));
         }
         if ($db->table('tb_users')->where('email', $email)->where('idx !=', $idx)->countAllResults()) {
-            return $this->failValidation([], '이미 사용 중인 이메일입니다.');
+            return $this->failValidation([], lang('Api.admin_member_email_dup'));
         }
 
         $data = [
@@ -83,7 +83,7 @@ class MemberController extends BaseAdminApiController
         $newPw = trim((string) ($body['new_password'] ?? ''));
         if ($newPw !== '') {
             if (strlen($newPw) < 6) {
-                return $this->failValidation([], '비밀번호는 6자 이상이어야 합니다.');
+                return $this->failValidation([], lang('Api.admin_member_pw_min_length'));
             }
             $data['super_secured_password']    = password_hash($newPw, PASSWORD_BCRYPT);
             $data['timestamp_update_password'] = time();
@@ -92,6 +92,6 @@ class MemberController extends BaseAdminApiController
 
         $db->table('tb_users')->where('idx', $idx)->update($data);
 
-        return $this->success(null, '회원 정보가 수정되었습니다.');
+        return $this->success(null, lang('Api.admin_member_updated'));
     }
 }

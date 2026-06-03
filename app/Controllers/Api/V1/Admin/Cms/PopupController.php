@@ -50,7 +50,7 @@ class PopupController extends BaseAdminApiController
         $contents = (string) ($body['contents'] ?? '');
 
         if (! $title || $contents === '') {
-            return $this->failValidation([], '제목과 내용은 필수입니다.');
+            return $this->failValidation([], lang('Api.cms_popup_required'));
         }
 
         // TODO(#25): $contents = sanitize_html($contents); — XSS 방어 처리
@@ -67,7 +67,7 @@ class PopupController extends BaseAdminApiController
             'timestamp_insert' => time(),
         ]);
 
-        return $this->created(['idx' => $db->insertID()], '팝업이 생성되었습니다.');
+        return $this->created(['idx' => $db->insertID()], lang('Api.cms_popup_created'));
     }
 
     public function show(int $idx): ResponseInterface
@@ -75,7 +75,7 @@ class PopupController extends BaseAdminApiController
         $db    = \Config\Database::connect();
         $popup = $db->table('tb_cms_popup')->where('idx', $idx)->get()->getRowArray();
         if (! $popup) {
-            return $this->failNotFound('팝업을 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.cms_popup_not_found'));
         }
 
         return $this->success($popup);
@@ -86,7 +86,7 @@ class PopupController extends BaseAdminApiController
         $db    = \Config\Database::connect();
         $popup = $db->table('tb_cms_popup')->where('idx', $idx)->get()->getRowArray();
         if (! $popup) {
-            return $this->failNotFound('팝업을 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.cms_popup_not_found'));
         }
 
         $body = (array) $this->request->getJSON(true);
@@ -95,7 +95,7 @@ class PopupController extends BaseAdminApiController
         $contents = (string) ($body['contents'] ?? $popup['contents']);
 
         if (! $title || $contents === '') {
-            return $this->failValidation([], '제목과 내용은 필수입니다.');
+            return $this->failValidation([], lang('Api.cms_popup_required'));
         }
 
         // TODO(#25): $contents = sanitize_html($contents); — XSS 방어 처리
@@ -118,7 +118,7 @@ class PopupController extends BaseAdminApiController
             'timestamp_update' => time(),
         ]);
 
-        return $this->success(null, '팝업이 수정되었습니다.');
+        return $this->success(null, lang('Api.cms_popup_updated'));
     }
 
     public function delete(int $idx): ResponseInterface
@@ -126,12 +126,12 @@ class PopupController extends BaseAdminApiController
         $db    = \Config\Database::connect();
         $popup = $db->table('tb_cms_popup')->where('idx', $idx)->get()->getRowArray();
         if (! $popup) {
-            return $this->failNotFound('팝업을 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.cms_popup_not_found'));
         }
 
         $db->table('tb_cms_popup')->where('idx', $idx)->delete();
 
-        return $this->success(null, '팝업이 삭제되었습니다.');
+        return $this->success(null, lang('Api.cms_popup_deleted'));
     }
 
     private function parseTimestamp(mixed $value): ?int

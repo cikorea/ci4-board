@@ -37,7 +37,7 @@ class MenuController extends BaseAdminApiController
 
         $label = trim((string) ($body['label'] ?? ''));
         if (! $label) {
-            return $this->failValidation([], '메뉴명(label)은 필수입니다.');
+            return $this->failValidation([], lang('Api.cms_menu_label_required'));
         }
 
         $parentIdx = isset($body['parent_idx']) && $body['parent_idx'] !== null
@@ -47,7 +47,7 @@ class MenuController extends BaseAdminApiController
         if ($parentIdx !== null) {
             $exists = $db->table('tb_cms_menu')->where('idx', $parentIdx)->countAllResults();
             if (! $exists) {
-                return $this->failValidation([], '존재하지 않는 부모 메뉴입니다.');
+                return $this->failValidation([], lang('Api.cms_menu_parent_not_found'));
             }
         }
 
@@ -68,7 +68,7 @@ class MenuController extends BaseAdminApiController
             'timestamp_insert' => time(),
         ]);
 
-        return $this->created(['idx' => $db->insertID()], '메뉴가 생성되었습니다.');
+        return $this->created(['idx' => $db->insertID()], lang('Api.cms_menu_created'));
     }
 
     /**
@@ -82,7 +82,7 @@ class MenuController extends BaseAdminApiController
         $items = (array) $this->request->getJSON(true);
 
         if (empty($items)) {
-            return $this->failValidation([], '순서 정보가 없습니다.');
+            return $this->failValidation([], lang('Api.cms_menu_reorder_required'));
         }
 
         $db->transStart();
@@ -109,7 +109,7 @@ class MenuController extends BaseAdminApiController
             return $this->fail('순서 저장 중 오류가 발생했습니다.', 500);
         }
 
-        return $this->success(null, '메뉴 순서가 저장되었습니다.');
+        return $this->success(null, lang('Api.cms_menu_reordered'));
     }
 
     public function update(int $idx): ResponseInterface
@@ -117,13 +117,13 @@ class MenuController extends BaseAdminApiController
         $db   = \Config\Database::connect();
         $menu = $db->table('tb_cms_menu')->where('idx', $idx)->get()->getRowArray();
         if (! $menu) {
-            return $this->failNotFound('메뉴를 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.cms_menu_not_found'));
         }
 
         $body  = (array) $this->request->getJSON(true);
         $label = trim((string) ($body['label'] ?? $menu['label']));
         if (! $label) {
-            return $this->failValidation([], '메뉴명(label)은 필수입니다.');
+            return $this->failValidation([], lang('Api.cms_menu_label_required'));
         }
 
         $parentIdx = array_key_exists('parent_idx', $body)
@@ -132,12 +132,12 @@ class MenuController extends BaseAdminApiController
 
         // 자기 자신을 부모로 설정하는 것 방지
         if ($parentIdx === $idx) {
-            return $this->failValidation([], '자기 자신을 부모 메뉴로 설정할 수 없습니다.');
+            return $this->failValidation([], lang('Api.cms_menu_self_parent'));
         }
         if ($parentIdx !== null) {
             $exists = $db->table('tb_cms_menu')->where('idx', $parentIdx)->countAllResults();
             if (! $exists) {
-                return $this->failValidation([], '존재하지 않는 부모 메뉴입니다.');
+                return $this->failValidation([], lang('Api.cms_menu_parent_not_found'));
             }
         }
 
@@ -160,7 +160,7 @@ class MenuController extends BaseAdminApiController
             'timestamp_update' => time(),
         ]);
 
-        return $this->success(null, '메뉴가 수정되었습니다.');
+        return $this->success(null, lang('Api.cms_menu_updated'));
     }
 
     public function delete(int $idx): ResponseInterface
@@ -168,7 +168,7 @@ class MenuController extends BaseAdminApiController
         $db   = \Config\Database::connect();
         $menu = $db->table('tb_cms_menu')->where('idx', $idx)->get()->getRowArray();
         if (! $menu) {
-            return $this->failNotFound('메뉴를 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.cms_menu_not_found'));
         }
 
         // 하위 메뉴가 있으면 삭제 거부
@@ -179,7 +179,7 @@ class MenuController extends BaseAdminApiController
 
         $db->table('tb_cms_menu')->where('idx', $idx)->delete();
 
-        return $this->success(null, '메뉴가 삭제되었습니다.');
+        return $this->success(null, lang('Api.cms_menu_deleted'));
     }
 
     private function buildTree(array $rows, ?int $parentIdx): array

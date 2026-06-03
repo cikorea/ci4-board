@@ -33,7 +33,7 @@ class FileController extends BaseApiController
         $userIdx    = $this->getUserIdx();
 
         if (! $bbsIdx || ! $articleIdx) {
-            return $this->failValidation([], 'bbs_idx, article_idx 가 필요합니다.');
+            return $this->failValidation([], lang('Api.file_params_required'));
         }
 
         // getFileMultiple: name="attachments[]" 다중 파일
@@ -57,17 +57,19 @@ class FileController extends BaseApiController
             if ($file->getError() === UPLOAD_ERR_NO_FILE) continue;
 
             if ($existing + $added >= self::MAX_COUNT) {
-                $errors[] = '최대 ' . self::MAX_COUNT . '개까지 업로드 가능합니다.';
+                $errors[] = lang('Api.file_max_count', [self::MAX_COUNT]);
                 break;
             }
 
             $ext = strtolower($file->getClientExtension());
             if (! in_array($ext, self::ALLOWED_EXTS, true)) {
-                $errors[] = "{$file->getClientName()}: 허용되지 않는 확장자입니다.";
+                // "{0}: 허용되지 않는 확장자입니다."
+                $errors[] = lang('Api.file_invalid_ext', [$file->getClientName()]);
                 continue;
             }
             if ($file->getSize() > self::MAX_SIZE) {
-                $errors[] = "{$file->getClientName()}: 파일 크기는 2MB 이하여야 합니다.";
+                // "{0}: 파일 크기는 2MB 이하여야 합니다."
+                $errors[] = lang('Api.file_size_exceeded', [$file->getClientName()]);
                 continue;
             }
 
@@ -105,12 +107,12 @@ class FileController extends BaseApiController
     {
         $file = $this->file->find($idx);
         if (! $file) {
-            return $this->failNotFound('파일을 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.file_not_found'));
         }
 
         $path = FileModel::storagePath($file['conversion_filename']);
         if (! is_file($path)) {
-            return $this->failNotFound('실제 파일이 존재하지 않습니다.');
+            return $this->failNotFound(lang('Api.file_physical_not_found'));
         }
 
         return $this->response
@@ -125,14 +127,14 @@ class FileController extends BaseApiController
     {
         $file = $this->file->find($idx);
         if (! $file) {
-            return $this->failNotFound('파일을 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.file_not_found'));
         }
         if (! $this->isAdmin() && (int) $file['user_idx'] !== $this->getUserIdx()) {
-            return $this->failForbidden('삭제 권한이 없습니다.');
+            return $this->failForbidden(lang('Api.delete_forbidden'));
         }
 
         $this->file->deleteFile($idx);
 
-        return $this->success(null, '파일이 삭제되었습니다.');
+        return $this->success(null, lang('Api.file_deleted'));
     }
 }

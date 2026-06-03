@@ -33,17 +33,17 @@ class AuthController extends BaseAdminApiController
         $password = (string) ($body['password'] ?? '');
 
         if (! $loginId || ! $password) {
-            return $this->failValidation([], '아이디와 비밀번호를 입력해주세요.');
+            return $this->failValidation([], lang('Api.auth_credentials_required'));
         }
 
         $user = $this->users->findByLoginId($loginId);
 
         if (! $user || ! password_verify($password, $user['super_secured_password'] ?? '')) {
-            return $this->fail('아이디 또는 비밀번호가 올바르지 않습니다.', 401);
+            return $this->fail(lang('Api.auth_invalid_credentials'), 401);
         }
 
         if ((int) $user['group_idx'] !== 1) {
-            return $this->fail('관리자 계정이 아닙니다.', 403);
+            return $this->fail(lang('Api.auth_not_admin'), 403);
         }
 
         $accessToken  = JwtService::issueAdminAccess($user);
@@ -83,6 +83,6 @@ class AuthController extends BaseAdminApiController
             $this->tokens->revoke($refreshToken);
         }
 
-        return $this->success(null, '로그아웃 되었습니다.');
+        return $this->success(null, lang('Api.auth_logout_success'));
     }
 }
