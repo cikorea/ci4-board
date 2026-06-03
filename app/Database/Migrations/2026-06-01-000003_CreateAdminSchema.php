@@ -6,12 +6,13 @@ use CodeIgniter\Database\Migration;
 
 /**
  * 어드민 전용 DB 스키마 마이그레이션.
- * 'admin' DB 그룹에서 실행된다: php spark migrate --database admin
+ * 'admin' DB 그룹에서 실행된다: php spark migrate -g admin
+ *
+ * $DBGroup 프로퍼티 대신 getDBGroup()를 오버라이드해 사용한다.
+ * 이렇게 하면 테스트 환경에서 Migration 생성자가 admin DB에 즉시 접속하지 않는다.
  */
 class CreateAdminSchema extends Migration
 {
-    protected $DBGroup = 'admin';
-
     private array $tables = [
         'tb_stats_daily',
         'tb_site_config',
@@ -19,12 +20,18 @@ class CreateAdminSchema extends Migration
         'tb_admin_log',
     ];
 
+    public function getDBGroup(): ?string
+    {
+        return 'admin';
+    }
+
     public function up(): void
     {
-        $this->db->query('SET FOREIGN_KEY_CHECKS = 0');
+        $db = \Config\Database::connect('admin');
+        $db->query('SET FOREIGN_KEY_CHECKS = 0');
 
         // ── 관리자 행위 감사 로그 ────────────────────────────────────────
-        $this->db->query("
+        $db->query("
             CREATE TABLE IF NOT EXISTS `tb_admin_log` (
                 `idx`           int unsigned    NOT NULL AUTO_INCREMENT,
                 `admin_idx`     int unsigned    NOT NULL                COMMENT '관리자 회원 idx (main DB 참조)',
@@ -44,7 +51,7 @@ class CreateAdminSchema extends Migration
         ");
 
         // ── 관리자 세션/토큰 ─────────────────────────────────────────────
-        $this->db->query("
+        $db->query("
             CREATE TABLE IF NOT EXISTS `tb_admin_session` (
                 `idx`           int unsigned    NOT NULL AUTO_INCREMENT,
                 `admin_idx`     int unsigned    NOT NULL                COMMENT '관리자 회원 idx',
@@ -61,7 +68,7 @@ class CreateAdminSchema extends Migration
         ");
 
         // ── 사이트 전역 설정 ─────────────────────────────────────────────
-        $this->db->query("
+        $db->query("
             CREATE TABLE IF NOT EXISTS `tb_site_config` (
                 `idx`           int unsigned    NOT NULL AUTO_INCREMENT,
                 `config_key`    varchar(128)    NOT NULL                COMMENT '설정 키',
@@ -75,7 +82,7 @@ class CreateAdminSchema extends Migration
         ");
 
         // ── 일별 통계 집계 ───────────────────────────────────────────────
-        $this->db->query("
+        $db->query("
             CREATE TABLE IF NOT EXISTS `tb_stats_daily` (
                 `idx`               int unsigned    NOT NULL AUTO_INCREMENT,
                 `stat_date`         date            NOT NULL                COMMENT '통계 날짜',
@@ -90,15 +97,16 @@ class CreateAdminSchema extends Migration
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='일별 통계 집계'
         ");
 
-        $this->db->query('SET FOREIGN_KEY_CHECKS = 1');
+        $db->query('SET FOREIGN_KEY_CHECKS = 1');
     }
 
     public function down(): void
     {
-        $this->db->query('SET FOREIGN_KEY_CHECKS = 0');
+        $db = \Config\Database::connect('admin');
+        $db->query('SET FOREIGN_KEY_CHECKS = 0');
         foreach ($this->tables as $table) {
-            $this->forge->dropTable($table, true);
+            $db->query("DROP TABLE IF EXISTS `{$table}`");
         }
-        $this->db->query('SET FOREIGN_KEY_CHECKS = 1');
+        $db->query('SET FOREIGN_KEY_CHECKS = 1');
     }
 }

@@ -6,20 +6,27 @@ use CodeIgniter\Database\Migration;
 
 /**
  * 어드민 계정 및 공지 테이블 마이그레이션 (admin DB)
- * php spark migrate --database admin
+ * php spark migrate -g admin
+ *
+ * $DBGroup 프로퍼티 대신 getDBGroup()를 오버라이드해 사용한다.
+ * 이렇게 하면 테스트 환경에서 Migration 생성자가 admin DB에 즉시 접속하지 않는다.
  */
 class CreateAdminUsersAndNotice extends Migration
 {
-    protected $DBGroup = 'admin';
-
     private array $tables = ['tb_admin_notice', 'tb_admin_users'];
+
+    public function getDBGroup(): ?string
+    {
+        return 'admin';
+    }
 
     public function up(): void
     {
-        $this->db->query('SET FOREIGN_KEY_CHECKS = 0');
+        $db = \Config\Database::connect('admin');
+        $db->query('SET FOREIGN_KEY_CHECKS = 0');
 
         // ── 어드민 계정 ──────────────────────────────────────────────────
-        $this->db->query("
+        $db->query("
             CREATE TABLE IF NOT EXISTS `tb_admin_users` (
                 `idx`                       int unsigned    NOT NULL AUTO_INCREMENT,
                 `user_id`                   varchar(64)     NOT NULL                COMMENT '로그인 ID',
@@ -40,7 +47,7 @@ class CreateAdminUsersAndNotice extends Migration
         ");
 
         // ── 어드민 내부 공지 ─────────────────────────────────────────────
-        $this->db->query("
+        $db->query("
             CREATE TABLE IF NOT EXISTS `tb_admin_notice` (
                 `idx`               int unsigned    NOT NULL AUTO_INCREMENT,
                 `title`             varchar(255)    NOT NULL                COMMENT '공지 제목',
@@ -53,15 +60,16 @@ class CreateAdminUsersAndNotice extends Migration
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='어드민 내부 공지'
         ");
 
-        $this->db->query('SET FOREIGN_KEY_CHECKS = 1');
+        $db->query('SET FOREIGN_KEY_CHECKS = 1');
     }
 
     public function down(): void
     {
-        $this->db->query('SET FOREIGN_KEY_CHECKS = 0');
+        $db = \Config\Database::connect('admin');
+        $db->query('SET FOREIGN_KEY_CHECKS = 0');
         foreach ($this->tables as $table) {
-            $this->forge->dropTable($table, true);
+            $db->query("DROP TABLE IF EXISTS `{$table}`");
         }
-        $this->db->query('SET FOREIGN_KEY_CHECKS = 1');
+        $db->query('SET FOREIGN_KEY_CHECKS = 1');
     }
 }
