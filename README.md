@@ -485,14 +485,20 @@ vendor/bin/phpstan analyse --level=3
 
 ### 테스트 (PHPUnit)
 
+**총 116개 테스트** (단위 14개 + 통합 102개)
+
 ```bash
-composer test
-# 또는
-php spark test
+# 전체 실행
+php vendor/bin/phpunit
+
+# 특정 파일
+php vendor/bin/phpunit tests/unit/Api/V1/Auth/UserAuthApiTest.php
 ```
 
-> 통합 테스트(`UserAuthApiTest`, `AdminAuthApiTest`)는 MySQL 테스트 DB 설정이 필요합니다.  
-> `phpunit.dist.xml`의 `database.tests.*` 주석을 해제하세요.
+테스트 DB 설정 및 상세 가이드: **[docs/testing.md](docs/testing.md)**
+
+> **최초 실행 전** 테스트 DB(`ci4_board_test`) 생성 및 마이그레이션이 필요합니다.  
+> 자세한 방법은 [테스트 가이드](docs/testing.md#2-테스트-db-초기화)를 참고하세요.
 
 ---
 
@@ -501,6 +507,7 @@ php spark test
 | 파일 | 설명 |
 |------|------|
 | [`docs/api-reference.md`](docs/api-reference.md) | REST API 엔드포인트 전체 명세 |
+| [`docs/testing.md`](docs/testing.md) | 통합 테스트 가이드 (환경 설정·실행·CI) |
 | [`docs/headless-board-design.md`](docs/headless-board-design.md) | 헤드리스 전환 설계 문서 |
 | [`docs/project-analysis.md`](docs/project-analysis.md) | 프로젝트 구조 분석 |
 | [`docs/roadmap.md`](docs/roadmap.md) | 개발 로드맵 |
