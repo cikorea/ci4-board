@@ -73,22 +73,24 @@ class BoardController extends BaseAdminApiController
             $updates[$param] = $selected ? serialize(array_values($selected)) : serialize([]);
         }
 
+        $placeholders = implode(', ', array_fill(0, count($updates), '(?,?,?,?,?)'));
+        $binds        = [];
         foreach ($updates as $parameter => $value) {
-            $exists = $db->table('tb_bbs_setting')
-                ->where('bbs_idx', $bbs['idx'])->where('parameter', $parameter)
-                ->get()->getRowArray();
-
-            if ($exists) {
-                $db->table('tb_bbs_setting')
-                    ->where('bbs_idx', $bbs['idx'])->where('parameter', $parameter)
-                    ->update(['value' => $value, 'exec_user_idx' => $adminIdx, 'client_ip' => $ip]);
-            } else {
-                $db->table('tb_bbs_setting')->insert([
-                    'bbs_idx' => $bbs['idx'], 'parameter' => $parameter,
-                    'value' => $value, 'exec_user_idx' => $adminIdx, 'client_ip' => $ip,
-                ]);
-            }
+            $binds[] = $bbs['idx'];
+            $binds[] = $parameter;
+            $binds[] = $value;
+            $binds[] = $adminIdx;
+            $binds[] = $ip;
         }
+        $db->query(
+            "INSERT INTO `tb_bbs_setting` (bbs_idx, parameter, value, exec_user_idx, client_ip)
+             VALUES {$placeholders} AS new_val
+             ON DUPLICATE KEY UPDATE
+                 value         = new_val.value,
+                 exec_user_idx = new_val.exec_user_idx,
+                 client_ip     = new_val.client_ip",
+            $binds
+        );
 
         // "게시판 '{0}' 설정이 저장되었습니다."
         return $this->success(null, lang('Api.admin_board_setting_saved', [$bbsId]));

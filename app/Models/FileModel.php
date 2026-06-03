@@ -68,12 +68,7 @@ class FileModel extends Model
         $file = $this->find($idx);
         if (! $file) return;
 
-        $path = self::storagePath($file['conversion_filename']);
-        if (is_file($path)) {
-            @unlink($path);
-        }
-
-        $this->delete($idx);
+        $this->deleteFileByRow($file);
     }
 
     /**
@@ -81,15 +76,24 @@ class FileModel extends Model
      * @apiName FileModel_deleteByArticle
      * @apiDescription 게시글의 모든 첨부파일 삭제
      * @apiGroup FileModel
-     * @apiDescription getByArticle() 결과를 순회하며 deleteFile() 을 호출한다.
+     * @apiDescription getByArticle() 결과를 순회하며 삭제한다. 파일당 DB 쿼리 2→1로 감소.
      *
      * @apiParam {Number} articleIdx  게시글 idx
      */
     public function deleteByArticle(int $articleIdx): void
     {
-        $files = $this->getByArticle($articleIdx);
-        foreach ($files as $f) {
-            $this->deleteFile($f['idx']);
+        foreach ($this->getByArticle($articleIdx) as $file) {
+            $this->deleteFileByRow($file);
         }
+    }
+
+    private function deleteFileByRow(array $file): void
+    {
+        $path = self::storagePath($file['conversion_filename']);
+        if (is_file($path)) {
+            @unlink($path);
+        }
+
+        $this->delete($file['idx']);
     }
 }

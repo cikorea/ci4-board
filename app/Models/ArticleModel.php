@@ -233,15 +233,19 @@ class ArticleModel extends Model
             ->where('article_idx', $articleIdx)
             ->delete();
 
+        $rows = [];
         foreach (array_values($tags) as $seq => $tag) {
             $tag = trim($tag);
             if ($tag === '') continue;
-            $this->db->table('tb_bbs_tag')->insert([
+            $rows[] = [
                 'bbs_idx'     => $bbsIdx,
                 'article_idx' => $articleIdx,
                 'tag'         => $tag,
                 'sequence'    => $seq + 1,
-            ]);
+            ];
+        }
+        if ($rows !== []) {
+            $this->db->table('tb_bbs_tag')->insertBatch($rows);
         }
     }
 
@@ -263,15 +267,19 @@ class ArticleModel extends Model
             ->where('article_idx', $articleIdx)
             ->delete();
 
+        $rows = [];
         foreach (array_values($urls) as $seq => $url) {
             $url = trim($url);
             if ($url === '') continue;
-            $this->db->table('tb_bbs_url')->insert([
+            $rows[] = [
                 'bbs_idx'     => $bbsIdx,
                 'article_idx' => $articleIdx,
                 'url'         => $url,
                 'sequence'    => $seq + 1,
-            ]);
+            ];
+        }
+        if ($rows !== []) {
+            $this->db->table('tb_bbs_url')->insertBatch($rows);
         }
     }
 
