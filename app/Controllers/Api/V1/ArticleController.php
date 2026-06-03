@@ -34,10 +34,11 @@ class ArticleController extends BaseApiController
     {
         $board = $this->bbs->getByBbsId($bbsId);
         if (! $board) {
-            return $this->failNotFound("게시판 '{$bbsId}'을 찾을 수 없습니다.");
+            // "게시판 '{0}'을 찾을 수 없습니다."
+            return $this->failNotFound(lang('Api.board_not_found', [$bbsId]));
         }
         if (! user_can_in_groups($board['permissions']['view_list'] ?? [])) {
-            return $this->failForbidden('접근 권한이 없습니다.');
+            return $this->failForbidden(lang('Api.access_forbidden'));
         }
 
         $keyword = $this->request->getGet('keyword');
@@ -56,15 +57,16 @@ class ArticleController extends BaseApiController
     {
         $board = $this->bbs->getByBbsId($bbsId);
         if (! $board) {
-            return $this->failNotFound("게시판 '{$bbsId}'을 찾을 수 없습니다.");
+            // "게시판 '{0}'을 찾을 수 없습니다."
+            return $this->failNotFound(lang('Api.board_not_found', [$bbsId]));
         }
         if (! user_can_in_groups($board['permissions']['view_article'] ?? [])) {
-            return $this->failForbidden('접근 권한이 없습니다.');
+            return $this->failForbidden(lang('Api.access_forbidden'));
         }
 
         $post = $this->article->getArticleWithContents($idx);
         if (! $post || $post['bbs_idx'] != $board['idx']) {
-            return $this->failNotFound('게시글을 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.article_not_found'));
         }
 
         $this->article->incrementHit($board['idx'], $idx);
@@ -81,10 +83,11 @@ class ArticleController extends BaseApiController
     {
         $board = $this->bbs->getByBbsId($bbsId);
         if (! $board) {
-            return $this->failNotFound("게시판 '{$bbsId}'을 찾을 수 없습니다.");
+            // "게시판 '{0}'을 찾을 수 없습니다."
+            return $this->failNotFound(lang('Api.board_not_found', [$bbsId]));
         }
         if (! user_can_in_groups($board['permissions']['write_article'] ?? [])) {
-            return $this->failForbidden('글 작성 권한이 없습니다.');
+            return $this->failForbidden(lang('Api.article_write_forbidden'));
         }
 
         $body     = (array) $this->request->getJSON(true);
@@ -92,7 +95,7 @@ class ArticleController extends BaseApiController
         $contents = (string) ($body['contents'] ?? '');
 
         if (! $title || ! $contents) {
-            return $this->failValidation([], '제목과 내용을 입력해주세요.');
+            return $this->failValidation([], lang('Api.article_title_required'));
         }
 
         $userIdx    = $this->getUserIdx();
@@ -117,22 +120,23 @@ class ArticleController extends BaseApiController
 
         clear_home_cache();
 
-        return $this->created(['idx' => $articleIdx], '게시글이 작성되었습니다.');
+        return $this->created(['idx' => $articleIdx], lang('Api.article_created'));
     }
 
     public function update(string $bbsId, int $idx): ResponseInterface
     {
         $board = $this->bbs->getByBbsId($bbsId);
         if (! $board) {
-            return $this->failNotFound("게시판 '{$bbsId}'을 찾을 수 없습니다.");
+            // "게시판 '{0}'을 찾을 수 없습니다."
+            return $this->failNotFound(lang('Api.board_not_found', [$bbsId]));
         }
 
         $post = $this->article->find($idx);
         if (! $post || $post['bbs_idx'] != $board['idx'] || $post['is_deleted']) {
-            return $this->failNotFound('게시글을 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.article_not_found'));
         }
         if ((int) $post['user_idx'] !== $this->getUserIdx()) {
-            return $this->failForbidden('수정 권한이 없습니다.');
+            return $this->failForbidden(lang('Api.edit_forbidden'));
         }
 
         $body     = (array) $this->request->getJSON(true);
@@ -140,7 +144,7 @@ class ArticleController extends BaseApiController
         $contents = (string) ($body['contents'] ?? '');
 
         if (! $title || ! $contents) {
-            return $this->failValidation([], '제목과 내용을 입력해주세요.');
+            return $this->failValidation([], lang('Api.article_title_required'));
         }
 
         $this->article->updateArticle($idx, [
@@ -156,27 +160,28 @@ class ArticleController extends BaseApiController
 
         clear_home_cache();
 
-        return $this->success(null, '게시글이 수정되었습니다.');
+        return $this->success(null, lang('Api.article_updated'));
     }
 
     public function delete(string $bbsId, int $idx): ResponseInterface
     {
         $board = $this->bbs->getByBbsId($bbsId);
         if (! $board) {
-            return $this->failNotFound("게시판 '{$bbsId}'을 찾을 수 없습니다.");
+            // "게시판 '{0}'을 찾을 수 없습니다."
+            return $this->failNotFound(lang('Api.board_not_found', [$bbsId]));
         }
 
         $post = $this->article->find($idx);
         if (! $post || $post['bbs_idx'] != $board['idx']) {
-            return $this->failNotFound('게시글을 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.article_not_found'));
         }
         if ((int) $post['user_idx'] !== $this->getUserIdx()) {
-            return $this->failForbidden('삭제 권한이 없습니다.');
+            return $this->failForbidden(lang('Api.delete_forbidden'));
         }
 
         $this->article->softDelete($idx);
         clear_home_cache();
 
-        return $this->success(null, '게시글이 삭제되었습니다.');
+        return $this->success(null, lang('Api.article_deleted'));
     }
 }

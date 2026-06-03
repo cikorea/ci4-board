@@ -23,13 +23,13 @@ class WysiwygController extends BaseApiController
         $file = $this->request->getFile('image');
 
         if (! $file || ! $file->isValid()) {
-            return $this->failValidation([], '이미지 파일을 선택해주세요.');
+            return $this->failValidation([], lang('Api.wysiwyg_image_required'));
         }
         if (! in_array($file->getMimeType(), self::ALLOWED_MIMES, true)) {
-            return $this->failValidation([], '이미지 파일(jpg, png, gif, webp)만 업로드 가능합니다.');
+            return $this->failValidation([], lang('Api.wysiwyg_invalid_mime'));
         }
         if ($file->getSizeByUnit('mb') > self::MAX_MB) {
-            return $this->failValidation([], '파일 크기는 5MB 이하여야 합니다.');
+            return $this->failValidation([], lang('Api.wysiwyg_size_exceeded'));
         }
 
         $subDir  = date('Y/m');
@@ -41,7 +41,7 @@ class WysiwygController extends BaseApiController
         }
 
         if (! $file->move($destDir, $name)) {
-            return $this->fail('파일 저장에 실패했습니다.', 500);
+            return $this->fail(lang('Api.file_save_failed'), 500);
         }
 
         return $this->success([

@@ -52,7 +52,8 @@ class BoardController extends BaseAdminApiController
         $db  = \Config\Database::connect();
         $bbs = $db->table('tb_bbs')->where('bbs_id', $bbsId)->get()->getRowArray();
         if (! $bbs) {
-            return $this->failNotFound("게시판 '{$bbsId}'을 찾을 수 없습니다.");
+            // "게시판 '{0}'을 찾을 수 없습니다."
+            return $this->failNotFound(lang('Api.board_not_found', [$bbsId]));
         }
 
         $body     = (array) $this->request->getJSON(true);
@@ -89,6 +90,7 @@ class BoardController extends BaseAdminApiController
             }
         }
 
-        return $this->success(null, "게시판 '{$bbsId}' 설정이 저장되었습니다.");
+        // "게시판 '{0}' 설정이 저장되었습니다."
+        return $this->success(null, lang('Api.admin_board_setting_saved', [$bbsId]));
     }
 }

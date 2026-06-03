@@ -38,13 +38,13 @@ class AuthController extends BaseApiController
         $password = (string) ($body['password'] ?? '');
 
         if (! $loginId || ! $password) {
-            return $this->failValidation([], '아이디와 비밀번호를 입력해주세요.');
+            return $this->failValidation([], lang('Api.auth_credentials_required'));
         }
 
         $user = $this->users->findByLoginId($loginId);
 
         if (! $user || ! password_verify($password, $user['super_secured_password'] ?? '')) {
-            return $this->fail('아이디 또는 비밀번호가 올바르지 않습니다.', 401);
+            return $this->fail(lang('Api.auth_invalid_credentials'), 401);
         }
 
         return $this->issueTokenResponse($user);
@@ -118,7 +118,7 @@ class AuthController extends BaseApiController
             $this->tokens->revoke($refreshToken);
         }
 
-        return $this->success(null, '로그아웃 되었습니다.');
+        return $this->success(null, lang('Api.auth_logout_success'));
     }
 
     // ------------------------------------------------------------------ //
@@ -128,23 +128,23 @@ class AuthController extends BaseApiController
         $refreshToken = (string) ($this->request->getJSON(true)['refresh_token'] ?? '');
 
         if (! $refreshToken) {
-            return $this->failValidation([], 'refresh_token 이 필요합니다.');
+            return $this->failValidation([], lang('Api.auth_refresh_token_required'));
         }
 
         $record = $this->tokens->findValid($refreshToken);
         if (! $record) {
-            return $this->fail('유효하지 않거나 만료된 Refresh Token입니다.', 401);
+            return $this->fail(lang('Api.auth_refresh_token_invalid'), 401);
         }
 
         try {
             $payload = JwtService::decode($refreshToken);
         } catch (\Exception) {
-            return $this->fail('유효하지 않은 Refresh Token입니다.', 401);
+            return $this->fail(lang('Api.auth_refresh_token_expired'), 401);
         }
 
         $user = $this->users->find((int) $payload->sub);
         if (! $user || (int) $user['status'] !== 1) {
-            return $this->fail('존재하지 않거나 비활성화된 계정입니다.', 401);
+            return $this->fail(lang('Api.auth_account_inactive'), 401);
         }
 
         $userWithGroup = $this->users->findByLoginId($user['user_id']);
@@ -163,7 +163,7 @@ class AuthController extends BaseApiController
     {
         $user = $this->users->find($this->getUserIdx());
         if (! $user) {
-            return $this->failNotFound('사용자를 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.user_not_found'));
         }
 
         unset($user['super_secured_password'], $user['new_password']);

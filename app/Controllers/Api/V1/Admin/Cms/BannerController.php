@@ -41,7 +41,7 @@ class BannerController extends BaseAdminApiController
         $imagePath  = trim((string) ($body['image_path'] ?? ''));
 
         if (! $position || ! $imagePath) {
-            return $this->failValidation([], '위치(position)와 이미지 경로(image_path)는 필수입니다.');
+            return $this->failValidation([], lang('Api.cms_banner_required'));
         }
 
         $db->table('tb_cms_banner')->insert([
@@ -57,7 +57,7 @@ class BannerController extends BaseAdminApiController
             'timestamp_insert' => time(),
         ]);
 
-        return $this->created(['idx' => $db->insertID()], '배너가 생성되었습니다.');
+        return $this->created(['idx' => $db->insertID()], lang('Api.cms_banner_created'));
     }
 
     public function update(int $idx): ResponseInterface
@@ -65,7 +65,7 @@ class BannerController extends BaseAdminApiController
         $db     = \Config\Database::connect();
         $banner = $db->table('tb_cms_banner')->where('idx', $idx)->get()->getRowArray();
         if (! $banner) {
-            return $this->failNotFound('배너를 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.cms_banner_not_found'));
         }
 
         $body = (array) $this->request->getJSON(true);
@@ -74,7 +74,7 @@ class BannerController extends BaseAdminApiController
         $imagePath = trim((string) ($body['image_path'] ?? $banner['image_path']));
 
         if (! $position || ! $imagePath) {
-            return $this->failValidation([], '위치(position)와 이미지 경로(image_path)는 필수입니다.');
+            return $this->failValidation([], lang('Api.cms_banner_required'));
         }
 
         $db->table('tb_cms_banner')->where('idx', $idx)->update([
@@ -96,7 +96,7 @@ class BannerController extends BaseAdminApiController
             'timestamp_update' => time(),
         ]);
 
-        return $this->success(null, '배너가 수정되었습니다.');
+        return $this->success(null, lang('Api.cms_banner_updated'));
     }
 
     public function delete(int $idx): ResponseInterface
@@ -104,12 +104,12 @@ class BannerController extends BaseAdminApiController
         $db     = \Config\Database::connect();
         $banner = $db->table('tb_cms_banner')->where('idx', $idx)->get()->getRowArray();
         if (! $banner) {
-            return $this->failNotFound('배너를 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.cms_banner_not_found'));
         }
 
         $db->table('tb_cms_banner')->where('idx', $idx)->delete();
 
-        return $this->success(null, '배너가 삭제되었습니다.');
+        return $this->success(null, lang('Api.cms_banner_deleted'));
     }
 
     private function parseTimestamp(mixed $value): ?int

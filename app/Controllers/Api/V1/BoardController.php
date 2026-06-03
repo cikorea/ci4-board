@@ -29,10 +29,11 @@ class BoardController extends BaseApiController
     {
         $board = $this->bbs->getByBbsId($bbsId);
         if (! $board) {
-            return $this->failNotFound("게시판 '{$bbsId}'을 찾을 수 없습니다.");
+            // "게시판 '{0}'을 찾을 수 없습니다."
+            return $this->failNotFound(lang('Api.board_not_found', [$bbsId]));
         }
         if (! user_can_in_groups($board['permissions']['view_list'] ?? [])) {
-            return $this->failForbidden('접근 권한이 없습니다.');
+            return $this->failForbidden(lang('Api.access_forbidden'));
         }
 
         return $this->success($board);

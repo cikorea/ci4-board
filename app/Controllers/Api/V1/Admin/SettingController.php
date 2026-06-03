@@ -54,6 +54,6 @@ class SettingController extends BaseAdminApiController
                 ->update(['value' => $value, 'exec_user_idx' => $adminIdx, 'client_ip' => $ip]);
         }
 
-        return $this->success(null, '사이트 설정이 저장되었습니다.');
+        return $this->success(null, lang('Api.admin_setting_saved'));
     }
 }

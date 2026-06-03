@@ -59,15 +59,15 @@ class PageController extends BaseAdminApiController
         $status   = (int) (bool) ($body['status']   ?? false);
 
         if (! $slug || ! $title || $contents === '') {
-            return $this->failValidation([], 'slug, 제목, 내용은 필수입니다.');
+            return $this->failValidation([], lang('Api.cms_page_required'));
         }
         if (! preg_match('/^[a-z0-9\-]+$/', $slug)) {
-            return $this->failValidation([], 'slug는 영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다.');
+            return $this->failValidation([], lang('Api.cms_page_slug_invalid'));
         }
 
         $exists = $db->table('tb_cms_page')->where('slug', $slug)->countAllResults();
         if ($exists) {
-            return $this->failValidation([], '이미 사용 중인 slug입니다.');
+            return $this->failValidation([], lang('Api.cms_page_slug_duplicate'));
         }
 
         // TODO(#25): $contents = sanitize_html($contents); — XSS 방어 처리
@@ -82,7 +82,7 @@ class PageController extends BaseAdminApiController
             'timestamp_insert' => time(),
         ]);
 
-        return $this->created(['idx' => $db->insertID()], '페이지가 생성되었습니다.');
+        return $this->created(['idx' => $db->insertID()], lang('Api.cms_page_created'));
     }
 
     public function update(int $idx): ResponseInterface
@@ -90,7 +90,7 @@ class PageController extends BaseAdminApiController
         $db   = \Config\Database::connect();
         $page = $db->table('tb_cms_page')->where('idx', $idx)->get()->getRowArray();
         if (! $page) {
-            return $this->failNotFound('페이지를 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.cms_page_not_found'));
         }
 
         $body = (array) $this->request->getJSON(true);
@@ -101,15 +101,15 @@ class PageController extends BaseAdminApiController
         $status   = isset($body['status']) ? (int) (bool) $body['status'] : (int) $page['status'];
 
         if (! $slug || ! $title || $contents === '') {
-            return $this->failValidation([], 'slug, 제목, 내용은 필수입니다.');
+            return $this->failValidation([], lang('Api.cms_page_required'));
         }
         if (! preg_match('/^[a-z0-9\-]+$/', $slug)) {
-            return $this->failValidation([], 'slug는 영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다.');
+            return $this->failValidation([], lang('Api.cms_page_slug_invalid'));
         }
         if ($slug !== $page['slug']) {
             $exists = $db->table('tb_cms_page')->where('slug', $slug)->where('idx !=', $idx)->countAllResults();
             if ($exists) {
-                return $this->failValidation([], '이미 사용 중인 slug입니다.');
+                return $this->failValidation([], lang('Api.cms_page_slug_duplicate'));
             }
         }
 
@@ -125,7 +125,7 @@ class PageController extends BaseAdminApiController
             'timestamp_update' => time(),
         ]);
 
-        return $this->success(null, '페이지가 수정되었습니다.');
+        return $this->success(null, lang('Api.cms_page_updated'));
     }
 
     public function delete(int $idx): ResponseInterface
@@ -133,11 +133,11 @@ class PageController extends BaseAdminApiController
         $db   = \Config\Database::connect();
         $page = $db->table('tb_cms_page')->where('idx', $idx)->get()->getRowArray();
         if (! $page) {
-            return $this->failNotFound('페이지를 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.cms_page_not_found'));
         }
 
         $db->table('tb_cms_page')->where('idx', $idx)->delete();
 
-        return $this->success(null, '페이지가 삭제되었습니다.');
+        return $this->success(null, lang('Api.cms_page_deleted'));
     }
 }

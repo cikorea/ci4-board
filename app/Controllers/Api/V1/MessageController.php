@@ -56,7 +56,7 @@ class MessageController extends BaseApiController
         $msg     = $this->model->getOne($idx, $userIdx);
 
         if (! $msg) {
-            return $this->failNotFound('쪽지를 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.message_not_found'));
         }
 
         if ($msg['receiver_user_idx'] == $userIdx && ! $msg['is_read']) {
@@ -77,7 +77,7 @@ class MessageController extends BaseApiController
         $contents = trim((string) ($body['contents'] ?? ''));
 
         if (! $toId || ! $contents) {
-            return $this->failValidation([], '수신자와 내용을 입력해주세요.');
+            return $this->failValidation([], lang('Api.message_required'));
         }
 
         $userModel = new UserModel();
@@ -87,7 +87,8 @@ class MessageController extends BaseApiController
                                ->first();
 
         if (! $receiver) {
-            return $this->failNotFound("'{$toId}' 사용자를 찾을 수 없습니다.");
+            // "'{0}' 사용자를 찾을 수 없습니다."
+            return $this->failNotFound(lang('Api.user_not_found_by_id', [$toId]));
         }
 
         $userIdx = $this->getUserIdx();
@@ -107,7 +108,8 @@ class MessageController extends BaseApiController
             'is_deleted_receiver' => 0,
         ]);
 
-        return $this->created(null, esc_db($receiver['nickname']) . '님께 쪽지를 보냈습니다.');
+        // "{0}님께 쪽지를 보냈습니다."
+        return $this->created(null, lang('Api.message_sent_to', [esc_db($receiver['nickname'])]));
     }
 
     public function delete(int $idx): ResponseInterface
@@ -116,11 +118,11 @@ class MessageController extends BaseApiController
         $msg     = $this->model->getOne($idx, $userIdx);
 
         if (! $msg) {
-            return $this->failNotFound('쪽지를 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.message_not_found'));
         }
 
         $this->model->deleteForUser($idx, $userIdx);
 
-        return $this->success(null, '쪽지가 삭제되었습니다.');
+        return $this->success(null, lang('Api.message_deleted'));
     }
 }

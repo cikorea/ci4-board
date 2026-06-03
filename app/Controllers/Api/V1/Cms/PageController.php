@@ -22,7 +22,7 @@ class PageController extends BaseApiController
             ->get()->getRowArray();
 
         if (! $page) {
-            return $this->failNotFound('페이지를 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.cms_page_not_found'));
         }
 
         return $this->success($page);

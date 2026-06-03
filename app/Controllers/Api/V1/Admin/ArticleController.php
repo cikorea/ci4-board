@@ -71,7 +71,7 @@ class ArticleController extends BaseAdminApiController
             ->get()->getRowArray();
 
         if (! $post) {
-            return $this->failNotFound('게시글을 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.article_not_found'));
         }
 
         return $this->success($post);
@@ -82,7 +82,7 @@ class ArticleController extends BaseAdminApiController
         $db   = \Config\Database::connect();
         $post = $db->table('tb_bbs_article')->where('idx', $idx)->where('is_deleted', 0)->get()->getRowArray();
         if (! $post) {
-            return $this->failNotFound('게시글을 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.article_not_found'));
         }
 
         $body     = (array) $this->request->getJSON(true);
@@ -91,7 +91,7 @@ class ArticleController extends BaseAdminApiController
         $isNotice = (int) (bool) ($body['is_notice'] ?? false);
 
         if (! $title || ! $contents) {
-            return $this->failValidation([], '제목과 내용을 입력해주세요.');
+            return $this->failValidation([], lang('Api.article_title_required'));
         }
 
         $db->transStart();
@@ -113,7 +113,7 @@ class ArticleController extends BaseAdminApiController
         $db->transComplete();
         clear_home_cache();
 
-        return $this->success(null, '게시글이 수정되었습니다.');
+        return $this->success(null, lang('Api.article_updated'));
     }
 
     public function delete(int $idx): ResponseInterface
@@ -121,7 +121,7 @@ class ArticleController extends BaseAdminApiController
         $db   = \Config\Database::connect();
         $post = $db->table('tb_bbs_article')->where('idx', $idx)->get()->getRowArray();
         if (! $post) {
-            return $this->failNotFound('게시글을 찾을 수 없습니다.');
+            return $this->failNotFound(lang('Api.article_not_found'));
         }
 
         $db->table('tb_bbs_article')->where('idx', $idx)->update([
@@ -133,6 +133,6 @@ class ArticleController extends BaseAdminApiController
 
         clear_home_cache();
 
-        return $this->success(null, '게시글이 삭제되었습니다.');
+        return $this->success(null, lang('Api.article_deleted'));
     }
 }

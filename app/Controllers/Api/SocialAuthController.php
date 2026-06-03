@@ -30,7 +30,7 @@ class SocialAuthController extends BaseController
 
         session()->set('oauth2_google_state', $state);
 
-        return $this->success(['redirect_url' => $url], 'Google 인증 URL을 발급했습니다.');
+        return $this->success(['redirect_url' => $url], lang('Api.social_redirect_issued', ['Google']));
     }
 
     // ------------------------------------------------------------------ //
@@ -43,11 +43,11 @@ class SocialAuthController extends BaseController
         $state = $this->request->getGet('state');
 
         if (empty($code)) {
-            return $this->fail('인증 코드가 없습니다.', 400);
+            return $this->fail(lang('Api.social_code_missing'), 400);
         }
 
         if (empty($state) || $state !== session()->get('oauth2_google_state')) {
-            return $this->fail('유효하지 않은 state 값입니다.', 400);
+            return $this->fail(lang('Api.social_state_invalid'), 400);
         }
         session()->remove('oauth2_google_state');
 
@@ -56,7 +56,7 @@ class SocialAuthController extends BaseController
             $googleInfo = $oauth->getUserInfo($code);
         } catch (\Exception $e) {
             log_message('error', '[GoogleOAuth] callback error: ' . $e->getMessage());
-            return $this->fail('Google 인증 처리 중 오류가 발생했습니다.', 502);
+            return $this->fail(lang('Api.social_auth_error', ['Google']), 502);
         }
 
         $userModel   = new UserModel();
@@ -116,7 +116,7 @@ class SocialAuthController extends BaseController
         }
 
         if (! $user) {
-            return $this->fail('사용자 정보를 불러올 수 없습니다.', 500);
+            return $this->fail(lang('Api.social_user_info_error'), 500);
         }
 
         $accessToken  = JwtService::issueAccess($user);
@@ -135,7 +135,7 @@ class SocialAuthController extends BaseController
                 'group_idx'  => (int) $user['group_idx'],
                 'group_name' => $user['group_name'] ?? '',
             ],
-        ], '소셜 로그인 성공');
+        ], lang('Api.social_login_success'));
     }
 
     // ------------------------------------------------------------------ //
@@ -153,7 +153,7 @@ class SocialAuthController extends BaseController
 
         session()->set('oauth2_kakao_state', $state);
 
-        return $this->success(['redirect_url' => $url], '카카오 인증 URL을 발급했습니다.');
+        return $this->success(['redirect_url' => $url], lang('Api.social_redirect_issued', ['카카오']));
     }
 
     // ------------------------------------------------------------------ //
@@ -166,11 +166,11 @@ class SocialAuthController extends BaseController
         $state = $this->request->getGet('state');
 
         if (empty($code)) {
-            return $this->fail('인증 코드가 없습니다.', 400);
+            return $this->fail(lang('Api.social_code_missing'), 400);
         }
 
         if (empty($state) || $state !== session()->get('oauth2_kakao_state')) {
-            return $this->fail('유효하지 않은 state 값입니다.', 400);
+            return $this->fail(lang('Api.social_state_invalid'), 400);
         }
         session()->remove('oauth2_kakao_state');
 
@@ -179,7 +179,7 @@ class SocialAuthController extends BaseController
             $kakaoInfo  = $oauth->getUserInfo($code);
         } catch (\Exception $e) {
             log_message('error', '[KakaoOAuth] callback error: ' . $e->getMessage());
-            return $this->fail('카카오 인증 처리 중 오류가 발생했습니다.', 502);
+            return $this->fail(lang('Api.social_auth_error', ['카카오']), 502);
         }
 
         $userModel   = new UserModel();
@@ -235,7 +235,7 @@ class SocialAuthController extends BaseController
         }
 
         if (! $user) {
-            return $this->fail('사용자 정보를 불러올 수 없습니다.', 500);
+            return $this->fail(lang('Api.social_user_info_error'), 500);
         }
 
         $accessToken  = JwtService::issueAccess($user);
@@ -254,7 +254,7 @@ class SocialAuthController extends BaseController
                 'group_idx'  => (int) $user['group_idx'],
                 'group_name' => $user['group_name'] ?? '',
             ],
-        ], '소셜 로그인 성공');
+        ], lang('Api.social_login_success'));
     }
 
     // ------------------------------------------------------------------ //
@@ -272,7 +272,7 @@ class SocialAuthController extends BaseController
 
         session()->set('oauth2_naver_state', $state);
 
-        return $this->success(['redirect_url' => $url], '네이버 인증 URL을 발급했습니다.');
+        return $this->success(['redirect_url' => $url], lang('Api.social_redirect_issued', ['네이버']));
     }
 
     // ------------------------------------------------------------------ //
@@ -285,11 +285,11 @@ class SocialAuthController extends BaseController
         $state = $this->request->getGet('state');
 
         if (empty($code)) {
-            return $this->fail('인증 코드가 없습니다.', 400);
+            return $this->fail(lang('Api.social_code_missing'), 400);
         }
 
         if (empty($state) || $state !== session()->get('oauth2_naver_state')) {
-            return $this->fail('유효하지 않은 state 값입니다.', 400);
+            return $this->fail(lang('Api.social_state_invalid'), 400);
         }
         session()->remove('oauth2_naver_state');
 
@@ -298,7 +298,7 @@ class SocialAuthController extends BaseController
             $naverInfo  = $oauth->getUserInfo($code);
         } catch (\Exception $e) {
             log_message('error', '[NaverOAuth] callback error: ' . $e->getMessage());
-            return $this->fail('네이버 인증 처리 중 오류가 발생했습니다.', 502);
+            return $this->fail(lang('Api.social_auth_error', ['네이버']), 502);
         }
 
         $userModel   = new UserModel();
@@ -353,7 +353,7 @@ class SocialAuthController extends BaseController
         }
 
         if (! $user) {
-            return $this->fail('사용자 정보를 불러올 수 없습니다.', 500);
+            return $this->fail(lang('Api.social_user_info_error'), 500);
         }
 
         $accessToken  = JwtService::issueAccess($user);
@@ -372,7 +372,7 @@ class SocialAuthController extends BaseController
                 'group_idx'  => (int) $user['group_idx'],
                 'group_name' => $user['group_name'] ?? '',
             ],
-        ], '소셜 로그인 성공');
+        ], lang('Api.social_login_success'));
     }
 
     // ------------------------------------------------------------------ //
