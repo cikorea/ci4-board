@@ -14,12 +14,14 @@ use CodeIgniter\Database\Migration;
  */
 class AddCompositeIndexes extends Migration
 {
+    protected $DBGroup = 'default';
+
     public function up(): void
     {
         // ── tb_bbs_article ────────────────────────────────────────────────
         // 기존 단일 인덱스 3개 제거 → 복합 인덱스 1개로 대체
         $this->db->query('ALTER TABLE `tb_bbs_article`
-            DROP KEY `idx_bbs_article__bbs_idx`,
+            DROP KEY `fk_bbs__idx__vs__bbs_article__bbs_idx`,
             DROP KEY `idx_bbs_article__is_deleted`,
             DROP KEY `idx_bbs_article__is_notice`,
             ADD KEY `idx_bbs_article__list` (`bbs_idx`, `is_deleted`, `is_notice`, `idx`)
@@ -28,7 +30,7 @@ class AddCompositeIndexes extends Migration
         // ── tb_bbs_comment ───────────────────────────────────────────────
         // 기존 단일 인덱스 2개 제거 → 복합 인덱스 1개로 대체
         $this->db->query('ALTER TABLE `tb_bbs_comment`
-            DROP KEY `idx_bbs_comment__article_idx`,
+            DROP KEY `fk_bbs_article__idx__vs__bbs_comment__article_idx`,
             DROP KEY `idx_bbs_comment__is_deleted`,
             ADD KEY `idx_bbs_comment__list` (`article_idx`, `is_deleted`, `idx`)
         ');
@@ -39,8 +41,8 @@ class AddCompositeIndexes extends Migration
         // unread count    : receiver_user_idx + is_deleted_receiver + is_read(필터)
         // sent list       : sender_user_idx   + is_deleted_sender   + idx(정렬)
         $this->db->query('ALTER TABLE `tb_users_message`
-            DROP KEY `idx_users_message__sender_user_idx`,
-            DROP KEY `idx_users_message__receiver_user_idx`,
+            DROP KEY `fk_users__idx__vs__users_message__sender_user_idx`,
+            DROP KEY `fk_users__idx__vs__users_message__receiver_user_idx`,
             DROP KEY `idx_users_message__is_deleted_sender`,
             DROP KEY `idx_users_message__is_deleted_receiver`,
             ADD KEY `idx_users_message__inbox`  (`receiver_user_idx`, `is_deleted_receiver`, `idx`),
@@ -61,7 +63,7 @@ class AddCompositeIndexes extends Migration
         // ── tb_bbs_article ────────────────────────────────────────────────
         $this->db->query('ALTER TABLE `tb_bbs_article`
             DROP KEY `idx_bbs_article__list`,
-            ADD KEY `idx_bbs_article__bbs_idx` (`bbs_idx`),
+            ADD KEY `fk_bbs__idx__vs__bbs_article__bbs_idx` (`bbs_idx`),
             ADD KEY `idx_bbs_article__is_deleted` (`is_deleted`),
             ADD KEY `idx_bbs_article__is_notice` (`is_notice`)
         ');
@@ -69,7 +71,7 @@ class AddCompositeIndexes extends Migration
         // ── tb_bbs_comment ───────────────────────────────────────────────
         $this->db->query('ALTER TABLE `tb_bbs_comment`
             DROP KEY `idx_bbs_comment__list`,
-            ADD KEY `idx_bbs_comment__article_idx` (`article_idx`),
+            ADD KEY `fk_bbs_article__idx__vs__bbs_comment__article_idx` (`article_idx`),
             ADD KEY `idx_bbs_comment__is_deleted` (`is_deleted`)
         ');
 
@@ -78,8 +80,8 @@ class AddCompositeIndexes extends Migration
             DROP KEY `idx_users_message__inbox`,
             DROP KEY `idx_users_message__unread`,
             DROP KEY `idx_users_message__sent`,
-            ADD KEY `idx_users_message__sender_user_idx` (`sender_user_idx`),
-            ADD KEY `idx_users_message__receiver_user_idx` (`receiver_user_idx`),
+            ADD KEY `fk_users__idx__vs__users_message__sender_user_idx` (`sender_user_idx`),
+            ADD KEY `fk_users__idx__vs__users_message__receiver_user_idx` (`receiver_user_idx`),
             ADD KEY `idx_users_message__is_deleted_sender` (`is_deleted_sender`),
             ADD KEY `idx_users_message__is_deleted_receiver` (`is_deleted_receiver`)
         ');

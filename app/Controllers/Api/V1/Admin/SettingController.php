@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Api\V1\Admin;
 
+use App\Models\Admin\AdminLogModel;
+use App\Models\Admin\SiteConfigModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
 /**
@@ -12,7 +14,7 @@ use CodeIgniter\HTTP\ResponseInterface;
  */
 class SettingController extends BaseAdminApiController
 {
-    private const SITE_PARAMS = [
+    private const SITE_KEYS = [
         'browser_title_fix_value',
         'join_used',
         'site_block_used',
@@ -21,14 +23,11 @@ class SettingController extends BaseAdminApiController
 
     public function index(): ResponseInterface
     {
-        $db   = \Config\Database::connect();
-        $rows = $db->table('tb_setting')
-            ->whereIn('parameter', self::SITE_PARAMS)
-            ->get()->getResultArray();
-
+        $model    = new SiteConfigModel();
         $settings = [];
-        foreach ($rows as $r) {
-            $settings[$r['parameter']] = $r['value'];
+
+        foreach (self::SITE_KEYS as $key) {
+            $settings[$key] = $model->get($key);
         }
 
         return $this->success($settings);
@@ -36,7 +35,8 @@ class SettingController extends BaseAdminApiController
 
     public function update(): ResponseInterface
     {
-        $db       = \Config\Database::connect();
+        $model    = new SiteConfigModel();
+        $logModel = new AdminLogModel();
         $body     = (array) $this->request->getJSON(true);
         $adminIdx = $this->getUserIdx();
         $ip       = $this->request->getIPAddress();
@@ -48,11 +48,14 @@ class SettingController extends BaseAdminApiController
             'site_block_contents'     => trim((string) ($body['site_block_contents'] ?? '')),
         ];
 
-        foreach ($updates as $parameter => $value) {
-            $db->table('tb_setting')
-                ->where('parameter', $parameter)
-                ->update(['value' => $value, 'exec_user_idx' => $adminIdx, 'client_ip' => $ip]);
+        $before = $model->getAll();
+
+        foreach ($updates as $key => $value) {
+            $model->setConfig($key, $value, $adminIdx);
         }
+
+        $logModel->record($adminIdx, 'setting.update', 'tb_site_config', null, $before, $updates, $ip,
+            $this->request->getUserAgent()->getAgentString());
 
         return $this->success(null, lang('Api.admin_setting_saved'));
     }

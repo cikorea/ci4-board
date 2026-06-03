@@ -26,6 +26,7 @@ class InitialSeeder extends Seeder
         $this->seedAdminUser($now, $ip);
         $this->seedSiteSettings($now, $ip);
         $this->seedBoards($now, $ip);
+        $this->seedSiteConfig($now, $ip);
     }
 
     // ------------------------------------------------------------------ //
@@ -63,28 +64,28 @@ class InitialSeeder extends Seeder
 
     private function seedAdminUser(int $now, string $ip): void
     {
-        $exists = $this->db->table('tb_users')
+        $adminDb = \Config\Database::connect('admin');
+
+        $exists = $adminDb->table('tb_admin_users')
             ->where('user_id', 'admin')->countAllResults();
         if ($exists) {
             echo "  ✔ 관리자 계정 이미 존재 (건너뜀)\n";
             return;
         }
 
-        $this->db->table('tb_users')->insert([
+        $adminDb->table('tb_admin_users')->insert([
             'user_id'                => 'admin',
             'super_secured_password' => password_hash('admin1234', PASSWORD_BCRYPT),
-            'level'                  => 99,
-            'group_idx'              => 1,
             'name'                   => '관리자',
             'nickname'               => '관리자',
             'email'                  => 'admin@example.com',
-            'timezone'               => '+09',
+            'role'                   => 'superadmin',
             'status'                 => 1,
             'timestamp_insert'       => $now,
             'client_ip_insert'       => $ip,
         ]);
 
-        echo "  ✔ 관리자 계정 생성 (admin / admin1234)\n";
+        echo "  ✔ 관리자 계정 생성 (admin DB: admin / admin1234, role=superadmin)\n";
     }
 
     // ------------------------------------------------------------------ //
@@ -115,6 +116,38 @@ class InitialSeeder extends Seeder
         }
 
         echo "  ✔ 사이트 설정 완료\n";
+    }
+
+    // ------------------------------------------------------------------ //
+    // 사이트 설정 (admin DB)
+    // ------------------------------------------------------------------ //
+
+    private function seedSiteConfig(int $now, string $ip): void
+    {
+        $adminDb = \Config\Database::connect('admin');
+
+        $configs = [
+            ['config_key' => 'browser_title_fix_value', 'config_value' => 'CI4 Board',              'description' => '브라우저 탭 제목'],
+            ['config_key' => 'join_used',                'config_value' => '1',                      'description' => '회원가입 허용 여부'],
+            ['config_key' => 'site_block_used',          'config_value' => '0',                      'description' => '사이트 차단 여부'],
+            ['config_key' => 'site_block_contents',      'config_value' => '현재 사이트 점검 중입니다.', 'description' => '사이트 차단 안내 문구'],
+        ];
+
+        foreach ($configs as $c) {
+            $exists = $adminDb->table('tb_site_config')
+                ->where('config_key', $c['config_key'])->countAllResults();
+            if ($exists) continue;
+
+            $adminDb->table('tb_site_config')->insert([
+                'config_key'   => $c['config_key'],
+                'config_value' => $c['config_value'],
+                'description'  => $c['description'],
+                'updated_by'   => 0,
+                'updated_at'   => $now,
+            ]);
+        }
+
+        echo "  ✔ 사이트 설정 (admin DB) 완료\n";
     }
 
     // ------------------------------------------------------------------ //

@@ -60,5 +60,14 @@
         <env name="database.tests.DBPrefix" value=""/>
         <env name="database.tests.charset" value="utf8mb4"/>
         <env name="database.tests.DBCollat" value="utf8mb4_unicode_ci"/>
+        <!-- Admin database configuration -->
+        <env name="database.admin.hostname" value="localhost"/>
+        <env name="database.admin.database" value="codeigniter_admin_test"/>
+        <env name="database.admin.username" value="cikorea"/>
+        <env name="database.admin.password" value="cikorea2026"/>
+        <env name="database.admin.DBDriver" value="MySQLi"/>
+        <env name="database.admin.DBPrefix" value=""/>
+        <env name="database.admin.charset" value="utf8mb4"/>
+        <env name="database.admin.DBCollat" value="utf8mb4_unicode_ci"/>
     </php>
 </phpunit>

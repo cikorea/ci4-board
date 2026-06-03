@@ -170,6 +170,17 @@ $routes->group('api/admin/v1', ['namespace' => 'App\Controllers\Api\V1\Admin'], 
         $routes->put   ('articles/(:num)',     'ArticleController::update/$1');
         $routes->delete('articles/(:num)',     'ArticleController::delete/$1');
 
+        // 감사 로그
+        $routes->get('logs', 'LogController::index');
+
+        // 어드민 내부 공지
+        $routes->get   ('notices',        'NoticeController::index');
+        $routes->post  ('notices',        'NoticeController::create');
+        $routes->delete('notices/(:num)', 'NoticeController::delete/$1');
+
+        // 일별 통계
+        $routes->get('stats', 'StatsController::index');
+
         // CMS 관리
         $routes->get   ('cms/pages',              'Cms\PageController::index');
         $routes->post  ('cms/pages',              'Cms\PageController::create');

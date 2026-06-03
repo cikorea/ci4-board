@@ -12,6 +12,8 @@ use CodeIgniter\Database\Migration;
  */
 class CreateUsersSocialTable extends Migration
 {
+    protected $DBGroup = 'default';
+
     public function up(): void
     {
         $this->db->query("

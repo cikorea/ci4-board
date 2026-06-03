@@ -2,8 +2,8 @@
 
 namespace App\Controllers\Api\V1\Admin;
 
-use App\Models\UserModel;
-use App\Models\UserTokenModel;
+use App\Models\Admin\AdminUserModel;
+use App\Models\Admin\AdminSessionModel;
 use App\Services\JwtService;
 use CodeIgniter\HTTP\ResponseInterface;
 
@@ -15,13 +15,13 @@ use CodeIgniter\HTTP\ResponseInterface;
  */
 class AuthController extends BaseAdminApiController
 {
-    private UserModel      $users;
-    private UserTokenModel $tokens;
+    private AdminUserModel    $users;
+    private AdminSessionModel $sessions;
 
     public function __construct()
     {
-        $this->users  = new UserModel();
-        $this->tokens = new UserTokenModel();
+        $this->users    = new AdminUserModel();
+        $this->sessions = new AdminSessionModel();
     }
 
     // ------------------------------------------------------------------ //
@@ -42,20 +42,19 @@ class AuthController extends BaseAdminApiController
             return $this->fail(lang('Api.auth_invalid_credentials'), 401);
         }
 
-        if ((int) $user['group_idx'] !== 1) {
-            return $this->fail(lang('Api.auth_not_admin'), 403);
-        }
-
+        $ip           = $this->request->getIPAddress();
         $accessToken  = JwtService::issueAdminAccess($user);
         $refreshToken = JwtService::issueRefresh((int) $user['idx']);
-        $ip           = $this->request->getIPAddress();
 
-        $this->tokens->store(
+        $this->sessions->store(
             (int) $user['idx'],
+            $accessToken,
             $refreshToken,
             time() + JwtService::refreshTtl(),
             $ip
         );
+
+        $this->users->updateLoginTimestamp((int) $user['idx'], $ip);
 
         return $this->success([
             'access_token'  => $accessToken,
@@ -63,12 +62,11 @@ class AuthController extends BaseAdminApiController
             'token_type'    => 'Bearer',
             'expires_in'    => JwtService::accessTtl(),
             'user'          => [
-                'idx'        => (int) $user['idx'],
-                'user_id'    => $user['user_id'],
-                'nickname'   => $user['nickname'],
-                'email'      => $user['email'],
-                'group_idx'  => (int) $user['group_idx'],
-                'group_name' => $user['group_name'] ?? '',
+                'idx'      => (int) $user['idx'],
+                'user_id'  => $user['user_id'],
+                'nickname' => $user['nickname'],
+                'email'    => $user['email'],
+                'role'     => $user['role'],
             ],
         ]);
     }
@@ -80,7 +78,7 @@ class AuthController extends BaseAdminApiController
         $refreshToken = (string) ($this->request->getJSON(true)['refresh_token'] ?? '');
 
         if ($refreshToken) {
-            $this->tokens->revoke($refreshToken);
+            $this->sessions->revoke($refreshToken);
         }
 
         return $this->success(null, lang('Api.auth_logout_success'));

@@ -4,6 +4,11 @@
  * API response messages — English
  */
 return [
+    // Common — Generic CRUD
+    'created'   => 'Created successfully.',
+    'deleted'   => 'Deleted successfully.',
+    'not_found' => 'The requested resource was not found.',
+
     // Common — Not Found
     'board_not_found'         => "Board '{0}' not found.",
     'article_not_found'       => 'Article not found.',

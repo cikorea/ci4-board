@@ -10,6 +10,8 @@ use CodeIgniter\Database\Migration;
  */
 class CreateInitialSchema extends Migration
 {
+    protected $DBGroup = 'default';
+
     /** Tables to drop in down() — reverse dependency order */
     private array $tables = [
         'tb_users_url',

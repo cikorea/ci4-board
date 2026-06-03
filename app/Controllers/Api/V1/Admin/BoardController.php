@@ -2,6 +2,7 @@
 
 namespace App\Controllers\Api\V1\Admin;
 
+use App\Models\Admin\AdminLogModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
 /**
@@ -90,6 +91,18 @@ class BoardController extends BaseAdminApiController
                  exec_user_idx = new_val.exec_user_idx,
                  client_ip     = new_val.client_ip",
             $binds
+        );
+
+        $logModel = new AdminLogModel();
+        $logModel->record(
+            $this->getUserIdx(),
+            'board.update',
+            'tb_bbs_setting',
+            (int) $bbs['idx'],
+            null,
+            $updates,
+            $ip,
+            $this->request->getUserAgent()->getAgentString()
         );
 
         // "게시판 '{0}' 설정이 저장되었습니다."
