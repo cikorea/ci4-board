@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [develop, master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    name: PHPUnit + PHPStan
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: ci4_board_test
+          MYSQL_USER: ci4user
+          MYSQL_PASSWORD: ci4pass
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, intl, mysqli, pdo_mysql
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-progress --prefer-dist
+
+      - name: Copy env
+        run: |
+          cp env .env
+          sed -i 's/# CI_ENVIRONMENT = production/CI_ENVIRONMENT = development/' .env
+          sed -i 's/# database.default.hostname = localhost/database.default.hostname = 127.0.0.1/' .env
+          sed -i 's/# database.default.database = ci4/database.default.database = ci4_board_test/' .env
+          sed -i 's/# database.default.username = root/database.default.username = ci4user/' .env
+          sed -i 's/# database.default.password = root/database.default.password = ci4pass/' .env
+          sed -i 's/# jwt.secret = your-secret-key-change-this-in-production/jwt.secret = ci-test-secret-key-minimum-32-chars-long/' .env
+
+      - name: Run migrations on test DB
+        run: |
+          php -r "
+          define('FCPATH', __DIR__ . '/public/');
+          \$_SERVER['CI_ENVIRONMENT'] = 'testing';
+          require 'vendor/codeigniter4/framework/system/Test/bootstrap.php';
+          \$runner = \Config\Services::migrations();
+          \$runner->setNamespace(null);
+          \$runner->latest('tests');
+          echo 'Migrations done' . PHP_EOL;
+          "
+
+      - name: Run PHPStan
+        run: php vendor/bin/phpstan analyse --level=3
+
+      - name: Run PHPUnit
+        run: php vendor/bin/phpunit --testdox
+        env:
+          CI: true
