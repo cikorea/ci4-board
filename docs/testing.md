@@ -111,7 +111,7 @@ php vendor/bin/phpunit --filter testLoginWithValidCredentials tests/unit/Api/V1/
 
 ## 4. 테스트 스위트 구성
 
-**총 116개 테스트** (전체 통과)
+**총 149개 테스트** (전체 통과)
 
 | 파일 | 종류 | 테스트 수 | 커버리지 |
 |------|------|----------|---------|
@@ -124,6 +124,9 @@ php vendor/bin/phpunit --filter testLoginWithValidCredentials tests/unit/Api/V1/
 | `tests/unit/Api/V1/MessageApiTest.php` | 통합 | 12개 | 쪽지 CRUD + 권한 |
 | `tests/unit/Api/V1/Admin/AdminApiTest.php` | 통합 | 15개 | 관리자 게시판·설정·회원·게시글 |
 | `tests/unit/Api/V1/Cms/CmsApiTest.php` | 통합 | 18개 | CMS Page·Banner·Popup·Menu CRUD |
+| `tests/unit/Api/SocialAuth/NaverCallbackTest.php` | 통합 | 11개 | 네이버 OAuth2 리다이렉트·콜백 검증 |
+| `tests/unit/Api/SocialAuth/GoogleCallbackTest.php` | 통합 | 11개 | Google OAuth2 리다이렉트·콜백 검증 |
+| `tests/unit/Api/SocialAuth/KakaoCallbackTest.php` | 통합 | 11개 | 카카오 OAuth2 리다이렉트·콜백 검증 |
 
 ### 테스트 설계 패턴
 
