@@ -478,3 +478,42 @@ tb_cms_menu          (idx, parent_idx, label, url, target, sequence, is_used)
 - [ ] 어드민 파일 라이브러리 API (업로드·목록·수정·삭제·사용처 조회)
 - [ ] 사용자 개인 파일 관리 API (본인 파일 CRUD)
 - [ ] 통합 테스트 작성
+
+### Phase 11 — 디자인 템플릿 시스템
+
+zip 파일 업로드로 테마를 설치하는 플러그인 방식의 디자인 템플릿 시스템.  
+백엔드는 설치·관리 API만 담당하며, 템플릿 본체는 CSS + 에셋 번들로 구성된다.
+
+- [ ] `TemplateManager` 라이브러리 구현 (zip 설치·삭제·활성화, 경로 traversal 및 PHP 파일 포함 차단)
+- [ ] `app/DesignTemplates/default/` 기본 템플릿 생성 (`template.json`, `theme.css`)
+- [ ] `Api/V1/Admin/TemplateController` — 관리자 API 구현
+  - `GET    /api/v1/admin/templates` — 설치된 목록
+  - `POST   /api/v1/admin/templates` — zip 업로드 및 설치
+  - `PUT    /api/v1/admin/templates/{name}/activate` — 활성화 (`tb_site_config` 업데이트)
+  - `DELETE /api/v1/admin/templates/{name}` — 삭제
+- [ ] `GET /api/v1/cms/active-template` — 공개 엔드포인트 (css_url, logo_url 반환)
+- [ ] `ci4-board-admin`: `src/pages/cms/TemplatePage.tsx` — 목록·업로드·활성화 UI
+- [ ] `ci4-board-web`: `src/app/layout.tsx` — 활성 템플릿 CSS 동적 주입
+- [ ] 통합 테스트 작성 (설치·활성화·삭제·보안 검증)
+
+### Phase 12 — 플러그인 시스템
+
+WordPress처럼 ZIP 업로드로 플러그인을 설치·관리하는 시스템.  
+Service Provider 패턴 기반으로 플러그인별 라우트 격리와 CMS 메뉴 연동을 지원한다.
+
+- [ ] `plugins` 테이블 마이그레이션
+- [ ] `app/Contracts/PluginInterface.php` — `register()` / `boot()` / `install()` / `uninstall()` 인터페이스
+- [ ] `app/Libraries/PluginManager.php` — install·activate·deactivate·delete·loadRoutes 구현
+- [ ] `app/Config/Events.php` — `pre_system` 이벤트에서 활성 플러그인 부트스트랩
+- [ ] `Api/V1/Admin/PluginController` — 관리자 API 구현 (PHP 페이지 컨트롤러가 아닌 JSON API)
+  - `GET    /api/v1/admin/plugins` — 설치된 플러그인 목록
+  - `POST   /api/v1/admin/plugins` — zip 업로드 및 설치
+  - `PUT    /api/v1/admin/plugins/{name}/activate` — 활성화
+  - `PUT    /api/v1/admin/plugins/{name}/deactivate` — 비활성화
+  - `DELETE /api/v1/admin/plugins/{name}` — 삭제
+- [ ] 플러그인 내부 라우트 prefix 규칙 적용: `/api/v1/plugin/{name}/` + JWT/CORS 필터
+- [ ] `admin_menus` 테이블 신설 없이 기존 `tb_cms_menu` 재사용
+- [ ] `ci4-board-web`: `src/app/plugin/[name]/page.tsx` — 범용 플러그인 데이터 페이지
+- [ ] `ci4-board-admin`: 플러그인 관리 페이지 (설치·활성화·비활성화·삭제 UI)
+- [ ] 예제 플러그인 (`app/Plugins/example/`) 작성
+- [ ] 통합 테스트 작성 (설치·활성화·라우트 격리·삭제)
