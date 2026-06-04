@@ -12,6 +12,11 @@ class CreateInitialSchema extends Migration
 {
     protected $DBGroup = 'default';
 
+    public function getDBGroup(): ?string
+    {
+        return ENVIRONMENT === 'testing' ? null : 'default';
+    }
+
     /** Tables to drop in down() — reverse dependency order */
     private array $tables = [
         'tb_users_url',

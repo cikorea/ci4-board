@@ -16,6 +16,11 @@ class AddCompositeIndexes extends Migration
 {
     protected $DBGroup = 'default';
 
+    public function getDBGroup(): ?string
+    {
+        return ENVIRONMENT === 'testing' ? null : 'default';
+    }
+
     public function up(): void
     {
         // ── tb_bbs_article ────────────────────────────────────────────────
