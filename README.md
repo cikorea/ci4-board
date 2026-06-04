@@ -59,6 +59,12 @@ cd ci4-board-web   && npm run dev        # 사용자 프론트 (:3000)
 | GET  | `/api/v1/boards/:id/articles` | — | 게시글 목록 |
 | POST | `/api/v1/boards/:id/articles` | JWT | 게시글 작성 |
 | GET  | `/api/v1/cms/menus` | — | 메뉴 트리 |
+| POST | `/api/v1/cms/library/files` | JWT | 파일 업로드 (라이브러리) |
+| GET  | `/api/v1/cms/library/files` | JWT | 내 파일 목록 |
+| GET  | `/api/v1/cms/library/files/public` | JWT | 공용 파일 목록 |
+| GET  | `/api/v1/cms/library/files/:idx` | JWT | 파일 단건 조회 |
+| PUT  | `/api/v1/cms/library/files/:idx` | JWT | 파일 메타 수정 |
+| DELETE | `/api/v1/cms/library/files/:idx` | JWT | 파일 삭제 |
 
 ### 관리자 API (`/api/admin/v1/*`)
 
@@ -69,6 +75,9 @@ cd ci4-board-web   && npm run dev        # 사용자 프론트 (:3000)
 | GET  | `/api/admin/v1/members` | 회원 목록 |
 | GET  | `/api/admin/v1/stats` | 일별 통계 |
 | GET  | `/api/admin/v1/logs` | 감사 로그 |
+| GET  | `/api/admin/v1/cms/library/files` | 파일 라이브러리 전체 목록 |
+| POST | `/api/admin/v1/cms/library/files` | 파일 업로드 |
+| DELETE | `/api/admin/v1/cms/library/files/:idx` | 파일 삭제 |
 
 전체 명세는 **[Swagger UI](http://localhost:8080/swagger)** 또는 [`docs/api-reference.md`](docs/api-reference.md) 참조.
 
@@ -211,7 +220,16 @@ curl http://localhost:8080/api/v1/boards \
 
 ### 서비스 DB (`ci4_board`)
 
-게시판, 회원, 댓글, 파일, 쪽지, CMS 등 서비스 테이블 전체를 담습니다.
+게시판, 회원, 댓글, 파일, 쪽지, CMS, 파일 라이브러리 등 서비스 테이블 전체를 담습니다.
+
+| 주요 테이블 | 설명 |
+|------------|------|
+| `tb_users` | 회원 계정 (일반 회원 + 관리자 겸용) |
+| `tb_bbs_*` | 게시판·게시글·댓글·파일·태그·URL·조회수 |
+| `tb_bbs_setting` | 게시판 설정 (parameter-value 형태) |
+| `tb_message` | 쪽지 |
+| `tb_cms_*` | CMS (메뉴·배너·팝업·페이지) |
+| `tb_file_library` | 파일 라이브러리 (직접 업로드·WYSIWYG 이미지 통합 관리) |
 
 ### Admin DB (`ci4_board_admin`)
 
@@ -251,6 +269,8 @@ Google, 네이버, 카카오 OAuth2 로그인을 지원합니다.
 | `2026-06-01-000004_CreateCmsSchema` | default | CMS 테이블 4개 |
 | `2026-06-03-000001_AddCompositeIndexes` | default | hot-path 복합 인덱스 |
 | `2026-06-03-000002_CreateAdminUsersAndNotice` | admin | 관리자 계정·공지 테이블 |
+| `2026-06-04-000001_CreateFileLibrary` | default | 파일 라이브러리 테이블 |
+| `2026-06-04-000002_AddFileLibraryIsPublic` | default | 파일 라이브러리 공용 컬럼 추가 |
 
 ```bash
 php spark migrate              # 서비스 DB
@@ -297,6 +317,8 @@ ci4-board/
 │   │   │   ├── SocialAuthController.php   소셜 로그인 콜백
 │   │   │   └── V1/                        REST API 컨트롤러
 │   │   │       ├── Admin/                 관리자 API
+│   │   │       │   └── Cms/               관리자 CMS API (파일 라이브러리 포함)
+│   │   │       ├── Cms/                   사용자 CMS API (파일 라이브러리 포함)
 │   │   │       ├── AuthController.php
 │   │   │       ├── ArticleController.php
 │   │   │       ├── BoardController.php
@@ -310,6 +332,7 @@ ci4-board/
 │   │   └── AdminJwtFilter.php             관리자 JWT 인증
 │   ├── Models/
 │   │   ├── Admin/                         Admin DB 전용 모델
+│   │   ├── FileLibraryModel.php           파일 라이브러리 모델
 │   │   └── ...
 │   ├── Services/
 │   │   ├── JwtService.php
