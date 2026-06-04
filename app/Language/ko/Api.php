@@ -130,6 +130,18 @@ return [
     'cms_menu_updated'            => '메뉴가 수정되었습니다.',
     'cms_menu_deleted'            => '메뉴가 삭제되었습니다.',
 
+    // File Library (Admin/Cms/LibraryController, Cms/LibraryController)
+    'library_not_found'           => '파일을 찾을 수 없습니다.',
+    'library_uploaded'            => '파일이 업로드되었습니다.',
+    'library_updated'             => '파일 정보가 수정되었습니다.',
+    'library_deleted'             => '파일이 삭제되었습니다.',
+    'library_file_required'       => '업로드할 파일을 선택해주세요.',
+    'library_invalid_mime'        => '허용되지 않는 파일 형식입니다.',
+    // "파일 크기는 {0}MB 이하여야 합니다."
+    'library_size_exceeded'       => '파일 크기는 {0}MB 이하여야 합니다.',
+    // "삭제 전 {0}건의 사용처에서 파일 참조를 제거해주세요."
+    'library_delete_in_use'       => '삭제 전 {0}건의 사용처에서 파일 참조를 제거해주세요.',
+
     // ============================================================
     // Admin 관리 API (Board/Member/Article/Setting)
     // ============================================================

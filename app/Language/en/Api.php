@@ -99,6 +99,16 @@ return [
     'cms_menu_updated'            => 'Menu updated successfully.',
     'cms_menu_deleted'            => 'Menu deleted successfully.',
 
+    // File Library (Admin/Cms/LibraryController, Cms/LibraryController)
+    'library_not_found'           => 'File not found.',
+    'library_uploaded'            => 'File uploaded successfully.',
+    'library_updated'             => 'File updated successfully.',
+    'library_deleted'             => 'File deleted successfully.',
+    'library_file_required'       => 'Please select a file to upload.',
+    'library_invalid_mime'        => 'File type not allowed.',
+    'library_size_exceeded'       => 'File size must be {0}MB or less.',
+    'library_delete_in_use'       => 'Remove {0} reference(s) before deleting this file.',
+
     // Admin
     'admin_board_setting_saved'   => "Board '{0}' settings saved.",
     'admin_member_nickname_dup'   => 'This nickname is already in use.',
