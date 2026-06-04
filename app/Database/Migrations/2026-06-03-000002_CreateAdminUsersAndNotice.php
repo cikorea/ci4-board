@@ -23,7 +23,7 @@ class CreateAdminUsersAndNotice extends Migration
 
     public function up(): void
     {
-        $db = \Config\Database::connect('admin');
+        $db = ENVIRONMENT === 'testing' ? $this->db : \Config\Database::connect('admin');
         $db->query('SET FOREIGN_KEY_CHECKS = 0');
 
         // ── 어드민 계정 ──────────────────────────────────────────────────
@@ -66,7 +66,7 @@ class CreateAdminUsersAndNotice extends Migration
 
     public function down(): void
     {
-        $db = \Config\Database::connect('admin');
+        $db = ENVIRONMENT === 'testing' ? $this->db : \Config\Database::connect('admin');
         $db->query('SET FOREIGN_KEY_CHECKS = 0');
         foreach ($this->tables as $table) {
             $db->query("DROP TABLE IF EXISTS `{$table}`");
