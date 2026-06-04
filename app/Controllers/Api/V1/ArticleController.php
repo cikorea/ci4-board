@@ -7,6 +7,7 @@ use App\Models\BbsModel;
 use App\Models\CommentModel;
 use App\Models\FileModel;
 use CodeIgniter\HTTP\ResponseInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * 게시글 API
@@ -30,6 +31,20 @@ class ArticleController extends BaseApiController
         $this->file    = new FileModel();
     }
 
+    #[OA\Get(
+        path: '/api/v1/boards/{bbsId}/articles',
+        summary: '게시글 목록',
+        tags: ['Article'],
+        parameters: [
+            new OA\PathParameter(name: 'bbsId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\QueryParameter(name: 'keyword', in: 'query', schema: new OA\Schema(type: 'string')),
+            new OA\QueryParameter(name: 'per_page', in: 'query', schema: new OA\Schema(type: 'integer', default: 15)),
+            new OA\QueryParameter(name: 'page', in: 'query', schema: new OA\Schema(type: 'integer', default: 1)),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '게시글 목록'),
+        ]
+    )]
     public function index(string $bbsId): ResponseInterface
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -53,6 +68,19 @@ class ArticleController extends BaseApiController
         ]);
     }
 
+    #[OA\Get(
+        path: '/api/v1/boards/{bbsId}/articles/{idx}',
+        summary: '게시글 상세',
+        tags: ['Article'],
+        parameters: [
+            new OA\PathParameter(name: 'bbsId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '게시글 상세'),
+            new OA\Response(response: 404, ref: '#/components/responses/NotFound'),
+        ]
+    )]
     public function show(string $bbsId, int $idx): ResponseInterface
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -79,6 +107,32 @@ class ArticleController extends BaseApiController
         return $this->success($post);
     }
 
+    #[OA\Post(
+        path: '/api/v1/boards/{bbsId}/articles',
+        summary: '게시글 작성',
+        tags: ['Article'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'bbsId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['title', 'contents'],
+                properties: [
+                    new OA\Property(property: 'title', type: 'string'),
+                    new OA\Property(property: 'contents', type: 'string'),
+                    new OA\Property(property: 'is_secret', type: 'integer', enum: [0, 1]),
+                    new OA\Property(property: 'tags', type: 'array', items: new OA\Items(type: 'string')),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: '게시글 작성 완료'),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+            new OA\Response(response: 403, ref: '#/components/responses/Forbidden'),
+        ]
+    )]
     public function create(string $bbsId): ResponseInterface
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -123,6 +177,30 @@ class ArticleController extends BaseApiController
         return $this->created(['idx' => $articleIdx], lang('Api.article_created'));
     }
 
+    #[OA\Put(
+        path: '/api/v1/boards/{bbsId}/articles/{idx}',
+        summary: '게시글 수정 (작성자만)',
+        tags: ['Article'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'bbsId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['title', 'contents'],
+                properties: [
+                    new OA\Property(property: 'title', type: 'string'),
+                    new OA\Property(property: 'contents', type: 'string'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: '수정 완료'),
+            new OA\Response(response: 403, ref: '#/components/responses/Forbidden'),
+        ]
+    )]
     public function update(string $bbsId, int $idx): ResponseInterface
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -163,6 +241,20 @@ class ArticleController extends BaseApiController
         return $this->success(null, lang('Api.article_updated'));
     }
 
+    #[OA\Delete(
+        path: '/api/v1/boards/{bbsId}/articles/{idx}',
+        summary: '게시글 삭제 (작성자만)',
+        tags: ['Article'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'bbsId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '삭제 완료'),
+            new OA\Response(response: 403, ref: '#/components/responses/Forbidden'),
+        ]
+    )]
     public function delete(string $bbsId, int $idx): ResponseInterface
     {
         $board = $this->bbs->getByBbsId($bbsId);

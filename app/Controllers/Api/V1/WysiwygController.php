@@ -4,6 +4,7 @@ namespace App\Controllers\Api\V1;
 
 use App\Models\FileLibraryModel;
 use CodeIgniter\HTTP\ResponseInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * WYSIWYG 에디터 이미지 업로드 API (JWT 필요)
@@ -22,6 +23,36 @@ class WysiwygController extends BaseApiController
     ];
     private const MAX_MB = 5;
 
+    #[OA\Post(
+        path: '/api/v1/files/wysiwyg',
+        summary: 'WYSIWYG 이미지 업로드',
+        tags: ['File'],
+        security: [['BearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            content: new OA\MediaType(
+                mediaType: 'multipart/form-data',
+                schema: new OA\Schema(
+                    required: ['image'],
+                    properties: [
+                        new OA\Property(property: 'image', type: 'string', format: 'binary', description: 'jpg·png·gif·webp, 5MB 이하'),
+                    ]
+                )
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: '이미지 URL',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'data', type: 'object', properties: [
+                            new OA\Property(property: 'url', type: 'string'),
+                        ]),
+                    ]
+                )
+            ),
+        ]
+    )]
     public function upload(): ResponseInterface
     {
         $file = $this->request->getFile('image');

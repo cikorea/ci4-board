@@ -4,6 +4,7 @@ namespace App\Controllers\Api\V1\Admin\Cms;
 
 use App\Controllers\Api\V1\Admin\BaseAdminApiController;
 use CodeIgniter\HTTP\ResponseInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * 관리자 CMS 페이지 API
@@ -15,6 +16,21 @@ use CodeIgniter\HTTP\ResponseInterface;
  */
 class PageController extends BaseAdminApiController
 {
+    #[OA\Get(
+        path: '/api/admin/v1/cms/pages',
+        summary: '페이지 목록',
+        tags: ['AdminCMS'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\QueryParameter(name: 'keyword', in: 'query', schema: new OA\Schema(type: 'string')),
+            new OA\QueryParameter(name: 'status', in: 'query', schema: new OA\Schema(type: 'integer', enum: [0, 1])),
+            new OA\QueryParameter(name: 'page', in: 'query', schema: new OA\Schema(type: 'integer', default: 1)),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '페이지 목록', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function index(): ResponseInterface
     {
         $db      = \Config\Database::connect();
@@ -48,6 +64,28 @@ class PageController extends BaseAdminApiController
         ]);
     }
 
+    #[OA\Post(
+        path: '/api/admin/v1/cms/pages',
+        summary: '페이지 생성',
+        tags: ['AdminCMS'],
+        security: [['BearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['slug', 'title', 'contents'],
+                properties: [
+                    new OA\Property(property: 'slug', type: 'string', description: '영문 소문자·숫자·하이픈', example: 'about-us'),
+                    new OA\Property(property: 'title', type: 'string'),
+                    new OA\Property(property: 'contents', type: 'string'),
+                    new OA\Property(property: 'status', type: 'integer', enum: [0, 1], default: 0),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: '생성 완료', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function create(): ResponseInterface
     {
         $db   = \Config\Database::connect();
@@ -85,6 +123,42 @@ class PageController extends BaseAdminApiController
         return $this->created(['idx' => $db->insertID()], lang('Api.cms_page_created'));
     }
 
+    #[OA\Get(
+        path: '/api/admin/v1/cms/pages/{idx}',
+        summary: '페이지 단건 조회',
+        tags: ['AdminCMS'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '페이지 상세', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
+    #[OA\Put(
+        path: '/api/admin/v1/cms/pages/{idx}',
+        summary: '페이지 수정',
+        tags: ['AdminCMS'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        requestBody: new OA\RequestBody(
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'slug', type: 'string'),
+                    new OA\Property(property: 'title', type: 'string'),
+                    new OA\Property(property: 'contents', type: 'string'),
+                    new OA\Property(property: 'status', type: 'integer', enum: [0, 1]),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: '수정 완료', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function update(int $idx): ResponseInterface
     {
         $db   = \Config\Database::connect();
@@ -128,6 +202,19 @@ class PageController extends BaseAdminApiController
         return $this->success(null, lang('Api.cms_page_updated'));
     }
 
+    #[OA\Delete(
+        path: '/api/admin/v1/cms/pages/{idx}',
+        summary: '페이지 삭제',
+        tags: ['AdminCMS'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '삭제 완료', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function delete(int $idx): ResponseInterface
     {
         $db   = \Config\Database::connect();

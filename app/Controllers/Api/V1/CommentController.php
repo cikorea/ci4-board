@@ -6,6 +6,7 @@ use App\Models\ArticleModel;
 use App\Models\BbsModel;
 use App\Models\CommentModel;
 use CodeIgniter\HTTP\ResponseInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * 댓글 API
@@ -28,6 +29,18 @@ class CommentController extends BaseApiController
         $this->comment = new CommentModel();
     }
 
+    #[OA\Get(
+        path: '/api/v1/boards/{bbsId}/articles/{articleIdx}/comments',
+        summary: '댓글 목록',
+        tags: ['Comment'],
+        parameters: [
+            new OA\PathParameter(name: 'bbsId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\PathParameter(name: 'articleIdx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '댓글 목록'),
+        ]
+    )]
     public function index(string $bbsId, int $articleIdx): ResponseInterface
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -42,6 +55,29 @@ class CommentController extends BaseApiController
         return $this->success($this->comment->getByArticle($articleIdx));
     }
 
+    #[OA\Post(
+        path: '/api/v1/boards/{bbsId}/articles/{articleIdx}/comments',
+        summary: '댓글 작성',
+        tags: ['Comment'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'bbsId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\PathParameter(name: 'articleIdx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['comment'],
+                properties: [
+                    new OA\Property(property: 'comment', type: 'string'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: '댓글 작성 완료'),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function create(string $bbsId, int $articleIdx): ResponseInterface
     {
         $board = $this->bbs->getByBbsId($bbsId);
@@ -107,6 +143,20 @@ class CommentController extends BaseApiController
         return $this->success(null, lang('Api.comment_updated'));
     }
 
+    #[OA\Delete(
+        path: '/api/v1/boards/{bbsId}/articles/{articleIdx}/comments/{commentIdx}',
+        summary: '댓글 삭제 (작성자만)',
+        tags: ['Comment'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'bbsId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\PathParameter(name: 'articleIdx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            new OA\PathParameter(name: 'commentIdx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '삭제 완료'),
+        ]
+    )]
     public function delete(string $bbsId, int $articleIdx, int $commentIdx): ResponseInterface
     {
         $c = $this->comment->find($commentIdx);

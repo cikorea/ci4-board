@@ -4,6 +4,7 @@ namespace App\Controllers\Api\V1\Admin\Cms;
 
 use App\Controllers\Api\V1\Admin\BaseAdminApiController;
 use CodeIgniter\HTTP\ResponseInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * 관리자 CMS 메뉴 API
@@ -18,6 +19,16 @@ class MenuController extends BaseAdminApiController
 {
     private const ALLOWED_TARGETS = ['_self', '_blank'];
 
+    #[OA\Get(
+        path: '/api/admin/v1/cms/menus',
+        summary: '메뉴 트리 조회',
+        tags: ['AdminCMS'],
+        security: [['BearerAuth' => []]],
+        responses: [
+            new OA\Response(response: 200, description: '메뉴 트리', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function index(): ResponseInterface
     {
         $db   = \Config\Database::connect();
@@ -30,6 +41,30 @@ class MenuController extends BaseAdminApiController
         return $this->success($this->buildTree($rows, null));
     }
 
+    #[OA\Post(
+        path: '/api/admin/v1/cms/menus',
+        summary: '메뉴 생성',
+        tags: ['AdminCMS'],
+        security: [['BearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['label'],
+                properties: [
+                    new OA\Property(property: 'label', type: 'string'),
+                    new OA\Property(property: 'url', type: 'string'),
+                    new OA\Property(property: 'target', type: 'string', enum: ['_self', '_blank'], default: '_self'),
+                    new OA\Property(property: 'parent_idx', type: 'integer', nullable: true),
+                    new OA\Property(property: 'sequence', type: 'integer', default: 0),
+                    new OA\Property(property: 'is_used', type: 'boolean', default: true),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: '생성 완료', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function create(): ResponseInterface
     {
         $db   = \Config\Database::connect();
@@ -76,6 +111,29 @@ class MenuController extends BaseAdminApiController
      *
      * Request Body: [{ "idx": 1, "sequence": 0, "parent_idx": null }, ...]
      */
+    #[OA\Put(
+        path: '/api/admin/v1/cms/menus/reorder',
+        summary: '메뉴 순서 일괄 변경',
+        tags: ['AdminCMS'],
+        security: [['BearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                type: 'array',
+                items: new OA\Items(
+                    properties: [
+                        new OA\Property(property: 'idx', type: 'integer'),
+                        new OA\Property(property: 'sequence', type: 'integer'),
+                        new OA\Property(property: 'parent_idx', type: 'integer', nullable: true),
+                    ]
+                )
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: '순서 저장 완료', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function reorder(): ResponseInterface
     {
         $db    = \Config\Database::connect();
@@ -112,6 +170,31 @@ class MenuController extends BaseAdminApiController
         return $this->success(null, lang('Api.cms_menu_reordered'));
     }
 
+    #[OA\Put(
+        path: '/api/admin/v1/cms/menus/{idx}',
+        summary: '메뉴 수정',
+        tags: ['AdminCMS'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        requestBody: new OA\RequestBody(
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'label', type: 'string'),
+                    new OA\Property(property: 'url', type: 'string'),
+                    new OA\Property(property: 'target', type: 'string', enum: ['_self', '_blank']),
+                    new OA\Property(property: 'parent_idx', type: 'integer', nullable: true),
+                    new OA\Property(property: 'sequence', type: 'integer'),
+                    new OA\Property(property: 'is_used', type: 'boolean'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: '수정 완료', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function update(int $idx): ResponseInterface
     {
         $db   = \Config\Database::connect();
@@ -163,6 +246,19 @@ class MenuController extends BaseAdminApiController
         return $this->success(null, lang('Api.cms_menu_updated'));
     }
 
+    #[OA\Delete(
+        path: '/api/admin/v1/cms/menus/{idx}',
+        summary: '메뉴 삭제',
+        tags: ['AdminCMS'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '삭제 완료', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function delete(int $idx): ResponseInterface
     {
         $db   = \Config\Database::connect();

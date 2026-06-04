@@ -6,6 +6,7 @@ use App\Models\Admin\AdminUserModel;
 use App\Models\Admin\AdminSessionModel;
 use App\Services\JwtService;
 use CodeIgniter\HTTP\ResponseInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * 관리자 인증 API
@@ -26,6 +27,25 @@ class AuthController extends BaseAdminApiController
 
     // ------------------------------------------------------------------ //
 
+    #[OA\Post(
+        path: '/api/admin/v1/auth/login',
+        summary: '관리자 로그인',
+        tags: ['AdminAuth'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['login_id', 'password'],
+                properties: [
+                    new OA\Property(property: 'login_id', type: 'string', example: 'admin'),
+                    new OA\Property(property: 'password', type: 'string', example: 'admin1234'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: '관리자 JWT 발급', content: new OA\JsonContent(ref: '#/components/schemas/AdminTokenResponse')),
+            new OA\Response(response: 401, description: '잘못된 자격증명'),
+        ]
+    )]
     public function login(): ResponseInterface
     {
         $body     = (array) $this->request->getJSON(true);
@@ -73,6 +93,23 @@ class AuthController extends BaseAdminApiController
 
     // ------------------------------------------------------------------ //
 
+    #[OA\Post(
+        path: '/api/admin/v1/auth/logout',
+        summary: '관리자 로그아웃',
+        tags: ['AdminAuth'],
+        security: [['BearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'refresh_token', type: 'string'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: '로그아웃 성공'),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function logout(): ResponseInterface
     {
         $refreshToken = (string) ($this->request->getJSON(true)['refresh_token'] ?? '');

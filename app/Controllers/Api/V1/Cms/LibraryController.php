@@ -5,6 +5,7 @@ namespace App\Controllers\Api\V1\Cms;
 use App\Controllers\Api\V1\BaseApiController;
 use App\Models\FileLibraryModel;
 use CodeIgniter\HTTP\ResponseInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * 사용자 파일 라이브러리 API (본인 파일만 + 공용 목록)
@@ -34,6 +35,30 @@ class LibraryController extends BaseApiController
         $this->lib = new FileLibraryModel();
     }
 
+    #[OA\Post(
+        path: '/api/v1/cms/library/files',
+        summary: '파일 업로드',
+        tags: ['FileLibrary'],
+        security: [['BearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\MediaType(
+                mediaType: 'multipart/form-data',
+                schema: new OA\Schema(
+                    required: ['file'],
+                    properties: [
+                        new OA\Property(property: 'file', type: 'string', format: 'binary'),
+                        new OA\Property(property: 'is_public', type: 'integer', enum: [0, 1]),
+                    ]
+                )
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: '업로드 완료', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 400, ref: '#/components/responses/ValidationError'),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function upload(): ResponseInterface
     {
         $file = $this->request->getFile('file');
@@ -85,6 +110,21 @@ class LibraryController extends BaseApiController
         ], lang('Api.library_uploaded'));
     }
 
+    #[OA\Get(
+        path: '/api/v1/cms/library/files',
+        summary: '내 파일 목록',
+        tags: ['FileLibrary'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\QueryParameter(name: 'page', in: 'query', schema: new OA\Schema(type: 'integer', default: 1)),
+            new OA\QueryParameter(name: 'per_page', in: 'query', schema: new OA\Schema(type: 'integer', default: 20)),
+            new OA\QueryParameter(name: 'mime', in: 'query', schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '내 파일 목록', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function index(): ResponseInterface
     {
         $userIdx = $this->getUserIdx();
@@ -111,6 +151,21 @@ class LibraryController extends BaseApiController
         ]);
     }
 
+    #[OA\Get(
+        path: '/api/v1/cms/library/files/public',
+        summary: '공용 파일 목록',
+        tags: ['FileLibrary'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\QueryParameter(name: 'page', in: 'query', schema: new OA\Schema(type: 'integer', default: 1)),
+            new OA\QueryParameter(name: 'per_page', in: 'query', schema: new OA\Schema(type: 'integer', default: 20)),
+            new OA\QueryParameter(name: 'mime', in: 'query', schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '공용 파일 목록 (is_public=1)', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function publicIndex(): ResponseInterface
     {
         $page    = max(1, (int) ($this->request->getGet('page') ?? 1));
@@ -146,6 +201,21 @@ class LibraryController extends BaseApiController
         ]);
     }
 
+    #[OA\Get(
+        path: '/api/v1/cms/library/files/{idx}',
+        summary: '파일 단건 조회',
+        tags: ['FileLibrary'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '파일 정보', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+            new OA\Response(response: 403, ref: '#/components/responses/Forbidden'),
+            new OA\Response(response: 404, ref: '#/components/responses/NotFound'),
+        ]
+    )]
     public function show(int $idx): ResponseInterface
     {
         $row = $this->lib->find($idx);
@@ -162,6 +232,29 @@ class LibraryController extends BaseApiController
         return $this->success($row);
     }
 
+    #[OA\Put(
+        path: '/api/v1/cms/library/files/{idx}',
+        summary: '파일 메타 수정',
+        tags: ['FileLibrary'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        requestBody: new OA\RequestBody(
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'alt_text', type: 'string', nullable: true),
+                    new OA\Property(property: 'is_public', type: 'integer', enum: [0, 1]),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: '수정 완료', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+            new OA\Response(response: 403, ref: '#/components/responses/Forbidden'),
+            new OA\Response(response: 404, ref: '#/components/responses/NotFound'),
+        ]
+    )]
     public function update(int $idx): ResponseInterface
     {
         $row = $this->lib->find($idx);
@@ -185,6 +278,22 @@ class LibraryController extends BaseApiController
         return $this->success(['idx' => $idx], lang('Api.library_updated'));
     }
 
+    #[OA\Delete(
+        path: '/api/v1/cms/library/files/{idx}',
+        summary: '파일 삭제',
+        tags: ['FileLibrary'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '삭제 완료', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+            new OA\Response(response: 403, ref: '#/components/responses/Forbidden'),
+            new OA\Response(response: 404, ref: '#/components/responses/NotFound'),
+            new OA\Response(response: 409, description: '사용 중인 파일 (삭제 불가)', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+        ]
+    )]
     public function delete(int $idx): ResponseInterface
     {
         $row = $this->lib->find($idx);

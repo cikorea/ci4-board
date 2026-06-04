@@ -4,6 +4,7 @@ namespace App\Controllers\Api\V1\Admin\Cms;
 
 use App\Controllers\Api\V1\Admin\BaseAdminApiController;
 use CodeIgniter\HTTP\ResponseInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * 관리자 CMS 배너 API
@@ -15,6 +16,19 @@ use CodeIgniter\HTTP\ResponseInterface;
  */
 class BannerController extends BaseAdminApiController
 {
+    #[OA\Get(
+        path: '/api/admin/v1/cms/banners',
+        summary: '배너 목록',
+        tags: ['AdminCMS'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\QueryParameter(name: 'position', in: 'query', schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '배너 목록', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function index(): ResponseInterface
     {
         $db       = \Config\Database::connect();
@@ -32,6 +46,31 @@ class BannerController extends BaseAdminApiController
         return $this->success($builder->get()->getResultArray());
     }
 
+    #[OA\Post(
+        path: '/api/admin/v1/cms/banners',
+        summary: '배너 생성',
+        tags: ['AdminCMS'],
+        security: [['BearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['position', 'image_path'],
+                properties: [
+                    new OA\Property(property: 'position', type: 'string'),
+                    new OA\Property(property: 'image_path', type: 'string'),
+                    new OA\Property(property: 'link_url', type: 'string'),
+                    new OA\Property(property: 'start_at', type: 'integer', description: '노출 시작 time()'),
+                    new OA\Property(property: 'end_at', type: 'integer', description: '노출 종료 time()'),
+                    new OA\Property(property: 'sequence', type: 'integer', default: 0),
+                    new OA\Property(property: 'is_used', type: 'boolean', default: true),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: '생성 완료', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function create(): ResponseInterface
     {
         $db   = \Config\Database::connect();
@@ -60,6 +99,32 @@ class BannerController extends BaseAdminApiController
         return $this->created(['idx' => $db->insertID()], lang('Api.cms_banner_created'));
     }
 
+    #[OA\Put(
+        path: '/api/admin/v1/cms/banners/{idx}',
+        summary: '배너 수정',
+        tags: ['AdminCMS'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        requestBody: new OA\RequestBody(
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'position', type: 'string'),
+                    new OA\Property(property: 'image_path', type: 'string'),
+                    new OA\Property(property: 'link_url', type: 'string'),
+                    new OA\Property(property: 'start_at', type: 'integer'),
+                    new OA\Property(property: 'end_at', type: 'integer'),
+                    new OA\Property(property: 'sequence', type: 'integer'),
+                    new OA\Property(property: 'is_used', type: 'boolean'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: '수정 완료', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function update(int $idx): ResponseInterface
     {
         $db     = \Config\Database::connect();
@@ -99,6 +164,19 @@ class BannerController extends BaseAdminApiController
         return $this->success(null, lang('Api.cms_banner_updated'));
     }
 
+    #[OA\Delete(
+        path: '/api/admin/v1/cms/banners/{idx}',
+        summary: '배너 삭제',
+        tags: ['AdminCMS'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '삭제 완료', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function delete(int $idx): ResponseInterface
     {
         $db     = \Config\Database::connect();

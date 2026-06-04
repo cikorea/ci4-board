@@ -5,6 +5,7 @@ namespace App\Controllers\Api\V1;
 use App\Models\MessageModel;
 use App\Models\UserModel;
 use CodeIgniter\HTTP\ResponseInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * 쪽지 API
@@ -24,6 +25,19 @@ class MessageController extends BaseApiController
         $this->model = new MessageModel();
     }
 
+    #[OA\Get(
+        path: '/api/v1/messages/inbox',
+        summary: '받은 쪽지함',
+        tags: ['Message'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\QueryParameter(name: 'page', in: 'query', schema: new OA\Schema(type: 'integer', default: 1)),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '받은 쪽지 목록'),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function inbox(): ResponseInterface
     {
         $page     = max(1, (int) ($this->request->getGet('page') ?? 1));
@@ -37,6 +51,16 @@ class MessageController extends BaseApiController
         ]);
     }
 
+    #[OA\Get(
+        path: '/api/v1/messages/sent',
+        summary: '보낸 쪽지함',
+        tags: ['Message'],
+        security: [['BearerAuth' => []]],
+        responses: [
+            new OA\Response(response: 200, description: '보낸 쪽지 목록'),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function sent(): ResponseInterface
     {
         $page     = max(1, (int) ($this->request->getGet('page') ?? 1));
@@ -50,6 +74,19 @@ class MessageController extends BaseApiController
         ]);
     }
 
+    #[OA\Get(
+        path: '/api/v1/messages/{idx}',
+        summary: '쪽지 상세 조회 (송·수신자만)',
+        tags: ['Message'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '쪽지 상세'),
+            new OA\Response(response: 404, ref: '#/components/responses/NotFound'),
+        ]
+    )]
     public function show(int $idx): ResponseInterface
     {
         $userIdx = $this->getUserIdx();
@@ -69,6 +106,28 @@ class MessageController extends BaseApiController
         return $this->success($msg);
     }
 
+    #[OA\Post(
+        path: '/api/v1/messages',
+        summary: '쪽지 보내기',
+        tags: ['Message'],
+        security: [['BearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['to', 'contents'],
+                properties: [
+                    new OA\Property(property: 'to', type: 'string', description: '수신자 user_id 또는 nickname'),
+                    new OA\Property(property: 'title', type: 'string'),
+                    new OA\Property(property: 'contents', type: 'string'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: '발송 완료'),
+            new OA\Response(response: 404, description: '수신자 없음'),
+            new OA\Response(response: 422, description: '자신에게 발송 불가 또는 필수값 누락'),
+        ]
+    )]
     public function send(): ResponseInterface
     {
         $body     = (array) $this->request->getJSON(true);
@@ -112,6 +171,18 @@ class MessageController extends BaseApiController
         return $this->created(null, lang('Api.message_sent_to', [esc_db($receiver['nickname'])]));
     }
 
+    #[OA\Delete(
+        path: '/api/v1/messages/{idx}',
+        summary: '쪽지 삭제 (송·수신자만)',
+        tags: ['Message'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '삭제 완료'),
+        ]
+    )]
     public function delete(int $idx): ResponseInterface
     {
         $userIdx = $this->getUserIdx();

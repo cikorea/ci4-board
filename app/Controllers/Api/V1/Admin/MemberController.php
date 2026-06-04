@@ -4,6 +4,7 @@ namespace App\Controllers\Api\V1\Admin;
 
 use App\Models\Admin\AdminLogModel;
 use CodeIgniter\HTTP\ResponseInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * 관리자 회원 API
@@ -13,6 +14,20 @@ use CodeIgniter\HTTP\ResponseInterface;
  */
 class MemberController extends BaseAdminApiController
 {
+    #[OA\Get(
+        path: '/api/admin/v1/members',
+        summary: '회원 목록',
+        tags: ['AdminMember'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\QueryParameter(name: 'keyword', in: 'query', schema: new OA\Schema(type: 'string')),
+            new OA\QueryParameter(name: 'status', in: 'query', schema: new OA\Schema(type: 'integer', enum: [0, 1])),
+            new OA\QueryParameter(name: 'page', in: 'query', schema: new OA\Schema(type: 'integer', default: 1)),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '회원 목록 (pagination 포함)'),
+        ]
+    )]
     public function index(): ResponseInterface
     {
         $db      = \Config\Database::connect();
@@ -51,6 +66,32 @@ class MemberController extends BaseAdminApiController
         ]);
     }
 
+    #[OA\Put(
+        path: '/api/admin/v1/members/{idx}',
+        summary: '회원 정보 수정',
+        tags: ['AdminMember'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'group_idx', type: 'integer'),
+                    new OA\Property(property: 'status', type: 'integer', enum: [0, 1]),
+                    new OA\Property(property: 'nickname', type: 'string'),
+                    new OA\Property(property: 'email', type: 'string'),
+                    new OA\Property(property: 'new_password', type: 'string', minLength: 6),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: '수정 완료'),
+            new OA\Response(response: 404, ref: '#/components/responses/NotFound'),
+            new OA\Response(response: 422, ref: '#/components/responses/ValidationError'),
+        ]
+    )]
     public function update(int $idx): ResponseInterface
     {
         $db   = \Config\Database::connect();
