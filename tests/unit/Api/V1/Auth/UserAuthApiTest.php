@@ -8,8 +8,6 @@ use CodeIgniter\Test\DatabaseTestTrait;
  * 사용자 인증 API 통합 테스트
  *
  * 실행 조건: phpunit.dist.xml 에 MySQL 테스트 DB 설정 필요
- *   - database.tests.hostname, database.tests.database 등 주석 해제
- *   - database.tests.DBDriver = MySQLi
  *
  * @internal
  */
@@ -23,6 +21,9 @@ final class UserAuthApiTest extends CIUnitTestCase
     protected $refresh     = false;
     protected $seed        = 'App\Database\Seeds\InitialSeeder';
 
+    private const TEST_USER_ID  = 'testmember';
+    private const TEST_PASSWORD = 'TestPass1234!';
+
     protected function setUp(): void
     {
         ob_start();
@@ -31,8 +32,22 @@ final class UserAuthApiTest extends CIUnitTestCase
         putenv('jwt.secret=test-secret-for-auth-api-minimum32chars!!');
         $_ENV['jwt.secret'] = 'test-secret-for-auth-api-minimum32chars!!';
         service('cache')->clean();
-        $this->db->table('tb_users')->where('user_id !=', 'admin')->delete();
+
         $this->db->table('tb_users_token')->truncate();
+        $this->db->table('tb_users')->where('user_id', self::TEST_USER_ID)->delete();
+        $this->db->table('tb_users')->insert([
+            'user_id'                => self::TEST_USER_ID,
+            'super_secured_password' => password_hash(self::TEST_PASSWORD, PASSWORD_BCRYPT),
+            'level'                  => 1,
+            'group_idx'              => 2,
+            'name'                   => '테스트회원',
+            'nickname'               => '테스트회원',
+            'email'                  => 'testmember@example.com',
+            'timezone'               => '+09',
+            'status'                 => 1,
+            'timestamp_insert'       => time(),
+            'client_ip_insert'       => '127.0.0.1',
+        ]);
     }
 
     protected function tearDown(): void
@@ -50,8 +65,8 @@ final class UserAuthApiTest extends CIUnitTestCase
     {
         $result = $this->withBodyFormat('json')
                        ->post('/api/v1/auth/login', [
-                           'login_id' => 'admin',
-                           'password' => 'admin1234',
+                           'login_id' => self::TEST_USER_ID,
+                           'password' => self::TEST_PASSWORD,
                        ]);
 
         $result->assertStatus(200);
@@ -62,14 +77,14 @@ final class UserAuthApiTest extends CIUnitTestCase
         $this->assertArrayHasKey('refresh_token', $body['data']);
         $this->assertSame('Bearer', $body['data']['token_type']);
         $this->assertSame(3600, $body['data']['expires_in']);
-        $this->assertSame('admin', $body['data']['user']['user_id']);
+        $this->assertSame(self::TEST_USER_ID, $body['data']['user']['user_id']);
     }
 
     public function testLoginWithWrongPassword(): void
     {
         $result = $this->withBodyFormat('json')
                        ->post('/api/v1/auth/login', [
-                           'login_id' => 'admin',
+                           'login_id' => self::TEST_USER_ID,
                            'password' => 'wrongpassword',
                        ]);
 
@@ -120,7 +135,7 @@ final class UserAuthApiTest extends CIUnitTestCase
     {
         $result = $this->withBodyFormat('json')
                        ->post('/api/v1/auth/register', [
-                           'user_id'   => 'admin',
+                           'user_id'   => self::TEST_USER_ID,
                            'nickname'  => '다른닉네임',
                            'email'     => 'other@example.com',
                            'password'  => 'password123',
@@ -171,7 +186,7 @@ final class UserAuthApiTest extends CIUnitTestCase
 
     public function testMeWithValidToken(): void
     {
-        $token  = $this->loginAndGetToken('admin', 'admin1234');
+        $token  = $this->loginAndGetToken();
         $result = $this->withHeaders(['Authorization' => "Bearer {$token}"])
                        ->get('/api/v1/auth/me');
 
@@ -179,7 +194,7 @@ final class UserAuthApiTest extends CIUnitTestCase
         $result->assertJSONFragment(['success' => true]);
 
         $body = json_decode($result->getJSON(), true);
-        $this->assertSame('admin', $body['data']['user_id']);
+        $this->assertSame(self::TEST_USER_ID, $body['data']['user_id']);
         $this->assertArrayNotHasKey('super_secured_password', $body['data']);
     }
 
@@ -189,7 +204,7 @@ final class UserAuthApiTest extends CIUnitTestCase
 
     public function testLogoutWithValidToken(): void
     {
-        $data   = $this->loginAndGetTokenData('admin', 'admin1234');
+        $data   = $this->loginAndGetTokenData();
         $result = $this->withBodyFormat('json')
                        ->withHeaders(['Authorization' => "Bearer {$data['access_token']}"])
                        ->post('/api/v1/auth/logout', [
@@ -213,7 +228,7 @@ final class UserAuthApiTest extends CIUnitTestCase
 
     public function testRefreshWithValidToken(): void
     {
-        $data   = $this->loginAndGetTokenData('admin', 'admin1234');
+        $data   = $this->loginAndGetTokenData();
         $result = $this->withBodyFormat('json')
                        ->post('/api/v1/auth/refresh', [
                            'refresh_token' => $data['refresh_token'],
@@ -238,17 +253,17 @@ final class UserAuthApiTest extends CIUnitTestCase
     // helper
     // ------------------------------------------------------------------ //
 
-    private function loginAndGetToken(string $userId, string $password): string
+    private function loginAndGetToken(): string
     {
-        return $this->loginAndGetTokenData($userId, $password)['access_token'];
+        return $this->loginAndGetTokenData()['access_token'];
     }
 
-    private function loginAndGetTokenData(string $userId, string $password): array
+    private function loginAndGetTokenData(): array
     {
         $result = $this->withBodyFormat('json')
                        ->post('/api/v1/auth/login', [
-                           'login_id' => $userId,
-                           'password' => $password,
+                           'login_id' => self::TEST_USER_ID,
+                           'password' => self::TEST_PASSWORD,
                        ]);
 
         return json_decode($result->getJSON(), true)['data'];

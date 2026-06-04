@@ -37,15 +37,16 @@ final class MessageApiTest extends CIUnitTestCase
     {
         $this->db->table('tb_users_message')->truncate();
         $this->db->table('tb_users_token')->truncate();
-        $this->db->table('tb_users')->where('user_id !=', 'admin')->delete();
+        $this->db->table('tb_users')->truncate();
     }
 
     private function insertTestUsers(): void
     {
         $now = time();
         foreach ([
-            ['user_id' => 'sender', 'nickname' => '발신자', 'email' => 'sender@example.com'],
-            ['user_id' => 'receiver', 'nickname' => '수신자', 'email' => 'receiver@example.com'],
+            ['user_id' => 'sender',   'nickname' => '발신자',  'email' => 'sender@example.com'],
+            ['user_id' => 'receiver', 'nickname' => '수신자',  'email' => 'receiver@example.com'],
+            ['user_id' => 'stranger', 'nickname' => '제3자',   'email' => 'stranger@example.com'],
         ] as $u) {
             $this->db->table('tb_users')->insert([
                 'user_id'                => $u['user_id'],
@@ -213,9 +214,9 @@ final class MessageApiTest extends CIUnitTestCase
         $messageIdx  = $this->sendMessage($senderToken, 'receiver', '다른 유저 접근 테스트');
         $this->assertGreaterThan(0, $messageIdx);
 
-        // 제3자(admin)가 접근 시도 → MessageModel::getOne()이 null 반환 → 404
-        $adminToken = $this->login('admin', 'admin1234');
-        $result     = $this->withHeaders(['Authorization' => "Bearer {$adminToken}"])
+        // 제3자가 접근 시도 → MessageModel::getOne()이 null 반환 → 404
+        $strangerToken = $this->login('stranger');
+        $result        = $this->withHeaders(['Authorization' => "Bearer {$strangerToken}"])
                            ->get('/api/v1/messages/' . $messageIdx);
 
         $result->assertStatus(404);
