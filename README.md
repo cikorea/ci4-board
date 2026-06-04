@@ -19,6 +19,18 @@ CodeIgniter 4 기반의 PHP REST API 서버입니다.
 
 서버를 실행한 뒤 브라우저에서 `http://localhost:8080` 에 접속하면 자동으로 Swagger UI로 이동합니다.
 
+### OpenAPI 스펙 재생성
+
+모든 컨트롤러에 `#[OA\...]` PHP 어트리뷰트가 적용되어 있어 한 번의 명령으로 스펙을 재생성할 수 있습니다.
+
+```bash
+# openapi.yaml 자동 재생성 (59 endpoints)
+php spark swagger:generate --yaml
+
+# 유효성 검사
+php spark swagger:generate --validate
+```
+
 ---
 
 ## 프로젝트 구성
@@ -300,6 +312,10 @@ vendor/bin/phpstan analyse --level=3
 
 # 테스트 (162개)
 vendor/bin/phpunit --testdox
+
+# OpenAPI 스펙 재생성 및 검증
+php spark swagger:generate --yaml
+php spark swagger:generate --validate
 ```
 
 테스트 설정: [`phpunit.dist.xml`](phpunit.dist.xml) — `ci4_board_test` DB 필요
@@ -314,6 +330,7 @@ ci4-board/
 │   ├── Commands/              spark 커맨드 (통계 집계 등)
 │   ├── Controllers/
 │   │   ├── Api/
+│   │   │   ├── OpenApiSpec.php            OpenAPI 전역 정의 (Info·Schema·Tags)
 │   │   │   ├── SocialAuthController.php   소셜 로그인 콜백
 │   │   │   └── V1/                        REST API 컨트롤러
 │   │   │       ├── Admin/                 관리자 API
