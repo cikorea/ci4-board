@@ -79,9 +79,12 @@ class InitialSeeder extends Seeder
             return;
         }
 
+        $pw = password_hash('admin1234', PASSWORD_BCRYPT);
+
+        // admin DB: 관리자 패널 전용
         $adminDb->table('tb_admin_users')->insert([
             'user_id'                => 'admin',
-            'super_secured_password' => password_hash('admin1234', PASSWORD_BCRYPT),
+            'super_secured_password' => $pw,
             'name'                   => '관리자',
             'nickname'               => '관리자',
             'email'                  => 'admin@example.com',
@@ -91,7 +94,26 @@ class InitialSeeder extends Seeder
             'client_ip_insert'       => $ip,
         ]);
 
-        echo "  ✔ 관리자 계정 생성 (admin DB: admin / admin1234, role=superadmin)\n";
+        // 서비스 DB: 프론트(커뮤니티) 참여용 — group_idx=2(일반회원)
+        $existsInUsers = $this->db->table('tb_users')
+            ->where('user_id', 'admin')->countAllResults();
+        if (! $existsInUsers) {
+            $this->db->table('tb_users')->insert([
+                'user_id'                => 'admin',
+                'super_secured_password' => $pw,
+                'level'                  => 1,
+                'group_idx'              => 2,
+                'name'                   => '관리자',
+                'nickname'               => '관리자',
+                'email'                  => 'admin@example.com',
+                'timezone'               => '+09',
+                'status'                 => 1,
+                'timestamp_insert'       => $now,
+                'client_ip_insert'       => $ip,
+            ]);
+        }
+
+        echo "  ✔ 관리자 계정 생성 (admin DB: superadmin / tb_users: group_idx=2)\n";
     }
 
     // ------------------------------------------------------------------ //

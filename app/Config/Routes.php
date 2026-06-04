@@ -86,6 +86,16 @@ $routes->group('api/v1', ['namespace' => 'App\Controllers\Api\V1', 'filter' => '
     $routes->get('cms/banners',          'Cms\BannerController::index');
     $routes->get('cms/popups',           'Cms\PopupController::index');
     $routes->get('cms/menus',            'Cms\MenuController::index');
+
+    // 파일 라이브러리 (로그인 필요)
+    $routes->group('cms/library/files', ['filter' => 'jwt'], static function ($routes) {
+        $routes->post  ('',        'Cms\LibraryController::upload');
+        $routes->get   ('',        'Cms\LibraryController::index');
+        $routes->get   ('public',  'Cms\LibraryController::publicIndex');
+        $routes->get   ('(:num)',  'Cms\LibraryController::show/$1');
+        $routes->put   ('(:num)',  'Cms\LibraryController::update/$1');
+        $routes->delete('(:num)',  'Cms\LibraryController::delete/$1');
+    });
 });
 
 // ================================================================
@@ -143,5 +153,12 @@ $routes->group('api/admin/v1', ['namespace' => 'App\Controllers\Api\V1\Admin'], 
         $routes->put   ('cms/menus/reorder',        'Cms\MenuController::reorder');
         $routes->put   ('cms/menus/(:num)',          'Cms\MenuController::update/$1');
         $routes->delete('cms/menus/(:num)',          'Cms\MenuController::delete/$1');
+
+        // 파일 라이브러리 (어드민)
+        $routes->post  ('cms/library/files',        'Cms\LibraryController::upload');
+        $routes->get   ('cms/library/files',        'Cms\LibraryController::index');
+        $routes->get   ('cms/library/files/(:num)', 'Cms\LibraryController::show/$1');
+        $routes->put   ('cms/library/files/(:num)', 'Cms\LibraryController::update/$1');
+        $routes->delete('cms/library/files/(:num)', 'Cms\LibraryController::delete/$1');
     });
 });

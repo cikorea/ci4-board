@@ -2,6 +2,7 @@
 
 namespace App\Controllers\Api\V1;
 
+use App\Models\FileLibraryModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
 /**
@@ -10,6 +11,9 @@ use CodeIgniter\HTTP\ResponseInterface;
  * POST /api/v1/files/wysiwyg
  *   Form-Data: image (file)
  *   Response:  { url: "http://host/uploads/wysiwyg/YYYY/MM/filename.ext" }
+ *
+ * 업로드 성공 시 tb_file_library 에도 기록된다 (source=wysiwyg).
+ * MIME 검증은 클라이언트 Content-Type이 아닌 finfo_file() 기반으로 수행한다.
  */
 class WysiwygController extends BaseApiController
 {
@@ -25,27 +29,47 @@ class WysiwygController extends BaseApiController
         if (! $file || ! $file->isValid()) {
             return $this->failValidation([], lang('Api.wysiwyg_image_required'));
         }
-        if (! in_array($file->getMimeType(), self::ALLOWED_MIMES, true)) {
-            return $this->failValidation([], lang('Api.wysiwyg_invalid_mime'));
-        }
         if ($file->getSizeByUnit('mb') > self::MAX_MB) {
             return $this->failValidation([], lang('Api.wysiwyg_size_exceeded'));
         }
 
-        $subDir  = date('Y/m');
-        $destDir = FCPATH . 'uploads/wysiwyg/' . $subDir;
-        $name    = $file->getRandomName();
+        $realMime = (new \finfo(FILEINFO_MIME_TYPE))->file($file->getTempName());
+        if (! in_array($realMime, self::ALLOWED_MIMES, true)) {
+            return $this->failValidation([], lang('Api.wysiwyg_invalid_mime'));
+        }
+
+        $ext      = $file->getClientExtension() ?: 'bin';
+        $subDir   = 'wysiwyg/' . date('Y/m');
+        $destDir  = FCPATH . 'uploads/' . $subDir;
+        $stored   = bin2hex(random_bytes(16)) . '.' . $ext;
 
         if (! is_dir($destDir)) {
             mkdir($destDir, 0755, true);
         }
 
-        if (! $file->move($destDir, $name)) {
+        if (! $file->move($destDir, $stored)) {
             return $this->fail(lang('Api.file_save_failed'), 500);
         }
 
+        $filePath = $subDir . '/' . $stored;
+        $isPublic = (int) (bool) $this->request->getPost('is_public');
+
+        $model = new FileLibraryModel();
+        $model->insert([
+            'uploader_idx'     => $this->getUserIdx(),
+            'source'           => 'wysiwyg',
+            'original_name'    => $file->getClientName(),
+            'stored_name'      => $stored,
+            'file_path'        => $filePath,
+            'mime_type'        => $realMime,
+            'file_size'        => $file->getSize(),
+            'is_public'        => $isPublic,
+            'timestamp_insert' => time(),
+        ]);
+
         return $this->success([
-            'url' => base_url('uploads/wysiwyg/' . $subDir . '/' . $name),
+            'url'       => FileLibraryModel::publicUrl($filePath),
+            'is_public' => $isPublic,
         ]);
     }
 }
