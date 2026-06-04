@@ -49,6 +49,20 @@ jobs:
           sed -i 's/# database.default.username = root/database.default.username = ci4user/' .env
           sed -i 's/# database.default.password = root/database.default.password = ci4pass/' .env
           sed -i 's/# jwt.secret = your-secret-key-change-this-in-production/jwt.secret = ci-test-secret-key-minimum-32-chars-long/' .env
+          echo "database.admin.hostname = 127.0.0.1"    >> .env
+          echo "database.admin.database = codeigniter_admin_test" >> .env
+          echo "database.admin.username = ci4user"      >> .env
+          echo "database.admin.password = ci4pass"      >> .env
+          echo "database.admin.DBDriver = MySQLi"       >> .env
+
+      - name: Create admin test DB
+        run: |
+          mysql -h 127.0.0.1 -u root -proot -e "
+            CREATE DATABASE IF NOT EXISTS \`codeigniter_admin_test\`
+              CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+            GRANT ALL PRIVILEGES ON \`codeigniter_admin_test\`.* TO 'ci4user'@'%';
+            FLUSH PRIVILEGES;
+          "
 
       - name: Run migrations on test DB
         run: |
@@ -59,11 +73,23 @@ jobs:
           \$runner = \Config\Services::migrations();
           \$runner->setNamespace(null);
           \$runner->latest('tests');
-          echo 'Migrations done' . PHP_EOL;
+          echo 'Main DB migrations done' . PHP_EOL;
+          "
+
+      - name: Run admin migrations on test DB
+        run: |
+          php -r "
+          define('FCPATH', __DIR__ . '/public/');
+          \$_SERVER['CI_ENVIRONMENT'] = 'testing';
+          require 'vendor/codeigniter4/framework/system/Test/bootstrap.php';
+          \$runner = \Config\Services::migrations();
+          \$runner->setNamespace(null);
+          \$runner->latest('admin');
+          echo 'Admin DB migrations done' . PHP_EOL;
           "
 
       - name: Run PHPStan
-        run: php vendor/bin/phpstan analyse --level=3
+        run: php -d memory_limit=512M vendor/bin/phpstan analyse --level=3
 
       - name: Run PHPUnit
         run: php vendor/bin/phpunit --testdox
