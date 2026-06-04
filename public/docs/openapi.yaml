@@ -1451,14 +1451,14 @@ paths:
             type: string
             format: date
             example: '2026-06-01'
-          description: 조회 시작일 (기본값: 30일 전)
+          description: '조회 시작일 (기본값: 30일 전)'
         - name: to
           in: query
           schema:
             type: string
             format: date
             example: '2026-06-30'
-          description: 조회 종료일 (기본값: 오늘)
+          description: '조회 종료일 (기본값: 오늘)'
       responses:
         '200':
           description: 일별 통계 목록
