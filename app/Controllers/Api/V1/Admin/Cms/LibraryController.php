@@ -5,6 +5,7 @@ namespace App\Controllers\Api\V1\Admin\Cms;
 use App\Controllers\Api\V1\Admin\BaseAdminApiController;
 use App\Models\FileLibraryModel;
 use CodeIgniter\HTTP\ResponseInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * 관리자 파일 라이브러리 API
@@ -39,6 +40,26 @@ class LibraryController extends BaseAdminApiController
         $this->lib = new FileLibraryModel();
     }
 
+    #[OA\Get(
+        path: '/api/admin/v1/cms/library/files',
+        summary: '파일 라이브러리 전체 목록',
+        tags: ['AdminFileLibrary'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\QueryParameter(name: 'page', in: 'query', schema: new OA\Schema(type: 'integer', default: 1)),
+            new OA\QueryParameter(name: 'per_page', in: 'query', schema: new OA\Schema(type: 'integer', default: 20)),
+            new OA\QueryParameter(name: 'mime', in: 'query', description: 'MIME 타입 접두 일치', schema: new OA\Schema(type: 'string')),
+            new OA\QueryParameter(name: 'source', in: 'query', schema: new OA\Schema(type: 'string')),
+            new OA\QueryParameter(name: 'uploader_idx', in: 'query', schema: new OA\Schema(type: 'integer')),
+            new OA\QueryParameter(name: 'date_from', in: 'query', description: '업로드 시작일', schema: new OA\Schema(type: 'string')),
+            new OA\QueryParameter(name: 'date_to', in: 'query', description: '업로드 종료일', schema: new OA\Schema(type: 'string')),
+            new OA\QueryParameter(name: 'is_public', in: 'query', schema: new OA\Schema(type: 'integer', enum: [0, 1])),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '파일 목록', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function index(): ResponseInterface
     {
         $page     = max(1, (int) ($this->request->getGet('page')         ?? 1));
@@ -95,6 +116,29 @@ class LibraryController extends BaseAdminApiController
         ]);
     }
 
+    #[OA\Post(
+        path: '/api/admin/v1/cms/library/files',
+        summary: '파일 직접 업로드',
+        tags: ['AdminFileLibrary'],
+        security: [['BearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\MediaType(
+                mediaType: 'multipart/form-data',
+                schema: new OA\Schema(
+                    required: ['file'],
+                    properties: [
+                        new OA\Property(property: 'file', type: 'string', format: 'binary'),
+                        new OA\Property(property: 'is_public', type: 'integer', enum: [0, 1], default: 0),
+                    ]
+                )
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: '업로드 완료', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function upload(): ResponseInterface
     {
         $file = $this->request->getFile('file');
@@ -146,6 +190,19 @@ class LibraryController extends BaseAdminApiController
         ], lang('Api.library_uploaded'));
     }
 
+    #[OA\Get(
+        path: '/api/admin/v1/cms/library/files/{idx}',
+        summary: '파일 단건 조회',
+        tags: ['AdminFileLibrary'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '파일 상세', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function show(int $idx): ResponseInterface
     {
         $row = $this->lib->find($idx);
@@ -158,6 +215,27 @@ class LibraryController extends BaseAdminApiController
         return $this->success($row);
     }
 
+    #[OA\Put(
+        path: '/api/admin/v1/cms/library/files/{idx}',
+        summary: '파일 메타 수정',
+        tags: ['AdminFileLibrary'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        requestBody: new OA\RequestBody(
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'alt_text', type: 'string', nullable: true),
+                    new OA\Property(property: 'is_public', type: 'integer', enum: [0, 1]),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: '수정 완료', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function update(int $idx): ResponseInterface
     {
         $row = $this->lib->find($idx);
@@ -178,6 +256,20 @@ class LibraryController extends BaseAdminApiController
         return $this->success(['idx' => $idx], lang('Api.library_updated'));
     }
 
+    #[OA\Delete(
+        path: '/api/admin/v1/cms/library/files/{idx}',
+        summary: '파일 삭제',
+        tags: ['AdminFileLibrary'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '삭제 완료', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 409, description: '사용 중인 파일', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function delete(int $idx): ResponseInterface
     {
         $row = $this->lib->find($idx);

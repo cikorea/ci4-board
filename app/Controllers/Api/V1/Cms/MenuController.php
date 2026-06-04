@@ -4,6 +4,7 @@ namespace App\Controllers\Api\V1\Cms;
 
 use App\Controllers\Api\V1\BaseApiController;
 use CodeIgniter\HTTP\ResponseInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * 프론트 CMS 메뉴 API
@@ -12,6 +13,14 @@ use CodeIgniter\HTTP\ResponseInterface;
  */
 class MenuController extends BaseApiController
 {
+    #[OA\Get(
+        path: '/api/v1/cms/menus',
+        summary: '메뉴 트리 조회',
+        tags: ['CMS'],
+        responses: [
+            new OA\Response(response: 200, description: '메뉴 트리 (children 포함)'),
+        ]
+    )]
     public function index(): ResponseInterface
     {
         $db   = \Config\Database::connect();

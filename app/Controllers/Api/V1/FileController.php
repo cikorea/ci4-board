@@ -4,6 +4,7 @@ namespace App\Controllers\Api\V1;
 
 use App\Models\FileModel;
 use CodeIgniter\HTTP\ResponseInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * 파일 API
@@ -26,6 +27,30 @@ class FileController extends BaseApiController
         $this->file = new FileModel();
     }
 
+    #[OA\Post(
+        path: '/api/v1/files',
+        summary: '파일 업로드',
+        tags: ['File'],
+        security: [['BearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            content: new OA\MediaType(
+                mediaType: 'multipart/form-data',
+                schema: new OA\Schema(
+                    required: ['bbs_idx', 'article_idx'],
+                    properties: [
+                        new OA\Property(property: 'bbs_idx', type: 'integer'),
+                        new OA\Property(property: 'article_idx', type: 'integer'),
+                        new OA\Property(property: 'attachments', type: 'array', items: new OA\Items(type: 'string', format: 'binary'), description: '최대 5개, 2MB/개'),
+                    ]
+                )
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: '업로드 결과'),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+            new OA\Response(response: 422, description: '허용되지 않는 파일'),
+        ]
+    )]
     public function upload(): ResponseInterface
     {
         $bbsIdx     = (int) ($this->request->getPost('bbs_idx')     ?? 0);
@@ -103,6 +128,18 @@ class FileController extends BaseApiController
         return $this->created(['uploaded' => $result, 'errors' => $errors ?: null]);
     }
 
+    #[OA\Get(
+        path: '/api/v1/files/{idx}/download',
+        summary: '파일 다운로드 (인증 불필요)',
+        tags: ['File'],
+        parameters: [
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '파일 스트림', content: new OA\MediaType(mediaType: 'application/octet-stream', schema: new OA\Schema(type: 'string', format: 'binary'))),
+            new OA\Response(response: 404, ref: '#/components/responses/NotFound'),
+        ]
+    )]
     public function download(int $idx): mixed
     {
         $file = $this->file->find($idx);
@@ -123,6 +160,19 @@ class FileController extends BaseApiController
             ->setBody(file_get_contents($path));
     }
 
+    #[OA\Delete(
+        path: '/api/v1/files/{idx}',
+        summary: '파일 삭제 (소유자만)',
+        tags: ['File'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '삭제 완료'),
+            new OA\Response(response: 403, ref: '#/components/responses/Forbidden'),
+        ]
+    )]
     public function delete(int $idx): ResponseInterface
     {
         $file = $this->file->find($idx);

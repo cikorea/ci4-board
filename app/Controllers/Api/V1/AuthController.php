@@ -6,6 +6,7 @@ use App\Models\UserModel;
 use App\Models\UserTokenModel;
 use App\Services\JwtService;
 use CodeIgniter\HTTP\ResponseInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * 사용자 인증 API
@@ -31,6 +32,26 @@ class AuthController extends BaseApiController
 
     // ------------------------------------------------------------------ //
 
+    #[OA\Post(
+        path: '/api/v1/auth/login',
+        summary: '로그인',
+        tags: ['Auth'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['login_id', 'password'],
+                properties: [
+                    new OA\Property(property: 'login_id', type: 'string', example: 'testuser'),
+                    new OA\Property(property: 'password', type: 'string', example: 'password123'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: '로그인 성공 → JWT 발급', content: new OA\JsonContent(ref: '#/components/schemas/TokenResponse')),
+            new OA\Response(response: 401, description: '잘못된 자격증명'),
+            new OA\Response(response: 422, ref: '#/components/responses/ValidationError'),
+        ]
+    )]
     public function login(): ResponseInterface
     {
         $body     = $this->request->getJSON(true) ?? [];
@@ -52,6 +73,28 @@ class AuthController extends BaseApiController
 
     // ------------------------------------------------------------------ //
 
+    #[OA\Post(
+        path: '/api/v1/auth/register',
+        summary: '회원가입',
+        tags: ['Auth'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['user_id', 'nickname', 'email', 'password', 'password2'],
+                properties: [
+                    new OA\Property(property: 'user_id', type: 'string'),
+                    new OA\Property(property: 'nickname', type: 'string'),
+                    new OA\Property(property: 'email', type: 'string', format: 'email'),
+                    new OA\Property(property: 'password', type: 'string', minLength: 6),
+                    new OA\Property(property: 'password2', type: 'string'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: '회원가입 성공'),
+            new OA\Response(response: 422, ref: '#/components/responses/ValidationError'),
+        ]
+    )]
     public function register(): ResponseInterface
     {
         $body      = (array) $this->request->getJSON(true);
@@ -110,6 +153,23 @@ class AuthController extends BaseApiController
 
     // ------------------------------------------------------------------ //
 
+    #[OA\Post(
+        path: '/api/v1/auth/logout',
+        summary: '로그아웃',
+        tags: ['Auth'],
+        security: [['BearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'refresh_token', type: 'string'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: '로그아웃 성공'),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function logout(): ResponseInterface
     {
         $refreshToken = (string) ($this->request->getJSON(true)['refresh_token'] ?? '');
@@ -123,6 +183,24 @@ class AuthController extends BaseApiController
 
     // ------------------------------------------------------------------ //
 
+    #[OA\Post(
+        path: '/api/v1/auth/refresh',
+        summary: '액세스 토큰 갱신',
+        tags: ['Auth'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['refresh_token'],
+                properties: [
+                    new OA\Property(property: 'refresh_token', type: 'string'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: '토큰 갱신 성공'),
+            new OA\Response(response: 401, description: '유효하지 않은 Refresh Token'),
+        ]
+    )]
     public function refresh(): ResponseInterface
     {
         $refreshToken = (string) ($this->request->getJSON(true)['refresh_token'] ?? '');
@@ -159,6 +237,16 @@ class AuthController extends BaseApiController
 
     // ------------------------------------------------------------------ //
 
+    #[OA\Get(
+        path: '/api/v1/auth/me',
+        summary: '내 정보 조회',
+        tags: ['Auth'],
+        security: [['BearerAuth' => []]],
+        responses: [
+            new OA\Response(response: 200, description: '사용자 정보', content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function me(): ResponseInterface
     {
         $user = $this->users->find($this->getUserIdx());
@@ -173,6 +261,24 @@ class AuthController extends BaseApiController
 
     // ------------------------------------------------------------------ //
 
+    #[OA\Put(
+        path: '/api/v1/auth/profile',
+        summary: '프로필 수정',
+        tags: ['Auth'],
+        security: [['BearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'nickname', type: 'string'),
+                    new OA\Property(property: 'email', type: 'string'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: '수정 완료'),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function updateProfile(): ResponseInterface
     {
         $body        = (array) $this->request->getJSON(true);
@@ -237,6 +343,16 @@ class AuthController extends BaseApiController
 
     // ------------------------------------------------------------------ //
 
+    #[OA\Delete(
+        path: '/api/v1/auth/withdraw',
+        summary: '회원 탈퇴',
+        tags: ['Auth'],
+        security: [['BearerAuth' => []]],
+        responses: [
+            new OA\Response(response: 200, description: '탈퇴 완료'),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+        ]
+    )]
     public function withdraw(): ResponseInterface
     {
         $password = (string) ($this->request->getJSON(true)['password'] ?? '');

@@ -3,6 +3,7 @@
 namespace App\Controllers\Api\V1;
 
 use CodeIgniter\HTTP\ResponseInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * 공개 사이트 설정 API (인증 불필요)
@@ -18,6 +19,14 @@ class ConfigController extends BaseApiController
         'site_block_contents',
     ];
 
+    #[OA\Get(
+        path: '/api/v1/config',
+        summary: '사이트 공개 설정 조회',
+        tags: ['Config'],
+        responses: [
+            new OA\Response(response: 200, description: '사이트 설정'),
+        ]
+    )]
     public function index(): ResponseInterface
     {
         $db   = \Config\Database::connect();

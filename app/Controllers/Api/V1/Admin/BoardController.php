@@ -4,6 +4,7 @@ namespace App\Controllers\Api\V1\Admin;
 
 use App\Models\Admin\AdminLogModel;
 use CodeIgniter\HTTP\ResponseInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * 관리자 게시판 API
@@ -26,6 +27,17 @@ class BoardController extends BaseAdminApiController
         'bbs_allow_group_write_article', 'bbs_allow_group_write_comment',
     ];
 
+    #[OA\Get(
+        path: '/api/admin/v1/boards',
+        summary: '게시판 목록 + 설정',
+        tags: ['AdminBoard'],
+        security: [['BearerAuth' => []]],
+        responses: [
+            new OA\Response(response: 200, description: '게시판 목록 및 권한 그룹 정보'),
+            new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),
+            new OA\Response(response: 403, ref: '#/components/responses/Forbidden'),
+        ]
+    )]
     public function index(): ResponseInterface
     {
         $db = \Config\Database::connect();
@@ -48,6 +60,34 @@ class BoardController extends BaseAdminApiController
         return $this->success(['boards' => $boards, 'groups' => $groups]);
     }
 
+    #[OA\Put(
+        path: '/api/admin/v1/boards/{bbsId}',
+        summary: '게시판 설정 저장',
+        tags: ['AdminBoard'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'bbsId', in: 'path', required: true, schema: new OA\Schema(type: 'string'), example: 'free'),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'bbs_name', type: 'string'),
+                    new OA\Property(property: 'bbs_used', type: 'boolean'),
+                    new OA\Property(property: 'bbs_count_list_article', type: 'integer', default: 15),
+                    new OA\Property(property: 'bbs_comment_used', type: 'boolean'),
+                    new OA\Property(property: 'view_list', type: 'array', items: new OA\Items(type: 'string')),
+                    new OA\Property(property: 'view_article', type: 'array', items: new OA\Items(type: 'string')),
+                    new OA\Property(property: 'write_article', type: 'array', items: new OA\Items(type: 'string')),
+                    new OA\Property(property: 'write_comment', type: 'array', items: new OA\Items(type: 'string')),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: '설정 저장 완료'),
+            new OA\Response(response: 404, ref: '#/components/responses/NotFound'),
+        ]
+    )]
     public function update(string $bbsId): ResponseInterface
     {
         $db  = \Config\Database::connect();

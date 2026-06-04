@@ -10,6 +10,7 @@ use App\Services\KakaoOAuthService;
 use App\Services\NaverOAuthService;
 use App\Services\JwtService;
 use App\Traits\ApiResponse;
+use OpenApi\Attributes as OA;
 
 class SocialAuthController extends BaseController
 {
@@ -19,6 +20,14 @@ class SocialAuthController extends BaseController
     // GET /api/v1/auth/social/google
     // ------------------------------------------------------------------ //
 
+    #[OA\Get(
+        path: '/api/v1/auth/social/google',
+        summary: 'Google OAuth2 인증 시작',
+        tags: ['Auth'],
+        responses: [
+            new OA\Response(response: 302, description: 'Google 인증 페이지로 리다이렉트'),
+        ]
+    )]
     public function googleRedirect(): \CodeIgniter\HTTP\ResponseInterface
     {
         try {
@@ -37,6 +46,18 @@ class SocialAuthController extends BaseController
     // GET /api/v1/auth/social/google/callback
     // ------------------------------------------------------------------ //
 
+    #[OA\Get(
+        path: '/api/v1/auth/social/google/callback',
+        summary: 'Google OAuth2 콜백',
+        tags: ['Auth'],
+        parameters: [
+            new OA\QueryParameter(name: 'code', in: 'query', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\QueryParameter(name: 'state', in: 'query', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '소셜 로그인 성공 → JWT 발급', content: new OA\JsonContent(ref: '#/components/schemas/TokenResponse')),
+        ]
+    )]
     public function googleCallback(): \CodeIgniter\HTTP\ResponseInterface
     {
         $code  = $this->request->getGet('code');
@@ -142,6 +163,14 @@ class SocialAuthController extends BaseController
     // GET /api/v1/auth/social/kakao
     // ------------------------------------------------------------------ //
 
+    #[OA\Get(
+        path: '/api/v1/auth/social/kakao',
+        summary: '카카오 OAuth2 인증 시작',
+        tags: ['Auth'],
+        responses: [
+            new OA\Response(response: 302, description: '카카오 인증 페이지로 리다이렉트'),
+        ]
+    )]
     public function kakaoRedirect(): \CodeIgniter\HTTP\ResponseInterface
     {
         try {
@@ -160,6 +189,14 @@ class SocialAuthController extends BaseController
     // GET /api/v1/auth/social/kakao/callback
     // ------------------------------------------------------------------ //
 
+    #[OA\Get(
+        path: '/api/v1/auth/social/kakao/callback',
+        summary: '카카오 OAuth2 콜백',
+        tags: ['Auth'],
+        responses: [
+            new OA\Response(response: 200, description: '소셜 로그인 성공 → JWT 발급'),
+        ]
+    )]
     public function kakaoCallback(): \CodeIgniter\HTTP\ResponseInterface
     {
         $code  = $this->request->getGet('code');
@@ -261,6 +298,14 @@ class SocialAuthController extends BaseController
     // GET /api/v1/auth/social/naver
     // ------------------------------------------------------------------ //
 
+    #[OA\Get(
+        path: '/api/v1/auth/social/naver',
+        summary: '네이버 OAuth2 인증 시작',
+        tags: ['Auth'],
+        responses: [
+            new OA\Response(response: 302, description: '네이버 인증 페이지로 리다이렉트'),
+        ]
+    )]
     public function naverRedirect(): \CodeIgniter\HTTP\ResponseInterface
     {
         try {
@@ -279,6 +324,14 @@ class SocialAuthController extends BaseController
     // GET /api/v1/auth/social/naver/callback
     // ------------------------------------------------------------------ //
 
+    #[OA\Get(
+        path: '/api/v1/auth/social/naver/callback',
+        summary: '네이버 OAuth2 콜백',
+        tags: ['Auth'],
+        responses: [
+            new OA\Response(response: 200, description: '소셜 로그인 성공 → JWT 발급'),
+        ]
+    )]
     public function naverCallback(): \CodeIgniter\HTTP\ResponseInterface
     {
         $code  = $this->request->getGet('code');

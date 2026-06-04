@@ -4,6 +4,7 @@ namespace App\Controllers\Api\V1\Admin;
 
 use App\Models\Admin\AdminLogModel;
 use CodeIgniter\HTTP\ResponseInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * 관리자 게시글 API
@@ -15,6 +16,20 @@ use CodeIgniter\HTTP\ResponseInterface;
  */
 class ArticleController extends BaseAdminApiController
 {
+    #[OA\Get(
+        path: '/api/admin/v1/articles',
+        summary: '게시글 목록 (전체 게시판)',
+        tags: ['AdminArticle'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\QueryParameter(name: 'keyword', in: 'query', schema: new OA\Schema(type: 'string')),
+            new OA\QueryParameter(name: 'bbs_id', in: 'query', schema: new OA\Schema(type: 'string')),
+            new OA\QueryParameter(name: 'page', in: 'query', schema: new OA\Schema(type: 'integer', default: 1)),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '게시글 목록'),
+        ]
+    )]
     public function index(): ResponseInterface
     {
         $db      = \Config\Database::connect();
@@ -56,6 +71,19 @@ class ArticleController extends BaseAdminApiController
         ]);
     }
 
+    #[OA\Get(
+        path: '/api/admin/v1/articles/{idx}',
+        summary: '게시글 상세',
+        tags: ['AdminArticle'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '게시글 상세'),
+            new OA\Response(response: 404, ref: '#/components/responses/NotFound'),
+        ]
+    )]
     public function show(int $idx): ResponseInterface
     {
         $db   = \Config\Database::connect();
@@ -117,6 +145,19 @@ class ArticleController extends BaseAdminApiController
         return $this->success(null, lang('Api.article_updated'));
     }
 
+    #[OA\Delete(
+        path: '/api/admin/v1/articles/{idx}',
+        summary: '게시글 삭제 (소프트 삭제)',
+        tags: ['AdminArticle'],
+        security: [['BearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'idx', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '삭제 완료'),
+            new OA\Response(response: 404, ref: '#/components/responses/NotFound'),
+        ]
+    )]
     public function delete(int $idx): ResponseInterface
     {
         $db   = \Config\Database::connect();

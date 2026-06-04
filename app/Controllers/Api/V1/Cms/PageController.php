@@ -4,6 +4,7 @@ namespace App\Controllers\Api\V1\Cms;
 
 use App\Controllers\Api\V1\BaseApiController;
 use CodeIgniter\HTTP\ResponseInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * 프론트 CMS 페이지 API
@@ -12,6 +13,18 @@ use CodeIgniter\HTTP\ResponseInterface;
  */
 class PageController extends BaseApiController
 {
+    #[OA\Get(
+        path: '/api/v1/cms/pages/{slug}',
+        summary: 'CMS 페이지 조회',
+        tags: ['CMS'],
+        parameters: [
+            new OA\PathParameter(name: 'slug', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '페이지 내용'),
+            new OA\Response(response: 404, ref: '#/components/responses/NotFound'),
+        ]
+    )]
     public function show(string $slug): ResponseInterface
     {
         $db   = \Config\Database::connect();

@@ -1,79 +1,2306 @@
-openapi: 3.0.3
+openapi: 3.0.0
 info:
-  title: CI4 Board API
+  title: 'CI4 Board API'
+  description: "CodeIgniter 4 기반 헤드리스 게시판 REST API\n\n## 인증\n로그인 후 발급된 `access_token`을 `Authorization: Bearer {token}` 헤더로 전달합니다.\n\n## 기본 응답 형식\n```json\n{ \"success\": true,  \"data\": {},   \"message\": \"\" }\n{ \"success\": false, \"data\": null, \"message\": \"에러 메시지\" }\n```\n\n## API 구조\n| 경로 접두사 | 설명 | 인증 |\n|------------|------|------|\n| `/api/v1/*` | 사용자·게시판·쪽지·CMS | JWT (일부 공개) |\n| `/api/admin/v1/*` | 관리자 전용 | Admin JWT (role: superadmin/manager) |"
   version: 2.0.0
-  description: |
-    CodeIgniter 4 기반 헤드리스 게시판 REST API
-
-    ## 인증
-    로그인 후 발급된 `access_token`을 `Authorization: Bearer {token}` 헤더로 전달합니다.
-
-    ## 기본 응답 형식
-    ```json
-    { "success": true,  "data": {},   "message": "" }
-    { "success": false, "data": null, "message": "에러 메시지" }
-    ```
-
-    ## API 구조
-    | 경로 접두사 | 설명 | 인증 |
-    |------------|------|------|
-    | `/api/v1/*` | 사용자·게시판·쪽지·CMS | JWT (일부 공개) |
-    | `/api/admin/v1/*` | 관리자 전용 | Admin JWT (role: superadmin/manager) |
-
 servers:
-  - url: http://localhost:8080
-    description: 개발 서버
-
-tags:
-  # 사용자 API
-  - name: Auth
-    description: 사용자 인증 (`/api/v1/auth/*`)
-  - name: Social Auth
-    description: 소셜 로그인 OAuth2 (`/api/v1/auth/social/*`)
-  - name: Board
-    description: 게시판 조회 (`/api/v1/boards/*`)
-  - name: Article
-    description: 게시글 CRUD (`/api/v1/boards/{id}/articles/*`)
-  - name: Comment
-    description: 댓글 CRUD (`/api/v1/boards/{id}/articles/{id}/comments/*`)
-  - name: File
-    description: 파일 업로드·다운로드 (`/api/v1/files/*`)
-  - name: Message
-    description: 쪽지 (`/api/v1/messages/*`)
-  - name: Config
-    description: 사이트 공개 설정 (`/api/v1/config`)
-  - name: CMS
-    description: CMS 공개 조회 (`/api/v1/cms/*`)
-  # 관리자 API
-  - name: Admin Auth
-    description: 관리자 인증 (`/api/admin/v1/auth/*`)
-  - name: Admin Board
-    description: 게시판 관리 (`/api/admin/v1/boards/*`)
-  - name: Admin Member
-    description: 회원 관리 (`/api/admin/v1/members/*`)
-  - name: Admin Article
-    description: 게시글 관리 (`/api/admin/v1/articles/*`)
-  - name: Admin Setting
-    description: 사이트 설정 (`/api/admin/v1/setting`)
-  - name: Admin Stats
-    description: 일별 통계 (`/api/admin/v1/stats`)
-  - name: Admin Log
-    description: 감사 로그 (`/api/admin/v1/logs`)
-  - name: Admin Notice
-    description: 관리자 공지 (`/api/admin/v1/notices`)
-  - name: Admin CMS
-    description: CMS 관리 (`/api/admin/v1/cms/*`)
-
+  -
+    url: 'http://localhost:8080'
+    description: '개발 서버'
+paths:
+  /api/v1/auth/social/google:
+    get:
+      tags:
+        - Auth
+      summary: 'Google OAuth2 인증 시작'
+      operationId: 1e603fc453b57358c1f07e0c91b09161
+      responses:
+        '302':
+          description: 'Google 인증 페이지로 리다이렉트'
+  /api/v1/auth/social/google/callback:
+    get:
+      tags:
+        - Auth
+      summary: 'Google OAuth2 콜백'
+      operationId: 8e78e60115efcbb1174b7ce0c110a6c0
+      parameters:
+        -
+          name: code
+          in: query
+          required: true
+          schema:
+            type: string
+        -
+          name: state
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '소셜 로그인 성공 → JWT 발급'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+  /api/v1/auth/social/kakao:
+    get:
+      tags:
+        - Auth
+      summary: '카카오 OAuth2 인증 시작'
+      operationId: 8ef1b75277a7d544886d1b532b2407fc
+      responses:
+        '302':
+          description: '카카오 인증 페이지로 리다이렉트'
+  /api/v1/auth/social/kakao/callback:
+    get:
+      tags:
+        - Auth
+      summary: '카카오 OAuth2 콜백'
+      operationId: 942c865538da3570c0f921024afb4273
+      responses:
+        '200':
+          description: '소셜 로그인 성공 → JWT 발급'
+  /api/v1/auth/social/naver:
+    get:
+      tags:
+        - Auth
+      summary: '네이버 OAuth2 인증 시작'
+      operationId: 2eaafd720da3571b1ed3f4f85bd2f315
+      responses:
+        '302':
+          description: '네이버 인증 페이지로 리다이렉트'
+  /api/v1/auth/social/naver/callback:
+    get:
+      tags:
+        - Auth
+      summary: '네이버 OAuth2 콜백'
+      operationId: 38b644f0131bbdebfaba7d6d2660a05d
+      responses:
+        '200':
+          description: '소셜 로그인 성공 → JWT 발급'
+  /api/admin/v1/articles:
+    get:
+      tags:
+        - AdminArticle
+      summary: '게시글 목록 (전체 게시판)'
+      operationId: 9e9fb88cec6b87444da581beb6e25c4e
+      parameters:
+        -
+          name: keyword
+          in: query
+          schema:
+            type: string
+        -
+          name: bbs_id
+          in: query
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          description: '게시글 목록'
+      security:
+        -
+          BearerAuth: []
+  '/api/admin/v1/articles/{idx}':
+    get:
+      tags:
+        - AdminArticle
+      summary: '게시글 상세'
+      operationId: edac0d7dd93900d048af76c570834cbf
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '게시글 상세'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        -
+          BearerAuth: []
+    delete:
+      tags:
+        - AdminArticle
+      summary: '게시글 삭제 (소프트 삭제)'
+      operationId: c455c3a0483a7b3722f5f42e21bca95d
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '삭제 완료'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        -
+          BearerAuth: []
+  /api/admin/v1/auth/login:
+    post:
+      tags:
+        - AdminAuth
+      summary: '관리자 로그인'
+      operationId: 65aa358efa84130cbceb62acb832e3f6
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - login_id
+                - password
+              properties:
+                login_id:
+                  type: string
+                  example: admin
+                password:
+                  type: string
+                  example: admin1234
+              type: object
+      responses:
+        '200':
+          description: '관리자 JWT 발급'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminTokenResponse'
+        '401':
+          description: '잘못된 자격증명'
+  /api/admin/v1/auth/logout:
+    post:
+      tags:
+        - AdminAuth
+      summary: '관리자 로그아웃'
+      operationId: ecd05ebef4a2ce3de002dfe4cbe833ef
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                refresh_token:
+                  type: string
+              type: object
+      responses:
+        '200':
+          description: '로그아웃 성공'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  /api/admin/v1/boards:
+    get:
+      tags:
+        - AdminBoard
+      summary: '게시판 목록 + 설정'
+      operationId: 8bd1a2575d712ad298b340481b204397
+      responses:
+        '200':
+          description: '게시판 목록 및 권한 그룹 정보'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      security:
+        -
+          BearerAuth: []
+  '/api/admin/v1/boards/{bbsId}':
+    put:
+      tags:
+        - AdminBoard
+      summary: '게시판 설정 저장'
+      operationId: 4b56027f47c2ca7316fd650593fd7525
+      parameters:
+        -
+          name: bbsId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: free
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                bbs_name:
+                  type: string
+                bbs_used:
+                  type: boolean
+                bbs_count_list_article:
+                  type: integer
+                  default: 15
+                bbs_comment_used:
+                  type: boolean
+                view_list:
+                  type: array
+                  items: { type: string }
+                view_article:
+                  type: array
+                  items: { type: string }
+                write_article:
+                  type: array
+                  items: { type: string }
+                write_comment:
+                  type: array
+                  items: { type: string }
+              type: object
+      responses:
+        '200':
+          description: '설정 저장 완료'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        -
+          BearerAuth: []
+  /api/admin/v1/cms/banners:
+    get:
+      tags:
+        - AdminCMS
+      summary: '배너 목록'
+      operationId: b78654ed2d9b1de8a0f9e294de0c8d71
+      parameters:
+        -
+          name: position
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '배너 목록'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+    post:
+      tags:
+        - AdminCMS
+      summary: '배너 생성'
+      operationId: 5527b3b7363d038f75aea37f8311e556
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - position
+                - image_path
+              properties:
+                position:
+                  type: string
+                image_path:
+                  type: string
+                link_url:
+                  type: string
+                start_at:
+                  description: '노출 시작 time()'
+                  type: integer
+                end_at:
+                  description: '노출 종료 time()'
+                  type: integer
+                sequence:
+                  type: integer
+                  default: 0
+                is_used:
+                  type: boolean
+                  default: true
+              type: object
+      responses:
+        '201':
+          description: '생성 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  '/api/admin/v1/cms/banners/{idx}':
+    put:
+      tags:
+        - AdminCMS
+      summary: '배너 수정'
+      operationId: b408c03c0e4c65b1d949a30f73e381dc
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                position:
+                  type: string
+                image_path:
+                  type: string
+                link_url:
+                  type: string
+                start_at:
+                  type: integer
+                end_at:
+                  type: integer
+                sequence:
+                  type: integer
+                is_used:
+                  type: boolean
+              type: object
+      responses:
+        '200':
+          description: '수정 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+    delete:
+      tags:
+        - AdminCMS
+      summary: '배너 삭제'
+      operationId: 0a68138e9262b8a66a452c8fe741be6e
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '삭제 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  /api/admin/v1/cms/library/files:
+    get:
+      tags:
+        - AdminFileLibrary
+      summary: '파일 라이브러리 전체 목록'
+      operationId: 6c0fa3145d85a9f1e49b12046cd835fd
+      parameters:
+        -
+          name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        -
+          name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
+        -
+          name: mime
+          in: query
+          description: 'MIME 타입 접두 일치'
+          schema:
+            type: string
+        -
+          name: source
+          in: query
+          schema:
+            type: string
+        -
+          name: uploader_idx
+          in: query
+          schema:
+            type: integer
+        -
+          name: date_from
+          in: query
+          description: '업로드 시작일'
+          schema:
+            type: string
+        -
+          name: date_to
+          in: query
+          description: '업로드 종료일'
+          schema:
+            type: string
+        -
+          name: is_public
+          in: query
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+      responses:
+        '200':
+          description: '파일 목록'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+    post:
+      tags:
+        - AdminFileLibrary
+      summary: '파일 직접 업로드'
+      operationId: 46ee6b4735d43e5aafdc77d688f0acad
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                is_public:
+                  type: integer
+                  default: 0
+                  enum: [0, 1]
+              type: object
+      responses:
+        '201':
+          description: '업로드 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  '/api/admin/v1/cms/library/files/{idx}':
+    get:
+      tags:
+        - AdminFileLibrary
+      summary: '파일 단건 조회'
+      operationId: b579234d36851f8fd89bf18dd510a6f0
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '파일 상세'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+    put:
+      tags:
+        - AdminFileLibrary
+      summary: '파일 메타 수정'
+      operationId: d53c63eed30a61939d20246129a71327
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                alt_text:
+                  type: string
+                  nullable: true
+                is_public:
+                  type: integer
+                  enum: [0, 1]
+              type: object
+      responses:
+        '200':
+          description: '수정 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+    delete:
+      tags:
+        - AdminFileLibrary
+      summary: '파일 삭제'
+      operationId: e060d44550d778732e2c9a4b9a7934ed
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '삭제 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '409':
+          description: '사용 중인 파일'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  /api/admin/v1/cms/menus:
+    get:
+      tags:
+        - AdminCMS
+      summary: '메뉴 트리 조회'
+      operationId: 7f21d8307e6c5876e177583c4d633f53
+      responses:
+        '200':
+          description: '메뉴 트리'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+    post:
+      tags:
+        - AdminCMS
+      summary: '메뉴 생성'
+      operationId: c7157f1d4873d43cce09a13f69c100a0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - label
+              properties:
+                label:
+                  type: string
+                url:
+                  type: string
+                target:
+                  type: string
+                  default: _self
+                  enum: [_self, _blank]
+                parent_idx:
+                  type: integer
+                  nullable: true
+                sequence:
+                  type: integer
+                  default: 0
+                is_used:
+                  type: boolean
+                  default: true
+              type: object
+      responses:
+        '201':
+          description: '생성 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  /api/admin/v1/cms/menus/reorder:
+    put:
+      tags:
+        - AdminCMS
+      summary: '메뉴 순서 일괄 변경'
+      description: "드래그앤드롭 순서 일괄 저장\n\nRequest Body: [{ \"idx\": 1, \"sequence\": 0, \"parent_idx\": null }, ...]"
+      operationId: 862ad4f09df45b6ecac835f84743d3a9
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  idx: { type: integer }
+                  sequence: { type: integer }
+                  parent_idx: { type: integer, nullable: true }
+                type: object
+      responses:
+        '200':
+          description: '순서 저장 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  '/api/admin/v1/cms/menus/{idx}':
+    put:
+      tags:
+        - AdminCMS
+      summary: '메뉴 수정'
+      operationId: 57f64375da3242009c0e9628a86190e3
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                label:
+                  type: string
+                url:
+                  type: string
+                target:
+                  type: string
+                  enum: [_self, _blank]
+                parent_idx:
+                  type: integer
+                  nullable: true
+                sequence:
+                  type: integer
+                is_used:
+                  type: boolean
+              type: object
+      responses:
+        '200':
+          description: '수정 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+    delete:
+      tags:
+        - AdminCMS
+      summary: '메뉴 삭제'
+      operationId: fad73f9c6281624b921e312218ef5a07
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '삭제 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  /api/admin/v1/cms/pages:
+    get:
+      tags:
+        - AdminCMS
+      summary: '페이지 목록'
+      operationId: 0feaf6f8c6e9d0e9c53a2cba849a48e7
+      parameters:
+        -
+          name: keyword
+          in: query
+          schema:
+            type: string
+        -
+          name: status
+          in: query
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+        -
+          name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          description: '페이지 목록'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+    post:
+      tags:
+        - AdminCMS
+      summary: '페이지 생성'
+      operationId: 5e272438ca287ffdcec4b52abaf10d6a
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - slug
+                - title
+                - contents
+              properties:
+                slug:
+                  description: '영문 소문자·숫자·하이픈'
+                  type: string
+                  example: about-us
+                title:
+                  type: string
+                contents:
+                  type: string
+                status:
+                  type: integer
+                  default: 0
+                  enum: [0, 1]
+              type: object
+      responses:
+        '201':
+          description: '생성 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  '/api/admin/v1/cms/pages/{idx}':
+    get:
+      tags:
+        - AdminCMS
+      summary: '페이지 단건 조회'
+      operationId: 51e80d5a5eddd1e1c0896bf0e6a73896
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '페이지 상세'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+    put:
+      tags:
+        - AdminCMS
+      summary: '페이지 수정'
+      operationId: d6e1bed710cfa5d48443f8cff04b1743
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                slug:
+                  type: string
+                title:
+                  type: string
+                contents:
+                  type: string
+                status:
+                  type: integer
+                  enum: [0, 1]
+              type: object
+      responses:
+        '200':
+          description: '수정 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+    delete:
+      tags:
+        - AdminCMS
+      summary: '페이지 삭제'
+      operationId: dce3f2f6732a11831ad8186ec467ee54
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '삭제 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  /api/admin/v1/cms/popups:
+    get:
+      tags:
+        - AdminCMS
+      summary: '팝업 목록'
+      operationId: 196fe23b6f8eddb9a3110b20d801137e
+      parameters:
+        -
+          name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        -
+          name: is_used
+          in: query
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+      responses:
+        '200':
+          description: '팝업 목록'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+    post:
+      tags:
+        - AdminCMS
+      summary: '팝업 생성'
+      operationId: 92c549fa8ad01d8df5b5f0295d42b740
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - title
+                - contents
+              properties:
+                title:
+                  type: string
+                contents:
+                  type: string
+                position:
+                  type: string
+                start_at:
+                  type: integer
+                end_at:
+                  type: integer
+                is_used:
+                  type: boolean
+                  default: true
+              type: object
+      responses:
+        '201':
+          description: '생성 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  '/api/admin/v1/cms/popups/{idx}':
+    put:
+      tags:
+        - AdminCMS
+      summary: '팝업 수정'
+      operationId: fd802d364033566e24051b226e1f6f37
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                title:
+                  type: string
+                contents:
+                  type: string
+                position:
+                  type: string
+                start_at:
+                  type: integer
+                end_at:
+                  type: integer
+                is_used:
+                  type: boolean
+              type: object
+      responses:
+        '200':
+          description: '수정 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+    delete:
+      tags:
+        - AdminCMS
+      summary: '팝업 삭제'
+      operationId: 5a48e97bf538b2024191ce02d4f1d817
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '삭제 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  /api/admin/v1/logs:
+    get:
+      tags:
+        - AdminLog
+      summary: '감사 로그 목록'
+      operationId: 8e94bef70b277a343df1b82010b17ebb
+      parameters:
+        -
+          name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        -
+          name: per_page
+          in: query
+          schema:
+            type: integer
+        -
+          name: user_id
+          in: query
+          schema:
+            type: integer
+        -
+          name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        -
+          name: to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: '감사 로그 목록'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminLog'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  /api/admin/v1/members:
+    get:
+      tags:
+        - AdminMember
+      summary: '회원 목록'
+      operationId: 301e870d45f2fc5e6329fecb463edd22
+      parameters:
+        -
+          name: keyword
+          in: query
+          schema:
+            type: string
+        -
+          name: status
+          in: query
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+        -
+          name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          description: '회원 목록 (pagination 포함)'
+      security:
+        -
+          BearerAuth: []
+  '/api/admin/v1/members/{idx}':
+    put:
+      tags:
+        - AdminMember
+      summary: '회원 정보 수정'
+      operationId: 45d862efe2aae1e9daacdf316f5b7c6e
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                group_idx:
+                  type: integer
+                status:
+                  type: integer
+                  enum: [0, 1]
+                nickname:
+                  type: string
+                email:
+                  type: string
+                new_password:
+                  type: string
+                  minLength: 6
+              type: object
+      responses:
+        '200':
+          description: '수정 완료'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      security:
+        -
+          BearerAuth: []
+  /api/admin/v1/notices:
+    get:
+      tags:
+        - AdminNotice
+      summary: '관리자 내부 공지 목록'
+      operationId: d2b7926332317a7656aa12985c2ed84c
+      parameters:
+        -
+          name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          description: '공지 목록'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminNotice'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+    post:
+      tags:
+        - AdminNotice
+      summary: '관리자 내부 공지 등록'
+      operationId: 956f0631efde011c677ed6240491398f
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                contents:
+                  type: string
+                is_pinned:
+                  type: boolean
+                  default: false
+              type: object
+      responses:
+        '200':
+          description: '등록 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  '/api/admin/v1/notices/{idx}':
+    delete:
+      tags:
+        - AdminNotice
+      summary: '관리자 내부 공지 삭제'
+      operationId: 0a597146314b647f9385620f44d8cdfa
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '삭제 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        -
+          BearerAuth: []
+  /api/admin/v1/setting:
+    get:
+      tags:
+        - AdminSetting
+      summary: '사이트 설정 조회'
+      operationId: 4da3730a02cc94177b79603e1e61fcea
+      responses:
+        '200':
+          description: '사이트 설정'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+    put:
+      tags:
+        - AdminSetting
+      summary: '사이트 설정 수정'
+      operationId: 642cbfff954b100faecfbff0c243b670
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                browser_title_fix_value:
+                  type: string
+                join_used:
+                  type: boolean
+                site_block_used:
+                  type: boolean
+                site_block_contents:
+                  type: string
+              type: object
+      responses:
+        '200':
+          description: '설정 저장 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  /api/admin/v1/stats:
+    get:
+      tags:
+        - AdminStats
+      summary: '일별 통계 조회'
+      operationId: 3c8be395ea6632954ed0b814fbe58de0
+      parameters:
+        -
+          name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        -
+          name: to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: '일별 통계 목록'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  '/api/v1/boards/{bbsId}/articles':
+    get:
+      tags:
+        - Article
+      summary: '게시글 목록'
+      operationId: 9f3bad6458e706037875beb505625283
+      parameters:
+        -
+          name: bbsId
+          in: path
+          required: true
+          schema:
+            type: string
+        -
+          name: keyword
+          in: query
+          schema:
+            type: string
+        -
+          name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 15
+        -
+          name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          description: '게시글 목록'
+    post:
+      tags:
+        - Article
+      summary: '게시글 작성'
+      operationId: 409c79448739ff8095c09caa3698c760
+      parameters:
+        -
+          name: bbsId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - title
+                - contents
+              properties:
+                title:
+                  type: string
+                contents:
+                  type: string
+                is_secret:
+                  type: integer
+                  enum: [0, 1]
+                tags:
+                  type: array
+                  items: { type: string }
+              type: object
+      responses:
+        '201':
+          description: '게시글 작성 완료'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      security:
+        -
+          BearerAuth: []
+  '/api/v1/boards/{bbsId}/articles/{idx}':
+    get:
+      tags:
+        - Article
+      summary: '게시글 상세'
+      operationId: 7259c0cb4dab634a643a7f659e98dbb5
+      parameters:
+        -
+          name: bbsId
+          in: path
+          required: true
+          schema:
+            type: string
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '게시글 상세'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Article
+      summary: '게시글 수정 (작성자만)'
+      operationId: bbfceb28ff42b2c686f78074db606160
+      parameters:
+        -
+          name: bbsId
+          in: path
+          required: true
+          schema:
+            type: string
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - title
+                - contents
+              properties:
+                title:
+                  type: string
+                contents:
+                  type: string
+              type: object
+      responses:
+        '200':
+          description: '수정 완료'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      security:
+        -
+          BearerAuth: []
+    delete:
+      tags:
+        - Article
+      summary: '게시글 삭제 (작성자만)'
+      operationId: ca02881113589f2bc575537272954e38
+      parameters:
+        -
+          name: bbsId
+          in: path
+          required: true
+          schema:
+            type: string
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '삭제 완료'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      security:
+        -
+          BearerAuth: []
+  /api/v1/auth/login:
+    post:
+      tags:
+        - Auth
+      summary: 로그인
+      operationId: 12bd69849349679dff198119b6480033
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - login_id
+                - password
+              properties:
+                login_id:
+                  type: string
+                  example: testuser
+                password:
+                  type: string
+                  example: password123
+              type: object
+      responses:
+        '200':
+          description: '로그인 성공 → JWT 발급'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: '잘못된 자격증명'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/v1/auth/register:
+    post:
+      tags:
+        - Auth
+      summary: 회원가입
+      operationId: 3e37920a2395c9f5337fc84b110e6246
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - user_id
+                - nickname
+                - email
+                - password
+                - password2
+              properties:
+                user_id:
+                  type: string
+                nickname:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+                password2:
+                  type: string
+              type: object
+      responses:
+        '201':
+          description: '회원가입 성공'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/v1/auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: 로그아웃
+      operationId: 4ee474c14908950c6cd8b040c31a92fc
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                refresh_token:
+                  type: string
+              type: object
+      responses:
+        '200':
+          description: '로그아웃 성공'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  /api/v1/auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: '액세스 토큰 갱신'
+      operationId: db167761450c70c9a910012d95d9078e
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+              type: object
+      responses:
+        '200':
+          description: '토큰 갱신 성공'
+        '401':
+          description: '유효하지 않은 Refresh Token'
+  /api/v1/auth/me:
+    get:
+      tags:
+        - Auth
+      summary: '내 정보 조회'
+      operationId: f7dc90479b302f59027228dadb342e43
+      responses:
+        '200':
+          description: '사용자 정보'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  /api/v1/auth/profile:
+    put:
+      tags:
+        - Auth
+      summary: '프로필 수정'
+      operationId: b8d6b1aa3cdaa240ef684e2b1ce7a070
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                nickname:
+                  type: string
+                email:
+                  type: string
+              type: object
+      responses:
+        '200':
+          description: '수정 완료'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  /api/v1/auth/withdraw:
+    delete:
+      tags:
+        - Auth
+      summary: '회원 탈퇴'
+      operationId: cf44656ddfe8ee3279006babc1001c4e
+      responses:
+        '200':
+          description: '탈퇴 완료'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  /api/v1/boards:
+    get:
+      tags:
+        - Board
+      summary: '게시판 목록'
+      operationId: 7d9b0a856c95d12f1dd4d4d9457f624f
+      responses:
+        '200':
+          description: '게시판 목록'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  '/api/v1/boards/{bbsId}':
+    get:
+      tags:
+        - Board
+      summary: '게시판 상세'
+      operationId: 605402e4e4df1364e1f1d2352bdce80e
+      parameters:
+        -
+          name: bbsId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: free
+      responses:
+        '200':
+          description: '게시판 정보'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/cms/banners:
+    get:
+      tags:
+        - CMS
+      summary: '배너 목록'
+      operationId: 0568349edc42d198240dc2c7c3cec968
+      parameters:
+        -
+          name: position
+          in: query
+          description: '배너 위치 코드'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '활성 배너 목록 (기간 필터 적용)'
+  /api/v1/cms/library/files:
+    get:
+      tags:
+        - FileLibrary
+      summary: '내 파일 목록'
+      operationId: b797d2fdc38854755e3437f8e885e958
+      parameters:
+        -
+          name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        -
+          name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
+        -
+          name: mime
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '내 파일 목록'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+    post:
+      tags:
+        - FileLibrary
+      summary: '파일 업로드'
+      operationId: 30fecacc87a566ad3d5490a6ab5f6583
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                is_public:
+                  type: integer
+                  enum: [0, 1]
+              type: object
+      responses:
+        '201':
+          description: '업로드 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  /api/v1/cms/library/files/public:
+    get:
+      tags:
+        - FileLibrary
+      summary: '공용 파일 목록'
+      operationId: 49bdf7bcff3c3280f0f48973673d0a6b
+      parameters:
+        -
+          name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        -
+          name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
+        -
+          name: mime
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '공용 파일 목록 (is_public=1)'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  '/api/v1/cms/library/files/{idx}':
+    get:
+      tags:
+        - FileLibrary
+      summary: '파일 단건 조회'
+      operationId: 7eb4b715358f0991cd0e894790e062b5
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '파일 정보'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        -
+          BearerAuth: []
+    put:
+      tags:
+        - FileLibrary
+      summary: '파일 메타 수정'
+      operationId: 4323bd738aff219db9067106bd4c043e
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                alt_text:
+                  type: string
+                  nullable: true
+                is_public:
+                  type: integer
+                  enum: [0, 1]
+              type: object
+      responses:
+        '200':
+          description: '수정 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        -
+          BearerAuth: []
+    delete:
+      tags:
+        - FileLibrary
+      summary: '파일 삭제'
+      operationId: 6e5de398fe4176d4dcebcdc17667fd87
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '삭제 완료'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: '사용 중인 파일 (삭제 불가)'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      security:
+        -
+          BearerAuth: []
+  /api/v1/cms/menus:
+    get:
+      tags:
+        - CMS
+      summary: '메뉴 트리 조회'
+      operationId: d6c02af019f77e5455a5d611b9ad8d5e
+      responses:
+        '200':
+          description: '메뉴 트리 (children 포함)'
+  '/api/v1/cms/pages/{slug}':
+    get:
+      tags:
+        - CMS
+      summary: 'CMS 페이지 조회'
+      operationId: e06a14076c5612db6d9c9c41be92ab5b
+      parameters:
+        -
+          name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '페이지 내용'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/cms/popups:
+    get:
+      tags:
+        - CMS
+      summary: '팝업 목록'
+      operationId: 1f48df9078ab3e4a0be0db6b414b0d8c
+      responses:
+        '200':
+          description: '활성 팝업 목록 (기간 필터 적용)'
+  '/api/v1/boards/{bbsId}/articles/{articleIdx}/comments':
+    get:
+      tags:
+        - Comment
+      summary: '댓글 목록'
+      operationId: 8bcb584806f0c3da37ab6e7eb274771e
+      parameters:
+        -
+          name: bbsId
+          in: path
+          required: true
+          schema:
+            type: string
+        -
+          name: articleIdx
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '댓글 목록'
+    post:
+      tags:
+        - Comment
+      summary: '댓글 작성'
+      operationId: 96e42bcca303b2fce53f96eb14f338f8
+      parameters:
+        -
+          name: bbsId
+          in: path
+          required: true
+          schema:
+            type: string
+        -
+          name: articleIdx
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - comment
+              properties:
+                comment:
+                  type: string
+              type: object
+      responses:
+        '201':
+          description: '댓글 작성 완료'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  '/api/v1/boards/{bbsId}/articles/{articleIdx}/comments/{commentIdx}':
+    delete:
+      tags:
+        - Comment
+      summary: '댓글 삭제 (작성자만)'
+      operationId: b290d7f4203a1e0841e50c6817fdb497
+      parameters:
+        -
+          name: bbsId
+          in: path
+          required: true
+          schema:
+            type: string
+        -
+          name: articleIdx
+          in: path
+          required: true
+          schema:
+            type: integer
+        -
+          name: commentIdx
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '삭제 완료'
+      security:
+        -
+          BearerAuth: []
+  /api/v1/config:
+    get:
+      tags:
+        - Config
+      summary: '사이트 공개 설정 조회'
+      operationId: 5901b7a8f7d02abe49fb2ed3a051686f
+      responses:
+        '200':
+          description: '사이트 설정'
+  /api/v1/files:
+    post:
+      tags:
+        - File
+      summary: '파일 업로드'
+      operationId: d667748824c5d87cdb8c0fde505fe0d6
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - bbs_idx
+                - article_idx
+              properties:
+                bbs_idx:
+                  type: integer
+                article_idx:
+                  type: integer
+                attachments:
+                  description: '최대 5개, 2MB/개'
+                  type: array
+                  items: { type: string, format: binary }
+              type: object
+      responses:
+        '201':
+          description: '업로드 결과'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: '허용되지 않는 파일'
+      security:
+        -
+          BearerAuth: []
+  '/api/v1/files/{idx}/download':
+    get:
+      tags:
+        - File
+      summary: '파일 다운로드 (인증 불필요)'
+      operationId: 29d7778b9bdf5ab5203c0f15b17a0b2b
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '파일 스트림'
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFound'
+  '/api/v1/files/{idx}':
+    delete:
+      tags:
+        - File
+      summary: '파일 삭제 (소유자만)'
+      operationId: 9da70c5909e4c3dd2cc30fc01d746a38
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '삭제 완료'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      security:
+        -
+          BearerAuth: []
+  /api/v1/messages/inbox:
+    get:
+      tags:
+        - Message
+      summary: '받은 쪽지함'
+      operationId: 49feff6fe92b06f653ac89603e9f5e3e
+      parameters:
+        -
+          name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          description: '받은 쪽지 목록'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  /api/v1/messages/sent:
+    get:
+      tags:
+        - Message
+      summary: '보낸 쪽지함'
+      operationId: 83d6c0eef147be5e22ab4419274ec40b
+      responses:
+        '200':
+          description: '보낸 쪽지 목록'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        -
+          BearerAuth: []
+  '/api/v1/messages/{idx}':
+    get:
+      tags:
+        - Message
+      summary: '쪽지 상세 조회 (송·수신자만)'
+      operationId: 9f727a028260777d7c9f98c5f1c45143
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '쪽지 상세'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        -
+          BearerAuth: []
+    delete:
+      tags:
+        - Message
+      summary: '쪽지 삭제 (송·수신자만)'
+      operationId: 36ca9d5de43e21dfa6bcc17499096f43
+      parameters:
+        -
+          name: idx
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '삭제 완료'
+      security:
+        -
+          BearerAuth: []
+  /api/v1/messages:
+    post:
+      tags:
+        - Message
+      summary: '쪽지 보내기'
+      operationId: 1384f41662e3af00bc928c8ed178ed43
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - to
+                - contents
+              properties:
+                to:
+                  description: '수신자 user_id 또는 nickname'
+                  type: string
+                title:
+                  type: string
+                contents:
+                  type: string
+              type: object
+      responses:
+        '201':
+          description: '발송 완료'
+        '404':
+          description: '수신자 없음'
+        '422':
+          description: '자신에게 발송 불가 또는 필수값 누락'
+      security:
+        -
+          BearerAuth: []
+  /api/v1/files/wysiwyg:
+    post:
+      tags:
+        - File
+      summary: 'WYSIWYG 이미지 업로드'
+      operationId: 3865c5721d0ab2b23916e4d5fee91724
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - image
+              properties:
+                image:
+                  description: 'jpg·png·gif·webp, 5MB 이하'
+                  type: string
+                  format: binary
+              type: object
+      responses:
+        '200':
+          description: '이미지 URL'
+          content:
+            application/json:
+              schema:
+                properties:
+                  data: { properties: { url: { type: string } }, type: object }
+                type: object
+      security:
+        -
+          BearerAuth: []
 components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
   schemas:
     ApiResponse:
-      type: object
       properties:
         success:
           type: boolean
@@ -82,14 +2309,14 @@ components:
         message:
           type: string
           nullable: true
-
+      type: object
     TokenResponse:
       allOf:
-        - $ref: '#/components/schemas/ApiResponse'
-        - type: object
+        -
+          $ref: '#/components/schemas/ApiResponse'
+        -
           properties:
             data:
-              type: object
               properties:
                 access_token:
                   type: string
@@ -104,14 +2331,15 @@ components:
                   example: 3600
                 user:
                   $ref: '#/components/schemas/UserSummary'
-
+              type: object
+          type: object
     AdminTokenResponse:
       allOf:
-        - $ref: '#/components/schemas/ApiResponse'
-        - type: object
+        -
+          $ref: '#/components/schemas/ApiResponse'
+        -
           properties:
             data:
-              type: object
               properties:
                 access_token:
                   type: string
@@ -125,9 +2353,9 @@ components:
                   example: 3600
                 user:
                   $ref: '#/components/schemas/AdminUserSummary'
-
+              type: object
+          type: object
     UserSummary:
-      type: object
       properties:
         idx:
           type: integer
@@ -141,9 +2369,8 @@ components:
           type: integer
         group_name:
           type: string
-
-    AdminUserSummary:
       type: object
+    AdminUserSummary:
       properties:
         idx:
           type: integer
@@ -155,11 +2382,12 @@ components:
           type: string
         role:
           type: string
-          enum: [superadmin, manager]
           example: superadmin
-
-    Article:
+          enum:
+            - superadmin
+            - manager
       type: object
+    Article:
       properties:
         idx:
           type: integer
@@ -177,9 +2405,8 @@ components:
           type: integer
         nickname:
           type: string
-
-    Comment:
       type: object
+    Comment:
       properties:
         idx:
           type: integer
@@ -191,9 +2418,8 @@ components:
           type: string
         timestamp_insert:
           type: integer
-
-    Message:
       type: object
+    Message:
       properties:
         idx:
           type: integer
@@ -209,9 +2435,8 @@ components:
           type: integer
         timestamp_insert:
           type: integer
-
-    AdminLog:
       type: object
+    AdminLog:
       properties:
         idx:
           type: integer
@@ -236,9 +2461,8 @@ components:
           type: string
         timestamp:
           type: integer
-
-    AdminNotice:
       type: object
+    AdminNotice:
       properties:
         idx:
           type: integer
@@ -251,12 +2475,13 @@ components:
           type: integer
         is_pinned:
           type: integer
-          enum: [0, 1]
+          enum:
+            - 0
+            - 1
         timestamp_insert:
           type: integer
-
-    StatDaily:
       type: object
+    StatDaily:
       properties:
         idx:
           type: integer
@@ -274,9 +2499,8 @@ components:
           type: integer
         active_users:
           type: integer
-
-    Pagination:
       type: object
+    Pagination:
       properties:
         page:
           type: integer
@@ -286,1659 +2510,93 @@ components:
           type: integer
         last_page:
           type: integer
-
+      type: object
   responses:
-    Unauthorized:
-      description: 인증 필요
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiResponse'
-          example:
-            success: false
-            data: null
-            message: 인증이 필요합니다.
-    Forbidden:
-      description: 권한 없음
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiResponse'
     NotFound:
-      description: 리소스 없음
+      description: '리소스를 찾을 수 없습니다.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+    Unauthorized:
+      description: '인증이 필요합니다.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+    Forbidden:
+      description: '접근 권한이 없습니다.'
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ApiResponse'
     ValidationError:
-      description: 유효성 검사 실패
+      description: '유효성 검사 오류입니다.'
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ApiResponse'
-
-# ================================================================
-# PATHS
-# ================================================================
-paths:
-
-  # ────────────────────────────────────────────────────────────────
-  # 사용자 인증
-  # ────────────────────────────────────────────────────────────────
-
-  /api/v1/auth/login:
-    post:
-      tags: [Auth]
-      summary: 로그인
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [login_id, password]
-              properties:
-                login_id:
-                  type: string
-                  example: testuser
-                password:
-                  type: string
-                  example: password123
-      responses:
-        '200':
-          description: 로그인 성공 → JWT 발급
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokenResponse'
-        '401':
-          description: 잘못된 자격증명
-        '422':
-          $ref: '#/components/responses/ValidationError'
-
-  /api/v1/auth/register:
-    post:
-      tags: [Auth]
-      summary: 회원가입
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [user_id, nickname, email, password, password2]
-              properties:
-                user_id:
-                  type: string
-                nickname:
-                  type: string
-                email:
-                  type: string
-                  format: email
-                password:
-                  type: string
-                  minLength: 6
-                password2:
-                  type: string
-      responses:
-        '201':
-          description: 회원가입 성공
-        '422':
-          $ref: '#/components/responses/ValidationError'
-
-  /api/v1/auth/logout:
-    post:
-      tags: [Auth]
-      summary: 로그아웃
-      security:
-        - BearerAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                refresh_token:
-                  type: string
-      responses:
-        '200':
-          description: 로그아웃 성공
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  /api/v1/auth/refresh:
-    post:
-      tags: [Auth]
-      summary: 액세스 토큰 갱신
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [refresh_token]
-              properties:
-                refresh_token:
-                  type: string
-      responses:
-        '200':
-          description: 토큰 갱신 성공
-        '401':
-          description: 유효하지 않은 Refresh Token
-
-  /api/v1/auth/me:
-    get:
-      tags: [Auth]
-      summary: 내 정보 조회
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: 사용자 정보
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  /api/v1/auth/profile:
-    put:
-      tags: [Auth]
-      summary: 프로필 수정
-      security:
-        - BearerAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                nickname:
-                  type: string
-                email:
-                  type: string
-      responses:
-        '200':
-          description: 수정 완료
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  /api/v1/auth/withdraw:
-    delete:
-      tags: [Auth]
-      summary: 회원 탈퇴
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: 탈퇴 완료
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  # ────────────────────────────────────────────────────────────────
-  # 소셜 로그인
-  # ────────────────────────────────────────────────────────────────
-
-  /api/v1/auth/social/google:
-    get:
-      tags: [Social Auth]
-      summary: Google OAuth2 인증 시작
-      responses:
-        '302':
-          description: Google 인증 페이지로 리다이렉트
-
-  /api/v1/auth/social/google/callback:
-    get:
-      tags: [Social Auth]
-      summary: Google OAuth2 콜백
-      parameters:
-        - name: code
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: state
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: 소셜 로그인 성공 → JWT 발급
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokenResponse'
-
-  /api/v1/auth/social/naver:
-    get:
-      tags: [Social Auth]
-      summary: 네이버 OAuth2 인증 시작
-      responses:
-        '302':
-          description: 네이버 인증 페이지로 리다이렉트
-
-  /api/v1/auth/social/naver/callback:
-    get:
-      tags: [Social Auth]
-      summary: 네이버 OAuth2 콜백
-      responses:
-        '200':
-          description: 소셜 로그인 성공 → JWT 발급
-
-  /api/v1/auth/social/kakao:
-    get:
-      tags: [Social Auth]
-      summary: 카카오 OAuth2 인증 시작
-      responses:
-        '302':
-          description: 카카오 인증 페이지로 리다이렉트
-
-  /api/v1/auth/social/kakao/callback:
-    get:
-      tags: [Social Auth]
-      summary: 카카오 OAuth2 콜백
-      responses:
-        '200':
-          description: 소셜 로그인 성공 → JWT 발급
-
-  # ────────────────────────────────────────────────────────────────
-  # 게시판
-  # ────────────────────────────────────────────────────────────────
-
-  /api/v1/boards:
-    get:
-      tags: [Board]
-      summary: 게시판 목록
-      responses:
-        '200':
-          description: 게시판 목록
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
-
-  /api/v1/boards/{bbsId}:
-    get:
-      tags: [Board]
-      summary: 게시판 상세
-      parameters:
-        - name: bbsId
-          in: path
-          required: true
-          schema:
-            type: string
-            example: free
-      responses:
-        '200':
-          description: 게시판 정보
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  # ────────────────────────────────────────────────────────────────
-  # 게시글
-  # ────────────────────────────────────────────────────────────────
-
-  /api/v1/boards/{bbsId}/articles:
-    get:
-      tags: [Article]
-      summary: 게시글 목록
-      parameters:
-        - name: bbsId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: keyword
-          in: query
-          schema:
-            type: string
-        - name: per_page
-          in: query
-          schema:
-            type: integer
-            default: 15
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-      responses:
-        '200':
-          description: 게시글 목록
-    post:
-      tags: [Article]
-      summary: 게시글 작성
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: bbsId
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [title, contents]
-              properties:
-                title:
-                  type: string
-                contents:
-                  type: string
-                is_secret:
-                  type: integer
-                  enum: [0, 1]
-                tags:
-                  type: array
-                  items:
-                    type: string
-      responses:
-        '201':
-          description: 게시글 작성 완료
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-
-  /api/v1/boards/{bbsId}/articles/{idx}:
-    get:
-      tags: [Article]
-      summary: 게시글 상세
-      parameters:
-        - name: bbsId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 게시글 상세
-        '404':
-          $ref: '#/components/responses/NotFound'
-    put:
-      tags: [Article]
-      summary: 게시글 수정 (작성자만)
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: bbsId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [title, contents]
-              properties:
-                title:
-                  type: string
-                contents:
-                  type: string
-      responses:
-        '200':
-          description: 수정 완료
-        '403':
-          $ref: '#/components/responses/Forbidden'
-    delete:
-      tags: [Article]
-      summary: 게시글 삭제 (작성자만)
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: bbsId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 삭제 완료
-        '403':
-          $ref: '#/components/responses/Forbidden'
-
-  # ────────────────────────────────────────────────────────────────
-  # 댓글
-  # ────────────────────────────────────────────────────────────────
-
-  /api/v1/boards/{bbsId}/articles/{articleIdx}/comments:
-    get:
-      tags: [Comment]
-      summary: 댓글 목록
-      parameters:
-        - name: bbsId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: articleIdx
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 댓글 목록
-    post:
-      tags: [Comment]
-      summary: 댓글 작성
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: bbsId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: articleIdx
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [comment]
-              properties:
-                comment:
-                  type: string
-      responses:
-        '201':
-          description: 댓글 작성 완료
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  /api/v1/boards/{bbsId}/articles/{articleIdx}/comments/{commentIdx}:
-    put:
-      tags: [Comment]
-      summary: 댓글 수정 (작성자만)
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: bbsId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: articleIdx
-          in: path
-          required: true
-          schema:
-            type: integer
-        - name: commentIdx
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                comment:
-                  type: string
-      responses:
-        '200':
-          description: 수정 완료
-    delete:
-      tags: [Comment]
-      summary: 댓글 삭제 (작성자만)
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: bbsId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: articleIdx
-          in: path
-          required: true
-          schema:
-            type: integer
-        - name: commentIdx
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 삭제 완료
-
-  # ────────────────────────────────────────────────────────────────
-  # 파일
-  # ────────────────────────────────────────────────────────────────
-
-  /api/v1/files:
-    post:
-      tags: [File]
-      summary: 파일 업로드
-      security:
-        - BearerAuth: []
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required: [bbs_idx, article_idx]
-              properties:
-                bbs_idx:
-                  type: integer
-                article_idx:
-                  type: integer
-                attachments:
-                  type: array
-                  items:
-                    type: string
-                    format: binary
-                  description: 최대 5개, 2MB/개
-      responses:
-        '201':
-          description: 업로드 결과
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '422':
-          description: 허용되지 않는 파일
-
-  /api/v1/files/{idx}/download:
-    get:
-      tags: [File]
-      summary: 파일 다운로드 (인증 불필요)
-      parameters:
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 파일 스트림
-          content:
-            application/octet-stream:
-              schema:
-                type: string
-                format: binary
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  /api/v1/files/{idx}:
-    delete:
-      tags: [File]
-      summary: 파일 삭제 (소유자만)
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 삭제 완료
-        '403':
-          $ref: '#/components/responses/Forbidden'
-
-  /api/v1/files/wysiwyg:
-    post:
-      tags: [File]
-      summary: WYSIWYG 이미지 업로드
-      security:
-        - BearerAuth: []
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required: [image]
-              properties:
-                image:
-                  type: string
-                  format: binary
-                  description: jpg·png·gif·webp, 5MB 이하
-      responses:
-        '200':
-          description: 이미지 URL
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      url:
-                        type: string
-
-  # ────────────────────────────────────────────────────────────────
-  # 쪽지
-  # ────────────────────────────────────────────────────────────────
-
-  /api/v1/messages/inbox:
-    get:
-      tags: [Message]
-      summary: 받은 쪽지함
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-      responses:
-        '200':
-          description: 받은 쪽지 목록
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  /api/v1/messages/sent:
-    get:
-      tags: [Message]
-      summary: 보낸 쪽지함
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: 보낸 쪽지 목록
-
-  /api/v1/messages:
-    post:
-      tags: [Message]
-      summary: 쪽지 보내기
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [to, contents]
-              properties:
-                to:
-                  type: string
-                  description: 수신자 user_id 또는 nickname
-                title:
-                  type: string
-                contents:
-                  type: string
-      responses:
-        '201':
-          description: 발송 완료
-        '404':
-          description: 수신자 없음
-        '422':
-          description: 자신에게 발송 불가 또는 필수값 누락
-
-  /api/v1/messages/{idx}:
-    get:
-      tags: [Message]
-      summary: 쪽지 상세 조회 (송·수신자만)
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 쪽지 상세
-        '404':
-          $ref: '#/components/responses/NotFound'
-    delete:
-      tags: [Message]
-      summary: 쪽지 삭제 (송·수신자만)
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 삭제 완료
-
-  # ────────────────────────────────────────────────────────────────
-  # 설정·CMS (공개)
-  # ────────────────────────────────────────────────────────────────
-
-  /api/v1/config:
-    get:
-      tags: [Config]
-      summary: 사이트 공개 설정 조회
-      responses:
-        '200':
-          description: 사이트 설정
-
-  /api/v1/cms/pages/{slug}:
-    get:
-      tags: [CMS]
-      summary: CMS 페이지 조회
-      parameters:
-        - name: slug
-          in: path
-          required: true
-          schema:
-            type: string
-            example: about-us
-      responses:
-        '200':
-          description: 페이지 내용
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  /api/v1/cms/banners:
-    get:
-      tags: [CMS]
-      summary: 배너 목록
-      parameters:
-        - name: position
-          in: query
-          schema:
-            type: string
-            description: 배너 위치 코드
-      responses:
-        '200':
-          description: 활성 배너 목록 (기간 필터 적용)
-
-  /api/v1/cms/popups:
-    get:
-      tags: [CMS]
-      summary: 팝업 목록
-      responses:
-        '200':
-          description: 활성 팝업 목록 (기간 필터 적용)
-
-  /api/v1/cms/menus:
-    get:
-      tags: [CMS]
-      summary: 메뉴 트리 조회
-      responses:
-        '200':
-          description: 메뉴 트리 (children 포함)
-
-  # ================================================================
-  # 관리자 API  /api/admin/v1/*
-  # ================================================================
-
-  # ────────────────────────────────────────────────────────────────
-  # 관리자 인증
-  # ────────────────────────────────────────────────────────────────
-
-  /api/admin/v1/auth/login:
-    post:
-      tags: [Admin Auth]
-      summary: 관리자 로그인
-      description: |
-        `tb_admin_users`에서 인증하며, JWT payload에 `role` 클레임이 포함됩니다.
-        `role: superadmin` 또는 `manager`인 경우만 허용됩니다.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [login_id, password]
-              properties:
-                login_id:
-                  type: string
-                  example: admin
-                password:
-                  type: string
-                  example: admin1234
-      responses:
-        '200':
-          description: 관리자 JWT 발급
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminTokenResponse'
-        '401':
-          description: 잘못된 자격증명
-
-  /api/admin/v1/auth/logout:
-    post:
-      tags: [Admin Auth]
-      summary: 관리자 로그아웃
-      security:
-        - BearerAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                refresh_token:
-                  type: string
-      responses:
-        '200':
-          description: 로그아웃 성공
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  # ────────────────────────────────────────────────────────────────
-  # 게시판 관리
-  # ────────────────────────────────────────────────────────────────
-
-  /api/admin/v1/boards:
-    get:
-      tags: [Admin Board]
-      summary: 게시판 목록 + 설정
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: 게시판 목록 및 권한 그룹 정보
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-
-  /api/admin/v1/boards/{bbsId}:
-    put:
-      tags: [Admin Board]
-      summary: 게시판 설정 저장
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: bbsId
-          in: path
-          required: true
-          schema:
-            type: string
-            example: free
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                bbs_name:
-                  type: string
-                bbs_used:
-                  type: boolean
-                bbs_count_list_article:
-                  type: integer
-                  default: 15
-                bbs_comment_used:
-                  type: boolean
-                view_list:
-                  type: array
-                  items:
-                    type: string
-                  description: 열람 허용 group_idx 목록
-                view_article:
-                  type: array
-                  items:
-                    type: string
-                write_article:
-                  type: array
-                  items:
-                    type: string
-                write_comment:
-                  type: array
-                  items:
-                    type: string
-      responses:
-        '200':
-          description: 설정 저장 완료
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  # ────────────────────────────────────────────────────────────────
-  # 회원 관리
-  # ────────────────────────────────────────────────────────────────
-
-  /api/admin/v1/members:
-    get:
-      tags: [Admin Member]
-      summary: 회원 목록
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: keyword
-          in: query
-          schema:
-            type: string
-          description: user_id·nickname·email 검색
-        - name: status
-          in: query
-          schema:
-            type: integer
-            enum: [0, 1]
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-      responses:
-        '200':
-          description: 회원 목록 (pagination 포함)
-
-  /api/admin/v1/members/{idx}:
-    put:
-      tags: [Admin Member]
-      summary: 회원 정보 수정
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                group_idx:
-                  type: integer
-                status:
-                  type: integer
-                  enum: [0, 1]
-                nickname:
-                  type: string
-                email:
-                  type: string
-                new_password:
-                  type: string
-                  minLength: 6
-      responses:
-        '200':
-          description: 수정 완료
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-
-  # ────────────────────────────────────────────────────────────────
-  # 게시글 관리
-  # ────────────────────────────────────────────────────────────────
-
-  /api/admin/v1/articles:
-    get:
-      tags: [Admin Article]
-      summary: 게시글 목록 (전체 게시판)
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: keyword
-          in: query
-          schema:
-            type: string
-        - name: bbs_id
-          in: query
-          schema:
-            type: string
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-      responses:
-        '200':
-          description: 게시글 목록
-
-  /api/admin/v1/articles/{idx}:
-    get:
-      tags: [Admin Article]
-      summary: 게시글 상세
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 게시글 상세
-        '404':
-          $ref: '#/components/responses/NotFound'
-    put:
-      tags: [Admin Article]
-      summary: 게시글 수정
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [title, contents]
-              properties:
-                title:
-                  type: string
-                contents:
-                  type: string
-                is_notice:
-                  type: boolean
-      responses:
-        '200':
-          description: 수정 완료
-        '404':
-          $ref: '#/components/responses/NotFound'
-    delete:
-      tags: [Admin Article]
-      summary: 게시글 삭제 (소프트 삭제)
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 삭제 완료
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  # ────────────────────────────────────────────────────────────────
-  # 사이트 설정
-  # ────────────────────────────────────────────────────────────────
-
-  /api/admin/v1/setting:
-    get:
-      tags: [Admin Setting]
-      summary: 사이트 설정 조회 (tb_site_config, Admin DB)
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: 사이트 설정
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      browser_title_fix_value:
-                        type: string
-                      join_used:
-                        type: string
-                      site_block_used:
-                        type: string
-                      site_block_contents:
-                        type: string
-    put:
-      tags: [Admin Setting]
-      summary: 사이트 설정 수정
-      security:
-        - BearerAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                browser_title_fix_value:
-                  type: string
-                join_used:
-                  type: boolean
-                site_block_used:
-                  type: boolean
-                site_block_contents:
-                  type: string
-      responses:
-        '200':
-          description: 설정 저장 완료
-
-  # ────────────────────────────────────────────────────────────────
-  # 일별 통계
-  # ────────────────────────────────────────────────────────────────
-
-  /api/admin/v1/stats:
-    get:
-      tags: [Admin Stats]
-      summary: 일별 통계 조회
-      description: |
-        `from`~`to` 범위의 일별 통계를 반환합니다.
-        데이터 수집은 `php spark stats:collect` 커맨드로 실행합니다.
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: from
-          in: query
-          schema:
-            type: string
-            format: date
-            example: '2026-06-01'
-          description: '조회 시작일 (기본값: 30일 전)'
-        - name: to
-          in: query
-          schema:
-            type: string
-            format: date
-            example: '2026-06-30'
-          description: '조회 종료일 (기본값: 오늘)'
-      responses:
-        '200':
-          description: 일별 통계 목록
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      from:
-                        type: string
-                        format: date
-                      to:
-                        type: string
-                        format: date
-                      stats:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/StatDaily'
-
-  # ────────────────────────────────────────────────────────────────
-  # 감사 로그
-  # ────────────────────────────────────────────────────────────────
-
-  /api/admin/v1/logs:
-    get:
-      tags: [Admin Log]
-      summary: 감사 로그 목록
-      description: 관리자 행위 감사 로그 (tb_admin_log, Admin DB)
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: action
-          in: query
-          schema:
-            type: string
-          description: 행위 유형 검색 (board.update, member.update, article.delete, setting.update)
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-      responses:
-        '200':
-          description: 감사 로그 목록
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/AdminLog'
-                  meta:
-                    $ref: '#/components/schemas/Pagination'
-
-  # ────────────────────────────────────────────────────────────────
-  # 관리자 내부 공지
-  # ────────────────────────────────────────────────────────────────
-
-  /api/admin/v1/notices:
-    get:
-      tags: [Admin Notice]
-      summary: 관리자 내부 공지 목록
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-      responses:
-        '200':
-          description: 공지 목록 (is_pinned DESC → idx DESC 정렬)
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/AdminNotice'
-    post:
-      tags: [Admin Notice]
-      summary: 관리자 내부 공지 등록
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [title]
-              properties:
-                title:
-                  type: string
-                contents:
-                  type: string
-                is_pinned:
-                  type: boolean
-                  default: false
-      responses:
-        '200':
-          description: 등록 완료
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      idx:
-                        type: integer
-
-  /api/admin/v1/notices/{idx}:
-    delete:
-      tags: [Admin Notice]
-      summary: 관리자 내부 공지 삭제
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 삭제 완료
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  # ────────────────────────────────────────────────────────────────
-  # CMS 관리
-  # ────────────────────────────────────────────────────────────────
-
-  /api/admin/v1/cms/pages:
-    get:
-      tags: [Admin CMS]
-      summary: 페이지 목록
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: 페이지 목록
-    post:
-      tags: [Admin CMS]
-      summary: 페이지 생성
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [slug, title, contents]
-              properties:
-                slug:
-                  type: string
-                  description: 영문 소문자·숫자·하이픈
-                  example: about-us
-                title:
-                  type: string
-                contents:
-                  type: string
-                status:
-                  type: integer
-                  enum: [0, 1]
-                  default: 1
-      responses:
-        '201':
-          description: 생성 완료
-
-  /api/admin/v1/cms/pages/{idx}:
-    put:
-      tags: [Admin CMS]
-      summary: 페이지 수정
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                title:
-                  type: string
-                contents:
-                  type: string
-                status:
-                  type: integer
-      responses:
-        '200':
-          description: 수정 완료
-    delete:
-      tags: [Admin CMS]
-      summary: 페이지 삭제
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 삭제 완료
-
-  /api/admin/v1/cms/banners:
-    get:
-      tags: [Admin CMS]
-      summary: 배너 목록
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: 배너 목록
-    post:
-      tags: [Admin CMS]
-      summary: 배너 생성
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [position, image_path]
-              properties:
-                position:
-                  type: string
-                image_path:
-                  type: string
-                link_url:
-                  type: string
-                alt_text:
-                  type: string
-                start_at:
-                  type: integer
-                  description: 노출 시작 time()
-                end_at:
-                  type: integer
-                  description: 노출 종료 time()
-                is_active:
-                  type: boolean
-      responses:
-        '201':
-          description: 생성 완료
-
-  /api/admin/v1/cms/banners/{idx}:
-    put:
-      tags: [Admin CMS]
-      summary: 배너 수정
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        '200':
-          description: 수정 완료
-    delete:
-      tags: [Admin CMS]
-      summary: 배너 삭제
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 삭제 완료
-
-  /api/admin/v1/cms/popups:
-    get:
-      tags: [Admin CMS]
-      summary: 팝업 목록
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: 팝업 목록
-    post:
-      tags: [Admin CMS]
-      summary: 팝업 생성
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [title, contents]
-              properties:
-                title:
-                  type: string
-                contents:
-                  type: string
-                start_at:
-                  type: integer
-                end_at:
-                  type: integer
-                position:
-                  type: string
-      responses:
-        '201':
-          description: 생성 완료
-
-  /api/admin/v1/cms/popups/{idx}:
-    get:
-      tags: [Admin CMS]
-      summary: 팝업 단건 조회
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 팝업 상세
-    put:
-      tags: [Admin CMS]
-      summary: 팝업 수정
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        '200':
-          description: 수정 완료
-    delete:
-      tags: [Admin CMS]
-      summary: 팝업 삭제
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 삭제 완료
-
-  /api/admin/v1/cms/menus:
-    get:
-      tags: [Admin CMS]
-      summary: 메뉴 트리 조회
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: 메뉴 트리
-    post:
-      tags: [Admin CMS]
-      summary: 메뉴 생성
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [label]
-              properties:
-                label:
-                  type: string
-                url:
-                  type: string
-                target:
-                  type: string
-                  enum: [_self, _blank]
-                  default: _self
-                parent_idx:
-                  type: integer
-                  nullable: true
-      responses:
-        '201':
-          description: 생성 완료
-
-  /api/admin/v1/cms/menus/reorder:
-    put:
-      tags: [Admin CMS]
-      summary: 메뉴 순서 일괄 변경
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [orders]
-              properties:
-                orders:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      idx:
-                        type: integer
-                      sequence:
-                        type: integer
-      responses:
-        '200':
-          description: 순서 저장 완료
-
-  /api/admin/v1/cms/menus/{idx}:
-    put:
-      tags: [Admin CMS]
-      summary: 메뉴 수정
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        '200':
-          description: 수정 완료
-    delete:
-      tags: [Admin CMS]
-      summary: 메뉴 삭제
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: idx
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 삭제 완료
+  securitySchemes:
+    BearerAuth:
+      type: http
+      description: 'JWT Bearer token'
+      bearerFormat: JWT
+      scheme: bearer
+tags:
+  -
+    name: Auth
+    description: '사용자 인증 (`/api/v1/auth/*`)'
+  -
+    name: Board
+    description: '게시판 조회 (`/api/v1/boards/*`)'
+  -
+    name: Article
+    description: '게시글 CRUD (`/api/v1/boards/{id}/articles/*`)'
+  -
+    name: Comment
+    description: '댓글 CRUD (`/api/v1/boards/{id}/articles/{id}/comments/*`)'
+  -
+    name: File
+    description: '파일 업로드·다운로드 (`/api/v1/files/*`)'
+  -
+    name: Message
+    description: '쪽지 (`/api/v1/messages/*`)'
+  -
+    name: Config
+    description: '사이트 공개 설정 (`/api/v1/config`)'
+  -
+    name: CMS
+    description: 'CMS 공개 조회 (`/api/v1/cms/*`)'
+  -
+    name: AdminArticle
+    description: AdminArticle
+  -
+    name: AdminAuth
+    description: AdminAuth
+  -
+    name: AdminBoard
+    description: AdminBoard
+  -
+    name: AdminCMS
+    description: AdminCMS
+  -
+    name: AdminFileLibrary
+    description: AdminFileLibrary
+  -
+    name: AdminLog
+    description: AdminLog
+  -
+    name: AdminMember
+    description: AdminMember
+  -
+    name: AdminNotice
+    description: AdminNotice
+  -
+    name: AdminSetting
+    description: AdminSetting
+  -
+    name: AdminStats
+    description: AdminStats
+  -
+    name: FileLibrary
+    description: FileLibrary
