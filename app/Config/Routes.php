@@ -9,7 +9,7 @@ $routes->get('/', 'HomeController::index');
 
 // API 문서 (Swagger UI)
 $routes->get('swagger', static function () {
-    return redirect()->to('/docs/swagger.html');
+    return redirect()->to(base_url('docs/swagger.html'));
 });
 
 // ================================================================

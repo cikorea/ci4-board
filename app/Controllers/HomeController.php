@@ -22,7 +22,7 @@ class HomeController extends Controller
                 ->setBody(json_encode([
                     'name'    => 'CI4 Board API',
                     'version' => 'v1',
-                    'docs'    => base_url('swagger'),
+                    'docs'    => base_url('docs/swagger.html'),
                     'spec'    => base_url('docs/openapi.yaml'),
                     'endpoints' => [
                         'user'  => base_url('api/v1'),
@@ -31,6 +31,6 @@ class HomeController extends Controller
                 ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
         }
 
-        return redirect()->to(base_url('swagger'));
+        return redirect()->to(base_url('docs/swagger.html'));
     }
 }
