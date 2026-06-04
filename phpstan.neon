@@ -7,3 +7,5 @@ parameters:
         - app/Config/Boot
     bootstrapFiles:
         - vendor/codeigniter4/framework/system/Test/bootstrap.php
+    parallel:
+        maximumNumberOfProcesses: 1

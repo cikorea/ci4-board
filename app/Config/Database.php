@@ -59,10 +59,10 @@ class Database extends Config
      */
     public array $admin = [
         'DSN'          => '',
-        'hostname'     => '',
+        'hostname'     => 'localhost',
         'username'     => '',
         'password'     => '',
-        'database'     => '',
+        'database'     => 'codeigniter_admin',
         'DBDriver'     => 'MySQLi',
         'DBPrefix'     => '',
         'pConnect'     => false,

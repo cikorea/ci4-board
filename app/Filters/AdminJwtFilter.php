@@ -9,7 +9,7 @@ use CodeIgniter\HTTP\ResponseInterface;
 
 /**
  * 관리자 JWT 인증 필터.
- * type === 'admin' && group_idx === 1 인 토큰만 허용한다.
+ * type === 'admin' && role ∈ {superadmin, manager} 인 토큰만 허용한다.
  */
 class AdminJwtFilter implements FilterInterface
 {
@@ -31,7 +31,8 @@ class AdminJwtFilter implements FilterInterface
                 ->setJSON(['success' => false, 'data' => null, 'message' => '유효하지 않은 토큰입니다.']);
         }
 
-        if (($payload->type ?? '') !== 'admin' || (int) ($payload->group_idx ?? 0) !== 1) {
+        $allowedRoles = ['superadmin', 'manager'];
+        if (($payload->type ?? '') !== 'admin' || ! in_array($payload->role ?? '', $allowedRoles, true)) {
             return service('response')
                 ->setStatusCode(403)
                 ->setJSON(['success' => false, 'data' => null, 'message' => '관리자 권한이 필요합니다.']);

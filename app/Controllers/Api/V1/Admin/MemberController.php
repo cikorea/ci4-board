@@ -2,6 +2,7 @@
 
 namespace App\Controllers\Api\V1\Admin;
 
+use App\Models\Admin\AdminLogModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
 /**
@@ -90,7 +91,20 @@ class MemberController extends BaseAdminApiController
             $data['client_ip_update_password'] = $ip;
         }
 
+        $before = array_intersect_key($user, array_flip(['group_idx', 'status', 'nickname', 'email']));
         $db->table('tb_users')->where('idx', $idx)->update($data);
+
+        $logModel = new AdminLogModel();
+        $logModel->record(
+            $this->getUserIdx(),
+            'member.update',
+            'tb_users',
+            $idx,
+            $before,
+            array_intersect_key($data, array_flip(['group_idx', 'status', 'nickname', 'email'])),
+            $ip,
+            $this->request->getUserAgent()->getAgentString()
+        );
 
         return $this->success(null, lang('Api.admin_member_updated'));
     }

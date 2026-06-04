@@ -2,6 +2,7 @@
 
 namespace App\Controllers\Api\V1\Admin;
 
+use App\Models\Admin\AdminLogModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
 /**
@@ -130,6 +131,18 @@ class ArticleController extends BaseAdminApiController
             'client_ip_update' => $this->request->getIPAddress(),
             'exec_user_idx'    => $this->getUserIdx(),
         ]);
+
+        $logModel = new AdminLogModel();
+        $logModel->record(
+            $this->getUserIdx(),
+            'article.delete',
+            'tb_bbs_article',
+            $idx,
+            ['title' => $post['title'] ?? ''],
+            null,
+            $this->request->getIPAddress(),
+            $this->request->getUserAgent()->getAgentString()
+        );
 
         clear_home_cache();
 

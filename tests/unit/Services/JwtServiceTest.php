@@ -77,12 +77,13 @@ final class JwtServiceTest extends CIUnitTestCase
 
     public function testIssueAdminAccessHasAdminType(): void
     {
-        $adminUser = array_merge($this->fakeUser, ['group_idx' => 1, 'group_name' => '최고관리자']);
+        $adminUser = array_merge($this->fakeUser, ['role' => 'superadmin']);
         $token     = JwtService::issueAdminAccess($adminUser);
         $payload   = JwtService::decode($token);
 
         $this->assertSame('admin', $payload->type);
-        $this->assertSame(1, $payload->group_idx);
+        $this->assertSame('superadmin', $payload->role);
+        $this->assertFalse(isset($payload->group_idx));
     }
 
     // ------------------------------------------------------------------ //

@@ -45,7 +45,7 @@ final class ArticleApiTest extends CIUnitTestCase
         $this->db->table('tb_bbs_article_revision')->truncate();
         $this->db->table('tb_bbs_article')->truncate();
         $this->db->table('tb_users_token')->truncate();
-        $this->db->table('tb_users')->where('user_id !=', 'admin')->delete();
+        $this->db->table('tb_users')->truncate();
         $this->db->query('SET FOREIGN_KEY_CHECKS = 1');
     }
 
@@ -59,6 +59,19 @@ final class ArticleApiTest extends CIUnitTestCase
             'name'                   => '테스트유저',
             'nickname'               => '테스터',
             'email'                  => 'test@example.com',
+            'timezone'               => '+09',
+            'status'                 => 1,
+            'timestamp_insert'       => time(),
+            'client_ip_insert'       => '127.0.0.1',
+        ]);
+        $this->db->table('tb_users')->insert([
+            'user_id'                => 'anotheruser',
+            'super_secured_password' => password_hash('Another1234!', PASSWORD_BCRYPT),
+            'level'                  => 1,
+            'group_idx'              => 2,
+            'name'                   => '다른유저',
+            'nickname'               => '다른유저',
+            'email'                  => 'another@example.com',
             'timezone'               => '+09',
             'status'                 => 1,
             'timestamp_insert'       => time(),
@@ -205,13 +218,13 @@ final class ArticleApiTest extends CIUnitTestCase
 
     public function testArticleUpdateByNonOwnerReturns403(): void
     {
-        $ownerToken = $this->login('testuser', 'Test1234!');
-        $articleIdx = $this->createArticle($ownerToken);
-        $adminToken = $this->login('admin', 'admin1234');
+        $ownerToken   = $this->login('testuser', 'Test1234!');
+        $articleIdx   = $this->createArticle($ownerToken);
+        $anotherToken = $this->login('anotheruser', 'Another1234!');
 
-        // 관리자 계정도 소유자가 아니면 403
+        // 다른 회원은 소유자가 아니면 403
         $result = $this->withBodyFormat('json')
-                       ->withHeaders(['Authorization' => "Bearer {$adminToken}"])
+                       ->withHeaders(['Authorization' => "Bearer {$anotherToken}"])
                        ->put('/api/v1/boards/' . self::BBS . '/articles/' . $articleIdx, [
                            'title'    => '무단 수정',
                            'contents' => '내용',

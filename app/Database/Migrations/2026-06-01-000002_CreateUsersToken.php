@@ -6,6 +6,13 @@ use CodeIgniter\Database\Migration;
 
 class CreateUsersToken extends Migration
 {
+    protected $DBGroup = 'default';
+
+    public function getDBGroup(): ?string
+    {
+        return ENVIRONMENT === 'testing' ? null : 'default';
+    }
+
     public function up(): void
     {
         $this->db->query("

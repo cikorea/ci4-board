@@ -6,6 +6,13 @@ use CodeIgniter\Database\Migration;
 
 class CreateCmsSchema extends Migration
 {
+    protected $DBGroup = 'default';
+
+    public function getDBGroup(): ?string
+    {
+        return ENVIRONMENT === 'testing' ? null : 'default';
+    }
+
     private array $tables = [
         'tb_cms_menu',
         'tb_cms_popup',

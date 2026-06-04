@@ -51,16 +51,15 @@ class JwtService
     {
         $now = time();
         return JWT::encode([
-            'iss'        => 'ci4-board',
-            'sub'        => (int) $user['idx'],
-            'type'       => 'admin',
-            'user_id'    => $user['user_id'],
-            'nickname'   => $user['nickname'],
-            'email'      => $user['email'],
-            'group_idx'  => (int) $user['group_idx'],
-            'group_name' => $user['group_name'] ?? '',
-            'iat'        => $now,
-            'exp'        => $now + self::ACCESS_TTL,
+            'iss'      => 'ci4-board',
+            'sub'      => (int) $user['idx'],
+            'type'     => 'admin',
+            'user_id'  => $user['user_id'],
+            'nickname' => $user['nickname'],
+            'email'    => $user['email'],
+            'role'     => $user['role'],
+            'iat'      => $now,
+            'exp'      => $now + self::ACCESS_TTL,
         ], self::secret(), self::ALGO);
     }
 
@@ -125,6 +124,11 @@ class JwtService
     public static function isAdmin(): bool
     {
         return (int) (self::$currentUser?->group_idx ?? 0) === 1;
+    }
+
+    public static function getAdminRole(): string
+    {
+        return (string) (self::$currentUser?->role ?? '');
     }
 
     // ------------------------------------------------------------------ //

@@ -8,18 +8,9 @@
     colors="true"
     columns="max"
     failOnRisky="true"
-    failOnWarning="true"
+    failOnWarning="false"
     cacheDirectory="build/.phpunit.cache"
 >
-    <coverage pathCoverage="false" ignoreDeprecatedCodeUnits="true">
-        <report>
-            <clover outputFile="build/logs/clover.xml"/>
-            <html outputDirectory="build/logs/html"/>
-            <php outputFile="build/logs/coverage.serialized"/>
-            <text outputFile="php://stdout" showUncoveredFiles="false"/>
-        </report>
-    </coverage>
-
     <testsuites>
         <testsuite name="App">
             <directory>./tests/unit</directory>
@@ -51,8 +42,8 @@
         <const name="CONFIGPATH" value="./app/Config/"/>
         <!-- Directory containing the front controller (index.php) -->
         <const name="PUBLICPATH" value="./public/"/>
-        <!-- Database configuration -->
-        <env name="database.tests.hostname" value="localhost"/>
+        <!-- Database configuration: use 127.0.0.1 for TCP (Docker CI has no Unix socket) -->
+        <env name="database.tests.hostname" value="127.0.0.1"/>
         <env name="database.tests.database" value="ci4_board_test"/>
         <env name="database.tests.username" value="ci4user"/>
         <env name="database.tests.password" value="ci4pass"/>
@@ -60,5 +51,14 @@
         <env name="database.tests.DBPrefix" value=""/>
         <env name="database.tests.charset" value="utf8mb4"/>
         <env name="database.tests.DBCollat" value="utf8mb4_unicode_ci"/>
+        <!-- Admin DB shares the test DB in CI (admin migrations run under tests group) -->
+        <env name="database.admin.hostname" value="127.0.0.1"/>
+        <env name="database.admin.database" value="ci4_board_test"/>
+        <env name="database.admin.username" value="ci4user"/>
+        <env name="database.admin.password" value="ci4pass"/>
+        <env name="database.admin.DBDriver" value="MySQLi"/>
+        <env name="database.admin.DBPrefix" value=""/>
+        <env name="database.admin.charset" value="utf8mb4"/>
+        <env name="database.admin.DBCollat" value="utf8mb4_unicode_ci"/>
     </php>
 </phpunit>

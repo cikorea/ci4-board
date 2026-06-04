@@ -46,7 +46,7 @@ final class FileUploadApiTest extends CIUnitTestCase
         $this->db->table('tb_bbs_article_revision')->truncate();
         $this->db->table('tb_bbs_article')->truncate();
         $this->db->table('tb_users_token')->truncate();
-        $this->db->table('tb_users')->where('user_id !=', 'admin')->delete();
+        $this->db->table('tb_users')->truncate();
         $this->db->query('SET FOREIGN_KEY_CHECKS = 1');
     }
 
