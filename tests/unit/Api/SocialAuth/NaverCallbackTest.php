@@ -60,7 +60,7 @@ final class NaverCallbackTest extends CIUnitTestCase
         $result->assertStatus(500);
         $body = $this->decodeJSON($result->getJSON());
         $this->assertFalse($body['success']);
-        $this->assertStringContainsString('NAVER_CLIENT_ID', $body['message']);
+        $this->assertStringContainsString('소셜 로그인 초기화에 실패했습니다', $body['message']);
     }
 
     public function testRedirectReturns500WhenOnlyClientIdSet(): void

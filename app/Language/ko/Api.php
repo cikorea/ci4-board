@@ -175,4 +175,10 @@ return [
     'social_auth_error'           => '{0} 인증 처리 중 오류가 발생했습니다.',
     'social_user_info_error'      => '사용자 정보를 불러올 수 없습니다.',
     'social_login_success'        => '소셜 로그인 성공',
+    'social_init_failed'          => '소셜 로그인 초기화에 실패했습니다.',
+
+    // Misc
+    'message_self_send'           => '자기 자신에게 쪽지를 보낼 수 없습니다.',
+    'cms_menu_reorder_failed'     => '순서 저장 중 오류가 발생했습니다.',
+    'cms_menu_has_children'       => '하위 메뉴가 있어 삭제할 수 없습니다. 하위 메뉴를 먼저 삭제해주세요.',
 ];

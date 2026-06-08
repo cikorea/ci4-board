@@ -292,7 +292,7 @@ class AuthController extends BaseApiController
         $user    = $this->users->find($userIdx);
 
         if (! password_verify($currentPw, $user['super_secured_password'] ?? '')) {
-            return $this->fail(lang('App.msg_wrong_current_pw'), 422);
+            return $this->failValidation([], lang('App.msg_wrong_current_pw'));
         }
 
         $errors = [];
@@ -360,7 +360,7 @@ class AuthController extends BaseApiController
         $user     = $this->users->find($userIdx);
 
         if (! password_verify($password, $user['super_secured_password'] ?? '')) {
-            return $this->fail(lang('App.msg_withdraw_wrong_pw'), 422);
+            return $this->failValidation([], lang('App.msg_withdraw_wrong_pw'));
         }
 
         $this->users->update($userIdx, [

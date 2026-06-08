@@ -34,7 +34,8 @@ class SocialAuthController extends BaseController
             $oauth = new GoogleOAuthService();
             ['url' => $url, 'state' => $state] = $oauth->getAuthorizationUrl();
         } catch (\RuntimeException $e) {
-            return $this->fail($e->getMessage(), 500);
+            log_message('error', '[GoogleOAuth] init error: ' . $e->getMessage());
+            return $this->failServerError(lang('Api.social_init_failed'));
         }
 
         session()->set('oauth2_google_state', $state);
@@ -177,7 +178,8 @@ class SocialAuthController extends BaseController
             $oauth = new KakaoOAuthService();
             ['url' => $url, 'state' => $state] = $oauth->getAuthorizationUrl();
         } catch (\RuntimeException $e) {
-            return $this->fail($e->getMessage(), 500);
+            log_message('error', '[KakaoOAuth] init error: ' . $e->getMessage());
+            return $this->failServerError(lang('Api.social_init_failed'));
         }
 
         session()->set('oauth2_kakao_state', $state);
@@ -312,7 +314,8 @@ class SocialAuthController extends BaseController
             $oauth = new NaverOAuthService();
             ['url' => $url, 'state' => $state] = $oauth->getAuthorizationUrl();
         } catch (\RuntimeException $e) {
-            return $this->fail($e->getMessage(), 500);
+            log_message('error', '[NaverOAuth] init error: ' . $e->getMessage());
+            return $this->failServerError(lang('Api.social_init_failed'));
         }
 
         session()->set('oauth2_naver_state', $state);

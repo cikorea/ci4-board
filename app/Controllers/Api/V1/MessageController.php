@@ -152,7 +152,7 @@ class MessageController extends BaseApiController
 
         $userIdx = $this->getUserIdx();
         if ($receiver['idx'] == $userIdx) {
-            return $this->fail('자기 자신에게 쪽지를 보낼 수 없습니다.', 422);
+            return $this->failValidation([], lang('Api.message_self_send'));
         }
 
         $this->model->send([

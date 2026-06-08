@@ -126,4 +126,10 @@ return [
     'social_auth_error'           => 'An error occurred during {0} authentication.',
     'social_user_info_error'      => 'Failed to retrieve user information.',
     'social_login_success'        => 'Social login successful.',
+    'social_init_failed'          => 'Failed to initialize social login.',
+
+    // Misc
+    'message_self_send'           => 'You cannot send a message to yourself.',
+    'cms_menu_reorder_failed'     => 'An error occurred while saving the order.',
+    'cms_menu_has_children'       => 'Cannot delete a menu that has children. Please delete the child menus first.',
 ];

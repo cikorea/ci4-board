@@ -68,4 +68,14 @@ trait ApiResponse
     {
         return $this->fail($message, 422, $errors);
     }
+
+    protected function failConflict(string $message, array $errors = []): ResponseInterface
+    {
+        return $this->fail($message, 409, $errors);
+    }
+
+    protected function failServerError(string $message = '서버 오류가 발생했습니다.'): ResponseInterface
+    {
+        return $this->fail($message, 500);
+    }
 }

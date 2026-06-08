@@ -306,12 +306,10 @@ class LibraryController extends BaseApiController
 
         $usages = $this->lib->findUsages($row);
         if ($usages) {
-            return $this->response->setStatusCode(409)->setJSON([
-                'success' => false,
-                'data'    => null,
-                'message' => lang('Api.library_delete_in_use', [count($usages)]),
-                'usages'  => $usages,
-            ]);
+            return $this->failConflict(
+                lang('Api.library_delete_in_use', [count($usages)]),
+                ['usages' => $usages]
+            );
         }
 
         $this->lib->deleteFile($idx);
