@@ -122,7 +122,7 @@ class FileController extends BaseApiController
         }
 
         if (empty($result) && $errors) {
-            return $this->fail(implode(' ', $errors), 422);
+            return $this->failValidation($errors);
         }
 
         return $this->created(['uploaded' => $result, 'errors' => $errors ?: null]);

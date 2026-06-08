@@ -164,7 +164,7 @@ class MenuController extends BaseAdminApiController
         $db->transComplete();
 
         if (! $db->transStatus()) {
-            return $this->fail('순서 저장 중 오류가 발생했습니다.', 500);
+            return $this->failServerError(lang('Api.cms_menu_reorder_failed'));
         }
 
         return $this->success(null, lang('Api.cms_menu_reordered'));
@@ -270,7 +270,7 @@ class MenuController extends BaseAdminApiController
         // 하위 메뉴가 있으면 삭제 거부
         $childCount = $db->table('tb_cms_menu')->where('parent_idx', $idx)->countAllResults();
         if ($childCount > 0) {
-            return $this->fail('하위 메뉴가 있어 삭제할 수 없습니다. 하위 메뉴를 먼저 삭제해주세요.', 422);
+            return $this->failConflict(lang('Api.cms_menu_has_children'));
         }
 
         $db->table('tb_cms_menu')->where('idx', $idx)->delete();
