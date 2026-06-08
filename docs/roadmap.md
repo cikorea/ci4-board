@@ -472,12 +472,12 @@ tb_cms_menu          (idx, parent_idx, label, url, target, sequence, is_used)
 - [x] 태그/URL insert를 `insertBatch()`로 전환
 - [x] Admin `BoardController` 설정 저장 루프 → upsert 전환
 
-### Phase 10 — 파일 라이브러리 🔄 진행 중
+### Phase 10 — 파일 라이브러리 ✅ 완료
 
-- [ ] `tb_file_library` 테이블 마이그레이션
-- [ ] 어드민 파일 라이브러리 API (업로드·목록·수정·삭제·사용처 조회)
-- [ ] 사용자 개인 파일 관리 API (본인 파일 CRUD)
-- [ ] 통합 테스트 작성
+- [x] `tb_file_library` 테이블 마이그레이션
+- [x] 어드민 파일 라이브러리 API (업로드·목록·수정·삭제·사용처 조회)
+- [x] 사용자 개인 파일 관리 API (본인 파일 CRUD)
+- [x] 통합 테스트 작성
 
 ### Phase 11 — 디자인 템플릿 시스템
 
