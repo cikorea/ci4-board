@@ -304,6 +304,20 @@ php spark stats:collect --date=2026-06-01
 
 ---
 
+## CI/CD
+
+[![CI](https://github.com/pushwing/ci4-board/actions/workflows/ci.yml/badge.svg)](https://github.com/pushwing/ci4-board/actions/workflows/ci.yml)
+
+`develop` / `master` push 및 `master` PR 시 GitHub Actions가 자동 실행됩니다.
+
+| 검사 항목 | 내용 |
+|----------|------|
+| PHPStan 레벨 3 | 정적 타입 분석 |
+| PHPUnit | 187개 통합 테스트 |
+| swagger:generate --validate | OpenAPI 스펙 유효성 검사 |
+
+---
+
 ## 코드 품질
 
 ```bash
@@ -355,7 +369,7 @@ ci4-board/
 │   │   ├── JwtService.php
 │   │   └── *OAuthService.php
 │   ├── Traits/
-│   │   └── ApiResponse.php                표준 JSON 응답
+│   │   └── ApiResponse.php                표준 JSON 응답 (success/fail/failConflict 등)
 │   ├── Views/
 │   │   └── errors/                        에러 페이지 (프레임워크)
 │   ├── Language/                          ko / en
