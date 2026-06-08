@@ -101,7 +101,7 @@ cd ci4-board-web   && npm run dev        # 사용자 프론트 (:3000)
 - **Database** — MySQL 5.7+ / MariaDB 10.4+ (서비스 DB + Admin DB 분리)
 - **인증** — JWT (`firebase/php-jwt ^7.0`), OAuth2 (`league/oauth2-client`)
 - **Package Manager** — Composer
-- **Test** — PHPUnit 10.5+ (162개)
+- **Test** — PHPUnit 10.5+ (187개)
 - **정적 분석** — PHPStan 2.2+ (레벨 3)
 
 ---
@@ -310,7 +310,7 @@ php spark stats:collect --date=2026-06-01
 # 정적 분석
 vendor/bin/phpstan analyse --level=3
 
-# 테스트 (162개)
+# 테스트 (187개)
 vendor/bin/phpunit --testdox
 
 # OpenAPI 스펙 재생성 및 검증
