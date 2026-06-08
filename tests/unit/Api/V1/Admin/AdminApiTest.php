@@ -325,4 +325,125 @@ final class AdminApiTest extends CIUnitTestCase
                              ->delete('/api/admin/v1/articles/' . $articleIdx);
         $deleteResult->assertStatus(200);
     }
+
+    // ------------------------------------------------------------------ //
+    // GET /api/admin/v1/stats
+    // ------------------------------------------------------------------ //
+
+    public function testAdminStatsReturnsOk(): void
+    {
+        $this->cleanAdminData();
+
+        $token  = $this->adminLogin();
+        $result = $this->withHeaders(['Authorization' => "Bearer {$token}"])
+                       ->get('/api/admin/v1/stats');
+
+        $result->assertStatus(200);
+        $result->assertJSONFragment(['success' => true]);
+        $data = json_decode($result->getJSON(), true)['data'];
+        $this->assertArrayHasKey('stats', $data);
+        $this->assertSame([], $data['stats']);
+    }
+
+    // ------------------------------------------------------------------ //
+    // GET /api/admin/v1/logs
+    // ------------------------------------------------------------------ //
+
+    public function testAdminLogsReturnsOk(): void
+    {
+        $this->cleanAdminData();
+
+        $token  = $this->adminLogin();
+        $result = $this->withHeaders(['Authorization' => "Bearer {$token}"])
+                       ->get('/api/admin/v1/logs');
+
+        $result->assertStatus(200);
+        $result->assertJSONFragment(['success' => true]);
+        $data = json_decode($result->getJSON(), true)['data'];
+        $this->assertSame([], $data);
+    }
+
+    // ------------------------------------------------------------------ //
+    // GET /api/admin/v1/notices
+    // ------------------------------------------------------------------ //
+
+    public function testAdminNoticeListReturnsOk(): void
+    {
+        $this->cleanAdminData();
+
+        $token  = $this->adminLogin();
+        $result = $this->withHeaders(['Authorization' => "Bearer {$token}"])
+                       ->get('/api/admin/v1/notices');
+
+        $result->assertStatus(200);
+        $result->assertJSONFragment(['success' => true]);
+        $body = json_decode($result->getJSON(), true);
+        $this->assertArrayHasKey('data', $body);
+        $this->assertIsArray($body['data']);
+    }
+
+    public function testAdminNoticeCreateValidation(): void
+    {
+        $this->cleanAdminData();
+
+        $token  = $this->adminLogin();
+        $result = $this->withBodyFormat('json')
+                       ->withHeaders(['Authorization' => "Bearer {$token}"])
+                       ->post('/api/admin/v1/notices', [
+                           'contents' => '제목 없는 공지',
+                       ]);
+
+        $result->assertStatus(422);
+        $result->assertJSONFragment(['success' => false]);
+    }
+
+    public function testAdminNoticeCrudFlow(): void
+    {
+        $this->cleanAdminData();
+
+        $token = $this->adminLogin();
+
+        // 공지 등록
+        $createResult = $this->withBodyFormat('json')
+                             ->withHeaders(['Authorization' => "Bearer {$token}"])
+                             ->post('/api/admin/v1/notices', [
+                                 'title'     => '테스트 공지',
+                                 'contents'  => '테스트 공지 내용',
+                                 'is_pinned' => true,
+                             ]);
+        $createResult->assertStatus(200);
+        $createResult->assertJSONFragment(['success' => true]);
+        $noticeIdx = (int) (json_decode($createResult->getJSON(), true)['data']['idx'] ?? 0);
+        $this->assertGreaterThan(0, $noticeIdx);
+
+        // 공지 목록 확인
+        $listResult = $this->withHeaders(['Authorization' => "Bearer {$token}"])
+                           ->get('/api/admin/v1/notices');
+        $listResult->assertStatus(200);
+        $listTitles = array_column(json_decode($listResult->getJSON(), true)['data'], 'title');
+        $this->assertContains('테스트 공지', $listTitles);
+
+        // 공지 삭제
+        $deleteResult = $this->withHeaders(['Authorization' => "Bearer {$token}"])
+                             ->delete('/api/admin/v1/notices/' . $noticeIdx);
+        $deleteResult->assertStatus(200);
+        $deleteResult->assertJSONFragment(['success' => true]);
+
+        // 없는 공지 삭제 시 404
+        $notFoundResult = $this->withHeaders(['Authorization' => "Bearer {$token}"])
+                               ->delete('/api/admin/v1/notices/' . $noticeIdx);
+        $notFoundResult->assertStatus(404);
+    }
+
+    /**
+     * Stats/Logs/Notices 는 admin DB(ci4_board_admin) 를 사용하므로
+     * 별도 연결로 관련 테이블을 정리한다. (기존 cleanTestData 와 분리)
+     */
+    private function cleanAdminData(): void
+    {
+        $adminDb = \Config\Database::connect('admin');
+        $adminDb->table('tb_admin_notice')->truncate();
+        $adminDb->table('tb_admin_log')->truncate();
+        $adminDb->table('tb_stats_daily')->truncate();
+    }
 }
