@@ -131,4 +131,12 @@ return [
     // Misc
     'cms_menu_reorder_failed'     => 'An error occurred while saving the order.',
     'cms_menu_has_children'       => 'Cannot delete a menu that has children. Please delete the child menus first.',
+
+    // Spam Filter
+    'spam_cooldown'         => 'You are posting too quickly. Please wait {0} seconds and try again.',
+    'spam_duplicate'        => 'You cannot post the same content twice.',
+    'spam_title_too_short'  => 'Title must be at least {0} characters.',
+    'spam_content_too_short'=> 'Content must be at least {0} characters.',
+    'spam_repeated_chars'   => 'Please avoid repeating the same character excessively.',
+    'spam_too_many_urls'    => 'You cannot include {0} or more URLs in the content.',
 ];

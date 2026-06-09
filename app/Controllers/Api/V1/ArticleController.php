@@ -2,6 +2,7 @@
 
 namespace App\Controllers\Api\V1;
 
+use App\Libraries\SpamFilter;
 use App\Models\ArticleModel;
 use App\Models\BbsModel;
 use App\Models\CommentModel;
@@ -152,7 +153,13 @@ class ArticleController extends BaseApiController
             return $this->failValidation([], lang('Api.article_title_required'));
         }
 
-        $userIdx    = $this->getUserIdx();
+        $userIdx = $this->getUserIdx();
+
+        $spam = new SpamFilter();
+        if ($msg = $spam->check($userIdx, $title, $contents)) {
+            return $this->failValidation([], $msg);
+        }
+
         $articleIdx = $this->article->writeArticle([
             'bbs_idx'          => $board['idx'],
             'user_idx'         => $userIdx,
@@ -172,6 +179,7 @@ class ArticleController extends BaseApiController
         if ($tags) $this->article->saveTagsForArticle($board['idx'], $articleIdx, $tags);
         if ($urls) $this->article->saveUrlsForArticle($board['idx'], $articleIdx, $urls);
 
+        $spam->recordPost($userIdx, $title, $contents);
         clear_home_cache();
 
         return $this->created(['idx' => $articleIdx], lang('Api.article_created'));
