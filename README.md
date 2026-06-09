@@ -101,7 +101,7 @@ cd ci4-board-web   && npm run dev        # 사용자 프론트 (:3000)
 - **Database** — MySQL 5.7+ / MariaDB 10.4+ (서비스 DB + Admin DB 분리)
 - **인증** — JWT (`firebase/php-jwt ^7.0`), OAuth2 (`league/oauth2-client`)
 - **Package Manager** — Composer
-- **Test** — PHPUnit 10.5+ (187개)
+- **Test** — PHPUnit 10.5+ (193개)
 - **정적 분석** — PHPStan 2.2+ (레벨 3)
 
 ---
@@ -117,7 +117,7 @@ cd ci4-board-web   && npm run dev        # 사용자 프론트 (:3000)
 ### 2. 저장소 클론 및 의존성 설치
 
 ```bash
-git clone https://github.com/pushwing/ci4-board.git
+git clone https://github.com/cikorea/ci4-board.git
 cd ci4-board
 composer install
 ```
@@ -258,6 +258,23 @@ curl http://localhost:8080/api/v1/boards \
 
 ---
 
+## 스팸 필터
+
+게시글 작성(`POST /api/v1/boards/:id/articles`) 시 `SpamFilter` 라이브러리가 자동으로 적용됩니다.
+
+| 검사 항목 | 기준 | 응답 |
+|----------|------|------|
+| 쿨다운 | 동일 사용자 30초 이내 재작성 차단 | 422 |
+| 중복 감지 | 5분 이내 동일 제목+내용 재작성 차단 | 422 |
+| 반복 문자 | 같은 문자 10개 이상 연속 | 422 |
+| URL 과다 | 본문 URL 5개 이상 | 422 |
+| 최소 제목 길이 | 2자 미만 | 422 |
+| 최소 내용 길이 | 10자 미만 | 422 |
+
+> 쿨다운·중복 감지는 CI4 file 캐시(IP 무관, **사용자 기준**)를 사용합니다.
+
+---
+
 ## 소셜 로그인
 
 Google, 네이버, 카카오 OAuth2 로그인을 지원합니다.
@@ -306,14 +323,14 @@ php spark stats:collect --date=2026-06-01
 
 ## CI/CD
 
-[![CI](https://github.com/pushwing/ci4-board/actions/workflows/ci.yml/badge.svg)](https://github.com/pushwing/ci4-board/actions/workflows/ci.yml)
+[![CI](https://github.com/cikorea/ci4-board/actions/workflows/ci.yml/badge.svg)](https://github.com/cikorea/ci4-board/actions/workflows/ci.yml)
 
 `develop` / `master` push 및 `master` PR 시 GitHub Actions가 자동 실행됩니다.
 
 | 검사 항목 | 내용 |
 |----------|------|
 | PHPStan 레벨 3 | 정적 타입 분석 |
-| PHPUnit | 187개 통합 테스트 |
+| PHPUnit | 193개 통합 테스트 |
 | swagger:generate --validate | OpenAPI 스펙 유효성 검사 |
 
 ---
@@ -324,7 +341,7 @@ php spark stats:collect --date=2026-06-01
 # 정적 분석
 vendor/bin/phpstan analyse --level=3
 
-# 테스트 (187개)
+# 테스트 (193개)
 vendor/bin/phpunit --testdox
 
 # OpenAPI 스펙 재생성 및 검증
@@ -365,6 +382,8 @@ ci4-board/
 │   │   ├── Admin/                         Admin DB 전용 모델
 │   │   ├── FileLibraryModel.php           파일 라이브러리 모델
 │   │   └── ...
+│   ├── Libraries/
+│   │   └── SpamFilter.php                 게시글 스팸 필터 (쿨다운·중복·반복문자·URL과다·최소길이)
 │   ├── Services/
 │   │   ├── JwtService.php
 │   │   └── *OAuthService.php
