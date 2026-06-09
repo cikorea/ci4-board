@@ -156,7 +156,7 @@ final class ArticleApiTest extends CIUnitTestCase
                        ->withHeaders(['Authorization' => "Bearer {$token}"])
                        ->post('/api/v1/boards/' . self::BBS . '/articles', [
                            'title'    => '테스트 게시글',
-                           'contents' => '내용입니다.',
+                           'contents' => '테스트 게시글 내용입니다.',
                        ]);
         $result->assertStatus(201);
         $result->assertJSONFragment(['success' => true]);
@@ -309,5 +309,109 @@ final class ArticleApiTest extends CIUnitTestCase
         $deleteResult = $this->withHeaders(['Authorization' => "Bearer {$token}"])
                              ->delete('/api/v1/boards/' . self::BBS . '/articles/' . $articleIdx . '/comments/' . $commentIdx);
         $deleteResult->assertStatus(200);
+    }
+
+    // ------------------------------------------------------------------ //
+    // 스팸 필터
+    // ------------------------------------------------------------------ //
+
+    public function testSpamCooldownBlocksQuickRepost(): void
+    {
+        $token = $this->login('testuser', 'Test1234!');
+
+        $first = $this->withBodyFormat('json')
+                      ->withHeaders(['Authorization' => "Bearer {$token}"])
+                      ->post('/api/v1/boards/' . self::BBS . '/articles', [
+                          'title'    => '첫 번째 글',
+                          'contents' => '첫 번째 내용입니다.',
+                      ]);
+        $first->assertStatus(201);
+
+        $second = $this->withBodyFormat('json')
+                       ->withHeaders(['Authorization' => "Bearer {$token}"])
+                       ->post('/api/v1/boards/' . self::BBS . '/articles', [
+                           'title'    => '두 번째 글',
+                           'contents' => '두 번째 내용입니다.',
+                       ]);
+        $second->assertStatus(422);
+        $this->assertStringContainsString('너무 빠르게', $second->getJSON());
+    }
+
+    public function testSpamDuplicateBlocksSameContent(): void
+    {
+        $token = $this->login('testuser', 'Test1234!');
+
+        $first = $this->withBodyFormat('json')
+                      ->withHeaders(['Authorization' => "Bearer {$token}"])
+                      ->post('/api/v1/boards/' . self::BBS . '/articles', [
+                          'title'    => '중복 테스트 글',
+                          'contents' => '중복 테스트 내용입니다.',
+                      ]);
+        $first->assertStatus(201);
+
+        // 쿨다운 캐시만 제거해 중복 검사까지 도달
+        $userRow = $this->db->table('tb_users')->where('user_id', 'testuser')->get()->getRowArray();
+        service('cache')->delete('spam_cd_' . $userRow['idx']);
+
+        $second = $this->withBodyFormat('json')
+                       ->withHeaders(['Authorization' => "Bearer {$token}"])
+                       ->post('/api/v1/boards/' . self::BBS . '/articles', [
+                           'title'    => '중복 테스트 글',
+                           'contents' => '중복 테스트 내용입니다.',
+                       ]);
+        $second->assertStatus(422);
+        $this->assertStringContainsString('중복', $second->getJSON());
+    }
+
+    public function testSpamRepeatedCharsBlocked(): void
+    {
+        $token  = $this->login('testuser', 'Test1234!');
+        $result = $this->withBodyFormat('json')
+                       ->withHeaders(['Authorization' => "Bearer {$token}"])
+                       ->post('/api/v1/boards/' . self::BBS . '/articles', [
+                           'title'    => '반복문자 테스트',
+                           'contents' => 'aaaaaaaaaa 반복 문자가 10개 이상입니다.',
+                       ]);
+        $result->assertStatus(422);
+        $this->assertStringContainsString('반복', $result->getJSON());
+    }
+
+    public function testSpamTooManyUrlsBlocked(): void
+    {
+        $token  = $this->login('testuser', 'Test1234!');
+        $result = $this->withBodyFormat('json')
+                       ->withHeaders(['Authorization' => "Bearer {$token}"])
+                       ->post('/api/v1/boards/' . self::BBS . '/articles', [
+                           'title'    => 'URL 스팸 테스트',
+                           'contents' => 'https://a.com https://b.com https://c.com https://d.com https://e.com 링크 다섯 개',
+                       ]);
+        $result->assertStatus(422);
+        $this->assertStringContainsString('URL', $result->getJSON());
+    }
+
+    public function testSpamContentTooShortBlocked(): void
+    {
+        $token  = $this->login('testuser', 'Test1234!');
+        $result = $this->withBodyFormat('json')
+                       ->withHeaders(['Authorization' => "Bearer {$token}"])
+                       ->post('/api/v1/boards/' . self::BBS . '/articles', [
+                           'title'    => '짧은 내용',
+                           'contents' => '짧아요',
+                       ]);
+        $result->assertStatus(422);
+        $this->assertStringContainsString('내용', $result->getJSON());
+    }
+
+    public function testSpamTitleTooShortBlocked(): void
+    {
+        $token  = $this->login('testuser', 'Test1234!');
+        $result = $this->withBodyFormat('json')
+                       ->withHeaders(['Authorization' => "Bearer {$token}"])
+                       ->post('/api/v1/boards/' . self::BBS . '/articles', [
+                           'title'    => '가',
+                           'contents' => '충분히 긴 내용입니다. 스팸 필터 통과를 위한 내용.',
+                       ]);
+        $result->assertStatus(422);
+        $this->assertStringContainsString('제목', $result->getJSON());
     }
 }

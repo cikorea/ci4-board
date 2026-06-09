@@ -180,4 +180,12 @@ return [
     // Misc
     'cms_menu_reorder_failed'     => '순서 저장 중 오류가 발생했습니다.',
     'cms_menu_has_children'       => '하위 메뉴가 있어 삭제할 수 없습니다. 하위 메뉴를 먼저 삭제해주세요.',
+
+    // Spam Filter
+    'spam_cooldown'         => '너무 빠르게 글을 작성하고 있습니다. {0}초 후 다시 시도해주세요.',
+    'spam_duplicate'        => '동일한 내용의 글을 중복 작성할 수 없습니다.',
+    'spam_title_too_short'  => '제목은 {0}자 이상 입력해주세요.',
+    'spam_content_too_short'=> '내용은 {0}자 이상 입력해주세요.',
+    'spam_repeated_chars'   => '같은 문자를 과도하게 반복하지 마세요.',
+    'spam_too_many_urls'    => '본문에 URL을 {0}개 이상 포함할 수 없습니다.',
 ];
