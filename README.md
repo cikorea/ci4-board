@@ -149,6 +149,13 @@ database.admin.username = root
 database.admin.password =
 database.admin.DBDriver = MySQLi
 
+# Read DB (읽기 전용 Slave — 미설정 시 default와 동일하게 동작)
+# database.read.hostname = slave-server-ip
+# database.read.database = ci4_board
+# database.read.username = root
+# database.read.password =
+# database.read.DBDriver = MySQLi
+
 # JWT (반드시 변경)
 jwt.secret = your-secret-key-change-this-in-production
 
@@ -255,6 +262,27 @@ curl http://localhost:8080/api/v1/boards \
 | `tb_admin_notice` | 관리자 내부 공지 |
 | `tb_site_config` | 사이트 전역 설정 |
 | `tb_stats_daily` | 일별 통계 집계 |
+
+---
+
+## DB 읽기/쓰기 분리
+
+`ReadableModel` 트레이트로 읽기/쓰기 DB를 분리하여 Slave 추가 시 즉시 부하 분산이 가능합니다.
+
+| 구분 | 연결 그룹 | 용도 |
+|------|----------|------|
+| `$this->readDb` | `read` (Slave) | SELECT — 목록·상세·검색 |
+| `$this->db` | `default` (Master) | INSERT / UPDATE / DELETE |
+
+**적용 모델:** `ArticleModel`, `CommentModel`, `BbsModel`, `MessageModel`
+
+**Slave 추가 시** `.env` 한 줄만 변경:
+
+```ini
+database.read.hostname = slave-server-ip
+```
+
+> `database.read.*` 미설정 시 자동으로 `default`(Master)로 폴백하여 단일 DB 환경에서도 에러 없이 동작합니다.
 
 ---
 
@@ -388,7 +416,8 @@ ci4-board/
 │   │   ├── JwtService.php
 │   │   └── *OAuthService.php
 │   ├── Traits/
-│   │   └── ApiResponse.php                표준 JSON 응답 (success/fail/failConflict 등)
+│   │   ├── ApiResponse.php                표준 JSON 응답 (success/fail/failConflict 등)
+│   │   └── ReadableModel.php              읽기/쓰기 DB 분리 (readDb→Slave, db→Master)
 │   ├── Views/
 │   │   └── errors/                        에러 페이지 (프레임워크)
 │   ├── Language/                          ko / en
