@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\ReadableModel;
 use CodeIgniter\Model;
 
 /**
@@ -11,6 +12,8 @@ use CodeIgniter\Model;
  */
 class BbsModel extends Model
 {
+    use ReadableModel;
+
     protected $table         = 'tb_bbs';
     protected $primaryKey    = 'idx';
     protected $returnType    = 'array';
@@ -25,6 +28,12 @@ class BbsModel extends Model
         'bbs_allow_group_write_comment',
     ];
 
+    public function __construct()
+    {
+        parent::__construct();
+        $this->initReadDb();
+    }
+
     /**
      * @api {model} /model/BbsModel/getActiveBoards BbsModel::getActiveBoards
      * @apiName BbsModel_getActiveBoards
@@ -37,7 +46,7 @@ class BbsModel extends Model
      */
     public function getActiveBoards(): array
     {
-        $rows = $this->db->table('tb_bbs b')
+        $rows = $this->readDb->table('tb_bbs b')
             ->select('b.idx, b.bbs_id, sn.value AS bbs_name, sl.value AS list_count, sp.value AS view_list_raw')
             ->join('tb_bbs_setting sn', "sn.bbs_idx = b.idx AND sn.parameter = 'bbs_name'", 'left')
             ->join('tb_bbs_setting sl', "sl.bbs_idx = b.idx AND sl.parameter = 'bbs_count_list_article'", 'left')
@@ -69,7 +78,7 @@ class BbsModel extends Model
      */
     public function getByBbsId(string $bbsId): ?array
     {
-        $row = $this->db->table('tb_bbs b')
+        $row = $this->readDb->table('tb_bbs b')
             ->select('b.idx, b.bbs_id, sn.value AS bbs_name')
             ->join('tb_bbs_setting sn', "sn.bbs_idx = b.idx AND sn.parameter = 'bbs_name'", 'left')
             ->where('b.bbs_id', $bbsId)
@@ -98,7 +107,7 @@ class BbsModel extends Model
      */
     public function loadPermissions(int $bbsIdx): array
     {
-        $settings = $this->db->table('tb_bbs_setting')
+        $settings = $this->readDb->table('tb_bbs_setting')
             ->whereIn('parameter', self::PERM_PARAMS)
             ->where('bbs_idx', $bbsIdx)
             ->get()

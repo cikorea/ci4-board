@@ -52,6 +52,40 @@ class Database extends Config
     ];
 
     /**
+     * 읽기 전용 Slave DB 연결.
+     * 현재는 default와 동일 호스트를 가리키며, Slave 서버 추가 시
+     * .env 의 database.read.* 값만 변경하면 즉시 읽기/쓰기 분산이 적용된다.
+     *
+     * @var array<string, mixed>
+     */
+    public array $read = [
+        'DSN'          => '',
+        'hostname'     => 'localhost',
+        'username'     => '',
+        'password'     => '',
+        'database'     => '',
+        'DBDriver'     => 'MySQLi',
+        'DBPrefix'     => '',
+        'pConnect'     => false,
+        'DBDebug'      => true,
+        'charset'      => 'utf8mb4',
+        'DBCollat'     => 'utf8mb4_general_ci',
+        'swapPre'      => '',
+        'encrypt'      => false,
+        'compress'     => false,
+        'strictOn'     => false,
+        'failover'     => [],
+        'port'         => 3306,
+        'numberNative' => false,
+        'foundRows'    => false,
+        'dateFormat'   => [
+            'date'     => 'Y-m-d',
+            'datetime' => 'Y-m-d H:i:s',
+            'time'     => 'H:i:s',
+        ],
+    ];
+
+    /**
      * 어드민 전용 데이터베이스 연결.
      * 관리 로그, 감사 이력, 통계 등 서비스 DB와 분리된 데이터를 저장한다.
      *
@@ -231,6 +265,10 @@ class Database extends Config
         // we don't overwrite live data on accident.
         if (ENVIRONMENT === 'testing') {
             $this->defaultGroup = 'tests';
+            $this->read = $this->tests;
+        } elseif (empty($this->read['database'])) {
+            // .env에 database.read.* 미설정 시 Master(default)와 동일하게 동작
+            $this->read = $this->default;
         }
     }
 }

@@ -85,6 +85,19 @@
 # database.admin.username = root
 # database.admin.password =
 # database.admin.DBDriver = MySQLi
+
+#--------------------------------------------------------------------
+# READ DB (읽기 전용 Slave)
+# Slave 서버 추가 시 아래 값을 Slave 호스트로 변경하면 읽기/쓰기가 분산됩니다.
+# 현재 미설정 시 database.default.* 와 동일 설정이 사용됩니다.
+#--------------------------------------------------------------------
+
+# database.read.hostname = localhost
+# database.read.database = ci4_board
+# database.read.username = root
+# database.read.password =
+# database.read.DBDriver = MySQLi
+# database.read.port = 3306
 # database.admin.DBCollat = utf8mb4_general_ci
 
 #--------------------------------------------------------------------
