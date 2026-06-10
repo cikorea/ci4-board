@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\ReadableModel;
 use CodeIgniter\Model;
 
 /**
@@ -11,6 +12,8 @@ use CodeIgniter\Model;
  */
 class ArticleModel extends Model
 {
+    use ReadableModel;
+
     protected $table         = 'tb_bbs_article';
     protected $primaryKey    = 'idx';
     protected $returnType    = 'array';
@@ -31,6 +34,12 @@ class ArticleModel extends Model
     /** @var int 마지막 getList() 페이지당 수 */
     public int $_pagerPerPage = 15;
 
+    public function __construct()
+    {
+        parent::__construct();
+        $this->initReadDb();
+    }
+
     /**
      * @api {model} /model/ArticleModel/getList ArticleModel::getList
      * @apiName ArticleModel_getList
@@ -46,7 +55,7 @@ class ArticleModel extends Model
      */
     public function getList(int $bbsIdx, ?string $keyword = null, int $perPage = 15): array
     {
-        $builder = $this->db->table('tb_bbs_article a')
+        $builder = $this->readDb->table('tb_bbs_article a')
             ->select('a.idx, a.title, a.comment_count, a.vote_count, a.is_notice, a.is_secret, a.timestamp_insert, u.nickname, COALESCE(h.hit, 0) AS hit_count')
             ->join('tb_users u', 'u.idx = a.user_idx', 'left')
             ->join('tb_bbs_hit h', 'h.article_idx = a.idx AND h.bbs_idx = a.bbs_idx', 'left')
@@ -86,7 +95,7 @@ class ArticleModel extends Model
      */
     public function getArticleWithContents(int $articleIdx): ?array
     {
-        $row = $this->db->table('tb_bbs_article a')
+        $row = $this->readDb->table('tb_bbs_article a')
             ->select('a.*, c.contents, COALESCE(h.hit, 0) AS hit_count, u.nickname, u.user_id')
             ->join('tb_bbs_contents c', 'c.article_idx = a.idx', 'left')
             ->join('tb_bbs_hit h', 'h.article_idx = a.idx AND h.bbs_idx = a.bbs_idx', 'left')
@@ -111,7 +120,7 @@ class ArticleModel extends Model
      */
     public function getLatest(int $bbsIdx, int $limit = 10): array
     {
-        return $this->db->table('tb_bbs_article a')
+        return $this->readDb->table('tb_bbs_article a')
             ->select('a.idx, a.title, a.timestamp_insert, a.is_notice, a.comment_count, u.nickname, COALESCE(h.hit, 0) AS hit_count')
             ->join('tb_users u', 'u.idx = a.user_idx', 'left')
             ->join('tb_bbs_hit h', 'h.article_idx = a.idx AND h.bbs_idx = a.bbs_idx', 'left')
@@ -294,7 +303,7 @@ class ArticleModel extends Model
      */
     public function getTagsByArticle(int $articleIdx): array
     {
-        return $this->db->table('tb_bbs_tag')
+        return $this->readDb->table('tb_bbs_tag')
             ->where('article_idx', $articleIdx)
             ->orderBy('sequence', 'ASC')
             ->orderBy('idx', 'ASC')
@@ -312,7 +321,7 @@ class ArticleModel extends Model
      */
     public function getUrlsByArticle(int $articleIdx): array
     {
-        return $this->db->table('tb_bbs_url')
+        return $this->readDb->table('tb_bbs_url')
             ->where('article_idx', $articleIdx)
             ->orderBy('sequence', 'ASC')
             ->orderBy('idx', 'ASC')

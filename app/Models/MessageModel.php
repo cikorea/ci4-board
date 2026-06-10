@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\ReadableModel;
 use CodeIgniter\Model;
 
 /**
@@ -11,6 +12,8 @@ use CodeIgniter\Model;
  */
 class MessageModel extends Model
 {
+    use ReadableModel;
+
     protected $table         = 'tb_users_message';
     protected $primaryKey    = 'idx';
     protected $returnType    = 'array';
@@ -30,6 +33,12 @@ class MessageModel extends Model
     /** @var int 마지막 getInbox()/getSent() 페이지당 수 */
     public int $_perPage = 20;
 
+    public function __construct()
+    {
+        parent::__construct();
+        $this->initReadDb();
+    }
+
     /**
      * @api {model} /model/MessageModel/getInbox MessageModel::getInbox
      * @apiName MessageModel_getInbox
@@ -44,7 +53,7 @@ class MessageModel extends Model
      */
     public function getInbox(int $userIdx, int $page = 1, int $perPage = 20): array
     {
-        $builder = $this->db->table('tb_users_message m')
+        $builder = $this->readDb->table('tb_users_message m')
             ->select('m.idx, m.title, m.contents, m.timestamp_send, m.is_read,
                       s.user_id AS sender_user_id, s.nickname AS sender_nickname')
             ->join('tb_users s', 's.idx = m.sender_user_idx', 'left')
@@ -73,7 +82,7 @@ class MessageModel extends Model
      */
     public function getSent(int $userIdx, int $page = 1, int $perPage = 20): array
     {
-        $builder = $this->db->table('tb_users_message m')
+        $builder = $this->readDb->table('tb_users_message m')
             ->select('m.idx, m.title, m.contents, m.timestamp_send, m.is_read,
                       r.user_id AS receiver_user_id, r.nickname AS receiver_nickname')
             ->join('tb_users r', 'r.idx = m.receiver_user_idx', 'left')
@@ -101,7 +110,7 @@ class MessageModel extends Model
      */
     public function getOne(int $idx, int $userIdx): ?array
     {
-        return $this->db->table('tb_users_message m')
+        return $this->readDb->table('tb_users_message m')
             ->select('m.*, s.user_id AS sender_user_id, s.nickname AS sender_nickname,
                       r.user_id AS receiver_user_id, r.nickname AS receiver_nickname')
             ->join('tb_users s', 's.idx = m.sender_user_idx', 'left')
@@ -187,7 +196,7 @@ class MessageModel extends Model
      */
     public function getUnreadCount(int $userIdx): int
     {
-        return (int) $this->db->table('tb_users_message')
+        return (int) $this->readDb->table('tb_users_message')
             ->where('receiver_user_idx', $userIdx)
             ->where('is_read', 0)
             ->where('is_deleted_receiver', 0)

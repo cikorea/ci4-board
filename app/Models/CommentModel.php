@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\ReadableModel;
 use CodeIgniter\Model;
 
 /**
@@ -10,6 +11,8 @@ use CodeIgniter\Model;
  */
 class CommentModel extends Model
 {
+    use ReadableModel;
+
     protected $table         = 'tb_bbs_comment';
     protected $primaryKey    = 'idx';
     protected $returnType    = 'array';
@@ -21,6 +24,12 @@ class CommentModel extends Model
         'client_ip_insert', 'client_ip_update',
         'is_deleted', 'agent_insert',
     ];
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->initReadDb();
+    }
 
     /**
      * @api {model} /model/CommentModel/getByArticle CommentModel::getByArticle
@@ -34,7 +43,7 @@ class CommentModel extends Model
      */
     public function getByArticle(int $articleIdx): array
     {
-        return $this->db->table('tb_bbs_comment c')
+        return $this->readDb->table('tb_bbs_comment c')
             ->select('c.idx, c.user_idx, c.comment, c.vote_count, c.timestamp_insert, c.timestamp_update, c.is_deleted, u.nickname, u.user_id')
             ->join('tb_users u', 'u.idx = c.user_idx', 'left')
             ->where('c.article_idx', $articleIdx)
