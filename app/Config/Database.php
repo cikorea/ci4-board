@@ -265,8 +265,10 @@ class Database extends Config
         // we don't overwrite live data on accident.
         if (ENVIRONMENT === 'testing') {
             $this->defaultGroup = 'tests';
-            // 테스트 환경에서 read 그룹도 tests DB로 매핑
             $this->read = $this->tests;
+        } elseif (empty($this->read['database'])) {
+            // .env에 database.read.* 미설정 시 Master(default)와 동일하게 동작
+            $this->read = $this->default;
         }
     }
 }
